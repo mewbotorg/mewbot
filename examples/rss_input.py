@@ -4,14 +4,11 @@
 
 # https://www.theguardian.com/world/rss
 
-import logging
-
 from typing import Any, Dict, Set, Type
 
+from mewbot.api.v1 import Action
+from mewbot.core import InputEvent, OutputEvent
 from mewbot.io.rss import RSSInputEvent
-
-from mewbot.api.v1 import Trigger, Action
-from mewbot.core import InputEvent, OutputEvent, OutputQueue
 
 
 class RSSPrintAction(Action):
@@ -30,6 +27,7 @@ class RSSPrintAction(Action):
     async def act(self, event: InputEvent, state: Dict[str, Any]) -> None:
         if not isinstance(event, RSSInputEvent):
             print(f"Unexpected event {event}")
+            return
 
         rss_output_str = []
         rss_output_str.append(f"New event title - {event.title}")
