@@ -5,7 +5,7 @@
 -r requirements.txt
 
 black~=22.6
-flake8~=4.0
+flake8~=5.0
 mypy>=0.940
 pylint~=2.14
 reuse~=1.0
