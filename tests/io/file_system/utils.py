@@ -3,28 +3,24 @@ import asyncio
 from typing import Tuple, Optional, List, Union, Type
 
 from mewbot.api.v1 import InputEvent
+from mewbot.io.file_system import (
+    DirTypeFSInput,
+    FileTypeFSInput,
+)
 from mewbot.io.file_system.events import (
     InputFileFileCreationInputEvent,
     InputFileFileDeletionInputEvent,
     InputFileDirCreationInputEvent,
-    InputFileDirDeletionInputEvent,
-
     FileFSInputEvent,
     CreatedFileFSInputEvent,
     UpdatedFileFSInputEvent,
     MovedFileFSInputEvent,
     DeletedFileFSInputEvent,
-
     DirFSInputEvent,
     CreatedDirFSInputEvent,
     MovedDirFSInputEvent,
     UpdatedDirFSInputEvent,
     DeletedDirFSInputEvent,
-
-)
-from mewbot.io.file_system import (
-    DirTypeFSInput,
-    FileTypeFSInput,
 )
 
 
@@ -33,6 +29,24 @@ from mewbot.io.file_system import (
 
 
 class GeneralUtils:
+    @staticmethod
+    async def _get_worker(
+        output_queue: asyncio.Queue[InputEvent], rtn_event: List[InputEvent]
+    ) -> None:
+        rtn_event.append(await output_queue.get())
+
+    async def timeout_get(
+        self, output_queue: asyncio.Queue[InputEvent], timeout: float = 20.0
+    ) -> InputEvent:
+
+        rtn_event: List[InputEvent] = []
+        await asyncio.wait_for(self._get_worker(output_queue, rtn_event), timeout=timeout)
+        if len(rtn_event) == 1:
+            return rtn_event[0]
+        if len(rtn_event) == 0:
+            raise asyncio.QueueEmpty
+        raise NotImplementedError(f"Unexpected case {rtn_event}")
+
     @staticmethod
     def dump_queue_to_list(output_queue: asyncio.Queue[InputEvent]) -> List[InputEvent]:
         """
@@ -119,14 +133,16 @@ class GeneralUtils:
 
 
 class FileSystemTestUtilsFileEvents(GeneralUtils):
-
     async def process_file_event_queue_response(
         self,
         output_queue: asyncio.Queue[InputEvent],
-        event_type: Type[FileFSInputEvent],
+        event_type: Union[
+            Type[FileFSInputEvent],
+            Type[InputFileFileCreationInputEvent],
+            Type[InputFileFileDeletionInputEvent],
+        ],
         file_path: Optional[str] = None,
         allowed_queue_size: int = 0,
-        message: str = "",
     ) -> None:
         """
         Get the next event off the queue.
@@ -134,12 +150,9 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
         """
 
         # This should have generated an event
-        queue_out = await output_queue.get()
+        queue_out = await self.timeout_get(output_queue)
         self.validate_file_input_event(
-            input_event=queue_out,
-            event_type=event_type,
-            file_path=file_path,
-            message=message
+            input_event=queue_out, event_type=event_type, file_path=file_path
         )
 
         await self.verify_queue_size(output_queue, allowed_queue_size=allowed_queue_size)
@@ -150,7 +163,7 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
         event_type: Type[FileFSInputEvent],
         file_path: Optional[str] = None,
         message: str = "",
-    ):
+    ) -> None:
         if isinstance(output_queue, asyncio.Queue):
             input_events = self.dump_queue_to_list(output_queue)
         elif isinstance(output_queue, list):
@@ -164,7 +177,7 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
                     input_event=event,
                     event_type=event_type,
                     file_path=file_path,
-                    message=message
+                    message=message,
                 )
                 return
 
@@ -175,7 +188,11 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
     @staticmethod
     def validate_file_input_event(
         input_event: InputEvent,
-        event_type: Type[FileFSInputEvent],
+        event_type: Union[
+            Type[FileFSInputEvent],
+            Type[InputFileFileCreationInputEvent],
+            Type[InputFileFileDeletionInputEvent],
+        ],
         file_path: Optional[str] = None,
         message: str = "",
     ) -> None:
@@ -186,6 +203,14 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
         )
 
         if file_path is not None:
+            assert isinstance(
+                input_event,
+                (
+                    FileFSInputEvent,
+                    InputFileFileCreationInputEvent,
+                    InputFileFileDeletionInputEvent,
+                ),
+            )
             assert input_event.file_path == file_path
 
     def check_queue_for_file_creation_input_event(
@@ -204,7 +229,6 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
         else:
             raise NotImplementedError(f"{output_queue} of unsupported type")
 
-
         for event in input_events:
             if isinstance(event, CreatedFileFSInputEvent):
                 self.validate_file_creation_input_event(
@@ -215,40 +239,6 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
         raise AssertionError(
             f"CreatedFileFSInputEvent not found in input_events - {input_events}"
         )
-
-    async def process_file_creation_queue_response(
-        self,
-        output_queue: asyncio.Queue[InputEvent],
-        file_path: Optional[str] = None,
-        allow_update_events_in_queue_after: bool = False,
-        message: str = "",
-    ) -> None:
-        """
-        Get the next event off the queue.
-        Check that it's one for a file being created with expected file path.
-        """
-
-        # This should have generated an event
-        queue_out = await output_queue.get()
-        self.validate_file_creation_input_event(
-            input_event=queue_out, file_path=file_path, message=message
-        )
-
-        if not allow_update_events_in_queue_after:
-            await self.verify_queue_size(output_queue)
-        else:
-            # Exhaust the queue, checking all events are Update ones
-            # Due to some hacks to deal with how windows handles file events
-            await asyncio.sleep(1.0)
-            while True:
-                try:
-                    queue_out = output_queue.get_nowait()
-                except asyncio.queues.QueueEmpty:
-                    return
-
-                assert isinstance(
-                    queue_out, UpdatedFileFSInputEvent
-                ), f"Expected UpdatedFileFSInputEvent - got {queue_out}"
 
     @staticmethod
     def validate_file_creation_input_event(
@@ -291,24 +281,6 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
         raise AssertionError(
             f"UpdatedFileFSInputEvent not found in input_events - {input_events}"
         )
-
-    async def process_file_update_queue_response(
-        self,
-        output_queue: asyncio.Queue[InputEvent],
-        file_path: Optional[str] = None,
-        allowed_queue_size: int = 0,
-        message: str = "",
-    ) -> None:
-        """
-        Get the next event off the queue - check that it's one for the input file being deleted.
-        """
-        # This should have generated an event
-        queue_out = await output_queue.get()
-        self.validate_file_update_input_event(
-            input_event=queue_out, file_path=file_path, message=message
-        )
-
-        await self.verify_queue_size(output_queue, allowed_queue_size=allowed_queue_size)
 
     @staticmethod
     def validate_file_update_input_event(
@@ -367,7 +339,7 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
         Get the next event off the queue - check that it's one for the input file being deleted.
         """
         # This should have generated an event
-        queue_out = await output_queue.get()
+        queue_out = await self.timeout_get(output_queue)
         self.validate_file_move_input_event(
             input_event=queue_out,
             file_src_parth=file_src_parth,
@@ -422,28 +394,6 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
             f"DeletedFileFSInputEvent not found in input_events - {input_events}"
         )
 
-    async def process_file_deletion_queue_response(
-        self,
-        output_queue: asyncio.Queue[InputEvent],
-        file_path: Optional[str] = None,
-        message: str = "",
-    ) -> None:
-        """
-        Get the next event off the queue - check that it's one for the input file being deleted.
-        """
-        queue_out = await output_queue.get()
-        self.validate_file_deletion_input_event(
-            input_event=queue_out, file_path=file_path, message=message
-        )
-
-        # At this point the queue should be empty.
-        await self.verify_queue_size(output_queue)
-
-        # This should have generated an event - which we just took off the queue
-        assert isinstance(
-            queue_out, DeletedFileFSInputEvent
-        ), f"expected DeletedFileFSInputEvent - got {queue_out}"
-
     @staticmethod
     def validate_file_deletion_input_event(
         input_event: InputEvent,
@@ -470,14 +420,12 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
 
 
 class FileSystemTestUtilsDirEvents(GeneralUtils):
-
     async def process_dir_event_queue_response(
         self,
         output_queue: asyncio.Queue[InputEvent],
         event_type: Type[DirFSInputEvent],
         dir_path: Optional[str] = None,
         allowed_queue_size: int = 1,
-        message: str = "",
     ) -> None:
         """
         Get the next event off the queue.
@@ -485,12 +433,9 @@ class FileSystemTestUtilsDirEvents(GeneralUtils):
         """
 
         # This should have generated an event
-        queue_out = await output_queue.get()
+        queue_out = await self.timeout_get(output_queue)
         self.validate_dir_input_event(
-            input_event=queue_out,
-            event_type=event_type,
-            dir_path=dir_path,
-            message=message
+            input_event=queue_out, event_type=event_type, dir_path=dir_path
         )
 
         await self.verify_queue_size(output_queue, allowed_queue_size=allowed_queue_size)
@@ -501,7 +446,7 @@ class FileSystemTestUtilsDirEvents(GeneralUtils):
         event_type: Type[DirFSInputEvent],
         dir_path: Optional[str] = None,
         message: str = "",
-    ):
+    ) -> None:
         if isinstance(output_queue, asyncio.Queue):
             input_events = self.dump_queue_to_list(output_queue)
         elif isinstance(output_queue, list):
@@ -515,7 +460,7 @@ class FileSystemTestUtilsDirEvents(GeneralUtils):
                     input_event=event,
                     event_type=event_type,
                     dir_path=dir_path,
-                    message=message
+                    message=message,
                 )
                 return
 
@@ -537,32 +482,9 @@ class FileSystemTestUtilsDirEvents(GeneralUtils):
         )
 
         if dir_path is not None:
-            assert input_event.dir_path == dir_path, f"expected {dir_path}, got {input_event.dir_path}"
-
-
-
-
-
-
-
-
-    async def process_dir_creation_queue_response(
-        self,
-        output_queue: asyncio.Queue[InputEvent],
-        dir_path: Optional[str] = None,
-        message: str = "",
-    ) -> None:
-        """
-        Get the next event off the queue - check that it's one for a file being created in the
-        input dir.
-        """
-        # This should have generated an event
-        queue_out = await output_queue.get()
-        self.validate_dir_creation_input_event(
-            input_event=queue_out, dir_path=dir_path, message=message
-        )
-
-        await self.verify_queue_size(output_queue)
+            assert (
+                input_event.dir_path == dir_path
+            ), f"expected {dir_path}, got {input_event.dir_path}"
 
     @staticmethod
     def validate_dir_creation_input_event(
@@ -605,26 +527,6 @@ class FileSystemTestUtilsDirEvents(GeneralUtils):
             f"UpdatedDirFSInputEvent not found in input_events - {input_events}"
         )
 
-    async def process_dir_update_queue_response(
-        self,
-        output_queue: asyncio.Queue[InputEvent],
-        dir_path: Optional[str] = None,
-        message: str = "",
-        allowed_queue_size: int = 0,
-    ) -> None:
-        """
-        Get the next event off the queue - check that it's one for a file being created in the
-        input dir.
-        """
-
-        # This should have generated an event
-        queue_out = await output_queue.get()
-        self.validate_dir_update_input_event(
-            input_event=queue_out, dir_path=dir_path, message=message
-        )
-
-        await self.verify_queue_size(output_queue, allowed_queue_size=allowed_queue_size)
-
     @staticmethod
     def validate_dir_update_input_event(
         input_event: InputEvent,
@@ -651,7 +553,7 @@ class FileSystemTestUtilsDirEvents(GeneralUtils):
         """
 
         # This should have generated an event
-        queue_out = await output_queue.get()
+        queue_out = await self.timeout_get(output_queue)
         self.validate_input_file_creation_input_event(
             input_event=queue_out, file_path=file_path, message=message
         )
@@ -670,22 +572,6 @@ class FileSystemTestUtilsDirEvents(GeneralUtils):
                 f" - {message}" if message else ""
             )
             assert input_event.file_path == file_path, err_str
-
-    async def process_input_dir_creation_queue_response(
-        self, output_queue: asyncio.Queue[InputEvent], dir_path: str = "", message: str = ""
-    ) -> None:
-        """
-        This event is emitted when we're in dir mode, monitoring a dir, which does not yet exist.
-        When the dir is created, this event is emitted.
-        """
-
-        # This should have generated an event
-        queue_out = await output_queue.get()
-        self.validate_input_dir_creation_input_event(
-            input_event=queue_out, dir_path=dir_path, message=message
-        )
-
-        await self.verify_queue_size(output_queue)
 
     @staticmethod
     def validate_input_dir_creation_input_event(
@@ -715,7 +601,7 @@ class FileSystemTestUtilsDirEvents(GeneralUtils):
         Get the next event off the queue - check that it's one for the input file being deleted.
         """
         # This should have generated an event
-        queue_out = await output_queue.get()
+        queue_out = await self.timeout_get(output_queue)
         self.validate_dir_move_input_event(
             input_event=queue_out,
             dir_src_parth=dir_src_parth,
@@ -744,24 +630,6 @@ class FileSystemTestUtilsDirEvents(GeneralUtils):
         if dir_dst_path is not None:
             assert input_event.dir_src_path == dir_dst_path
 
-    async def process_dir_deletion_queue_response(
-        self,
-        output_queue: asyncio.Queue[InputEvent],
-        dir_path: Optional[str] = None,
-        message: str = "",
-    ) -> None:
-        """
-        Get the next event off the queue - check that it's one for a file being created in the
-        input dir.
-        """
-        # This should have generated an event
-        queue_out = await output_queue.get()
-        self.validate_dir_deletion_input_event(
-            input_event=queue_out, dir_path=dir_path, message=message
-        )
-
-        await self.verify_queue_size(output_queue)
-
     @staticmethod
     def validate_dir_deletion_input_event(
         input_event: InputEvent,
@@ -777,23 +645,6 @@ class FileSystemTestUtilsDirEvents(GeneralUtils):
 
         if dir_path is not None:
             assert input_event.dir_path == dir_path
-
-    async def process_input_file_deletion_queue_response(
-        self,
-        output_queue: asyncio.Queue[InputEvent],
-        file_path: str = "",
-        message: str = "",
-    ) -> None:
-        """
-        Get the next event off the queue - check that it's one for the input file being deleted.
-        """
-        # This should have generated an event
-        queue_out = await output_queue.get()
-        self.validate_input_file_deletion_input_event(
-            input_event=queue_out, file_path=file_path, message=message
-        )
-
-        await self.verify_queue_size(output_queue)
 
     @staticmethod
     def validate_input_file_deletion_input_event(
