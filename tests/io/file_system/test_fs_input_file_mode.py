@@ -16,9 +16,7 @@ from mewbot.io.file_system import (
 from mewbot.io.file_system.events import (
     InputFileFileCreationInputEvent,
     InputFileFileDeletionInputEvent,
-    CreatedFileFSInputEvent,
     UpdatedFileFSInputEvent,
-    DeletedFileFSInputEvent,
 )
 
 from .utils import FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEvents
@@ -304,13 +302,13 @@ class TestFileTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileE
                     )
                     await self.process_file_event_queue_response(
                         output_queue=output_queue,
-                        event_type=DeletedFileFSInputEvent,
+                        event_type=InputFileFileDeletionInputEvent,
                         file_path=input_path,
                     )
                 elif queue_length == 1:
                     await self.process_file_event_queue_response(
                         output_queue=output_queue,
-                        event_type=DeletedFileFSInputEvent,
+                        event_type=InputFileFileDeletionInputEvent,
                         file_path=input_path,
                     )
                 else:
@@ -444,7 +442,7 @@ class TestFileTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileE
             await self.process_file_event_queue_response(
                 output_queue=output_queue,
                 file_path=tmp_file_path,
-                event_type=CreatedFileFSInputEvent,
+                event_type=InputFileFileCreationInputEvent,
             )
 
             # Generate some events which should end up in the queue
