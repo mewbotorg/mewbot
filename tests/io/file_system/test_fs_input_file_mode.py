@@ -160,7 +160,8 @@ class TestFileTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileE
                 # - Using blocking methods - this should still work
                 with open(tmp_file_path, "w", encoding="utf-8") as test_outfile:
                     test_outfile.write(
-                        f"\nThe testing will continue until moral improves! - {str(uuid.uuid4())} - time {i}"
+                        f"\nThe testing will continue until moral improves! - "
+                        f"{str(uuid.uuid4())} - time {i}"
                     )
 
                 await self.process_file_event_queue_response(
@@ -293,6 +294,30 @@ class TestFileTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileE
 
             await self.cancel_task(run_task)
 
+    async def create_update_input_file(
+        self, file_path: str, output_queue: asyncio.Queue[InputEvent]
+    ) -> None:
+
+        with open(file_path, "w", encoding="utf-8") as test_outfile:
+            test_outfile.write("We are testing mewbot!")
+
+        await self.process_file_event_queue_response(
+            output_queue=output_queue,
+            file_path=file_path,
+            event_type=InputFileFileCreationInputEvent,
+        )
+
+        with open(file_path, "w", encoding="utf-8") as test_outfile:
+            test_outfile.write(
+                f"\nThe testing will continue until moral improves! {str(uuid.uuid4())}"
+            )
+
+        await self.process_file_event_queue_response(
+            output_queue=output_queue,
+            file_path=file_path,
+            event_type=UpdatedFileFSInputEvent,
+        )
+
     @pytest.mark.asyncio
     @pytest.mark.skipif(not sys.platform.startswith("win"), reason="Windows only test")
     async def test_FileTypeFSInput_existing_file_io_in_non_existing_file_windows(
@@ -311,37 +336,13 @@ class TestFileTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileE
             # io will be done on this file
             tmp_file_path = os.path.join(tmp_dir_path, "mewbot_test_file.test")
 
-            test_fs_input = FileTypeFSInput(input_path=tmp_file_path)
-            assert isinstance(test_fs_input, FileTypeFSInput)
-
-            output_queue: asyncio.Queue[InputEvent] = asyncio.Queue()
-            test_fs_input.queue = output_queue
-
-            # We need to retain control of the thread to delay shutdown
-            # And to probe the results
-            run_task = asyncio.get_running_loop().create_task(test_fs_input.run())
+            run_task, output_queue = await self.get_FileTypeFSInput(tmp_file_path)
 
             # Give the class a chance to actually do init
             await asyncio.sleep(0.5)
 
-            with open(tmp_file_path, "w", encoding="utf-8") as test_outfile:
-                test_outfile.write("We are testing mewbot!")
-
-            await self.process_file_event_queue_response(
-                output_queue=output_queue,
-                file_path=tmp_file_path,
-                event_type=InputFileFileCreationInputEvent,
-            )
-
-            # Generate some events which should end up in the queue
-            # - Using blocking methods - this should still work
-            with open(tmp_file_path, "w", encoding="utf-8") as test_outfile:
-                test_outfile.write(f"\nThe testing will continue until moral improves! {str(uuid.uuid4())}")
-
-            await self.process_file_event_queue_response(
-                output_queue=output_queue,
-                file_path=tmp_file_path,
-                event_type=UpdatedFileFSInputEvent,
+            await self.create_update_input_file(
+                file_path=tmp_file_path, output_queue=output_queue
             )
 
             # Otherwise the queue seems to be blocking pytest from a clean exit.
@@ -549,13 +550,15 @@ class TestFileTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileE
             await self.verify_queue_size(output_queue, task_done=False)
 
             with open(tmp_file_path, "w", encoding="utf-8") as test_outfile:
-                test_outfile.write("We are testing mewbot!")
+                test_outfile.write(f"We are testing mewbot! {str(uuid.uuid4())}")
 
             await self.process_file_event_queue_response(
                 output_queue=output_queue,
                 file_path=tmp_file_path,
                 event_type=InputFileFileCreationInputEvent,
             )
+
+            assert output_queue.qsize() == 0
 
             # Generate some events which should end up in the queue
             # - Using blocking methods - this should still work

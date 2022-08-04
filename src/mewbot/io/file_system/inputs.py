@@ -353,7 +353,6 @@ class DirTypeFSInput(Input):
             self._input_path_exists = False
             self._input_path_type = None
 
-        # Cannot await in this context - this is being done before loop start
         elif not os.path.exists(input_path):
 
             self._input_path_exists = False

@@ -32,6 +32,48 @@ class TestFileTypeFSOutput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFile
 
     test_output_filename_1: str = "test_event_for_app_me.txt"
 
+    async def write_and_read_back_test_file(
+        self,
+        tmp_dir_path: str,
+        test_file_name: str,
+        test_file_contents: str,
+        test_fs_output: FileSystemOutput,
+    ) -> None:
+
+        test_event = CreateFileFSOutputEvent(
+            file_name=test_file_name, file_contents=test_file_contents, is_binary=False
+        )
+
+        await self.append_to_file(
+            test_fs_output=test_fs_output,
+            test_app_event=test_event,
+            tmp_dir_path=tmp_dir_path,
+            test_file_name=test_file_name,
+            test_app_file_contents=test_file_contents,
+        )
+
+    @staticmethod
+    async def append_to_file(
+        test_fs_output: FileSystemOutput,
+        test_app_event: Union[CreateFileFSOutputEvent, OverwriteFileFSOutputEvent],
+        tmp_dir_path: str,
+        test_file_name: str,
+        test_app_file_contents: str,
+    ) -> None:
+
+        app_status = await test_fs_output.output(test_app_event)
+        assert app_status is True
+
+        # Check the file actually exists
+        expected_output_path = os.path.join(tmp_dir_path, test_file_name)
+        assert os.path.exists(expected_output_path)
+        assert os.path.isfile(expected_output_path)
+
+        with open(
+            expected_output_path, "r", encoding=sys.getdefaultencoding()
+        ) as expected_outfile:
+            assert expected_outfile.read() == test_app_file_contents
+
     # - INIT AND ATTRIBUTES
     @pytest.mark.asyncio
     async def test_FileSystemOutput__init__input_path_None(self) -> None:
@@ -75,26 +117,6 @@ class TestFileTypeFSOutput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFile
 
             assert test_fs_input.output_path == tmp_dir_path
             assert test_fs_input.output_path_exists is True
-
-    async def write_and_read_back_test_file(
-        self,
-        tmp_dir_path: str,
-        test_file_name: str,
-        test_file_contents: str,
-        test_fs_output: FileSystemOutput,
-    ) -> None:
-
-        test_event = CreateFileFSOutputEvent(
-            file_name=test_file_name, file_contents=test_file_contents, is_binary=False
-        )
-
-        await self.append_to_file(
-            test_fs_output=test_fs_output,
-            test_app_event=test_event,
-            tmp_dir_path=tmp_dir_path,
-            test_file_name=test_file_name,
-            test_app_file_contents=test_file_contents,
-        )
 
     # - OUTPUT
     @pytest.mark.asyncio
@@ -188,28 +210,6 @@ class TestFileTypeFSOutput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFile
                 test_file_name=test_file_name,
                 test_app_file_contents=test_app_file_contents,
             )
-
-    @staticmethod
-    async def append_to_file(
-        test_fs_output: FileSystemOutput,
-        test_app_event: Union[CreateFileFSOutputEvent, OverwriteFileFSOutputEvent],
-        tmp_dir_path: str,
-        test_file_name: str,
-        test_app_file_contents: str,
-    ) -> None:
-
-        app_status = await test_fs_output.output(test_app_event)
-        assert app_status is True
-
-        # Check the file actually exists
-        expected_output_path = os.path.join(tmp_dir_path, test_file_name)
-        assert os.path.exists(expected_output_path)
-        assert os.path.isfile(expected_output_path)
-
-        with open(
-            expected_output_path, "r", encoding=sys.getdefaultencoding()
-        ) as expected_outfile:
-            assert expected_outfile.read() == test_app_file_contents
 
     @pytest.mark.asyncio
     async def test_FileSystemOutput_DeleteFileFSOutputEvent(self) -> None:

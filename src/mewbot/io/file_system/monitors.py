@@ -548,10 +548,6 @@ class WindowsFileSystemObserver(BaseObserver):
                 )
             )
 
-        else:
-
-            pass
-
     async def _process_dir_event(self, event: FileSystemEvent) -> None:
         """
         Take an event and process it before putting it on the wire.

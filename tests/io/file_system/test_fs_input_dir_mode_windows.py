@@ -388,7 +388,7 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
                     # event occurs
                     continue
 
-                elif queue_length == 1:
+                if queue_length == 1:
 
                     await self.process_dir_event_queue_response(
                         output_queue=output_queue,
@@ -550,9 +550,7 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
                 )
 
                 # Move a file to a different location
-                post_move_dir_path = os.path.join(
-                    tmp_dir_path, self.post_move_file_name
-                )
+                post_move_dir_path = os.path.join(tmp_dir_path, self.post_move_file_name)
                 os.rename(src=new_dir_path, dst=post_move_dir_path)
 
                 await self.process_dir_move_queue_response(
