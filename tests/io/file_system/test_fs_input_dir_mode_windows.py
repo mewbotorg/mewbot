@@ -7,6 +7,7 @@ import os
 import shutil
 import sys
 import tempfile
+import uuid
 
 import pytest
 
@@ -28,6 +29,9 @@ from .utils import FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEvents
 
 
 class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEvents):
+
+    post_move_file_name: str = "post_move_file_del_me.txt"
+
     @pytest.mark.asyncio
     @pytest.mark.skipif(not sys.platform.startswith("win"), reason="Windows only test")
     async def testDirTypeFSInput_existing_dir_cre_upd_del_file_loop_windows(self) -> None:
@@ -54,7 +58,7 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
                 )
 
                 with open(new_file_path, "a", encoding="utf-16") as output_file:
-                    output_file.write("Here we go again")
+                    output_file.write(f"Here we go again - {str(uuid.uuid4())}")
                 await self.process_dir_event_queue_response(
                     output_queue=output_queue,
                     dir_path=tmp_dir_path,
@@ -107,7 +111,7 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
             )
 
             with open(new_file_path, "a", encoding="utf-16") as output_file:
-                output_file.write("Here we go again")
+                output_file.write(f"{str(uuid.uuid4())} - Here we go again")
             await self.process_dir_event_queue_response(
                 output_queue=output_queue,
                 dir_path=tmp_dir_path,
@@ -121,7 +125,7 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
             )
 
             # Move a file to a different location
-            post_move_file_path = os.path.join(tmp_dir_path, "moved_text_file_delete_me.txt")
+            post_move_file_path = os.path.join(tmp_dir_path, self.post_move_file_name)
             os.rename(src=new_file_path, dst=post_move_file_path)
 
             await self.process_dir_event_queue_response(
@@ -172,7 +176,7 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
                 )
 
                 with open(new_file_path, "a", encoding="utf-16") as output_file:
-                    output_file.write("Here we go again")
+                    output_file.write(f"Another witty test string - {str(uuid.uuid4())}")
                 await self.process_dir_event_queue_response(
                     output_queue=output_queue,
                     dir_path=tmp_dir_path,
@@ -282,7 +286,7 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
 
                 # Move a file to a different location
                 post_move_file_path = os.path.join(
-                    new_subfolder_path, "moved_text_file_delete_me.txt"
+                    new_subfolder_path, self.post_move_file_name
                 )
                 os.rename(src=new_file_path, dst=post_move_file_path)
 
@@ -375,11 +379,16 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
 
                 shutil.rmtree(new_dir_path)
 
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(1.0)
 
                 queue_length: int = output_queue.qsize()
 
-                if queue_length == 1:
+                if queue_length == 0:
+                    # Windows sometimes does not register del events until another
+                    # event occurs
+                    continue
+
+                elif queue_length == 1:
 
                     await self.process_dir_event_queue_response(
                         output_queue=output_queue,
@@ -401,9 +410,6 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
                         dir_path=new_dir_path,
                         event_type=DeletedDirFSInputEvent,
                     )
-
-                elif queue_length == 0:
-                    pass
 
                 else:
 
@@ -481,7 +487,7 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
 
                 # Move a file to a different location
                 post_move_dir_path = os.path.join(
-                    new_subfolder_path, "moved_text_file_delete_me.txt"
+                    new_subfolder_path, self.post_move_file_name
                 )
                 os.rename(src=new_dir_path, dst=post_move_dir_path)
 
@@ -545,7 +551,7 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
 
                 # Move a file to a different location
                 post_move_dir_path = os.path.join(
-                    tmp_dir_path, "moved_text_file_delete_me.txt"
+                    tmp_dir_path, self.post_move_file_name
                 )
                 os.rename(src=new_dir_path, dst=post_move_dir_path)
 

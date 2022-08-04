@@ -28,6 +28,10 @@ from .utils import FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEvents
 
 class TestFileTypeFSOutput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEvents):
 
+    test_output_str_1: str = "This is a test - an endless series of them"
+
+    test_output_filename_1: str = "test_event_for_app_me.txt"
+
     # - INIT AND ATTRIBUTES
     @pytest.mark.asyncio
     async def test_FileSystemOutput__init__input_path_None(self) -> None:
@@ -120,8 +124,8 @@ class TestFileTypeFSOutput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFile
             test_fs_output = await self.get_FileSystemOutput(tmp_dir_path)
 
             # Writing an object out for appending
-            test_file_name = "test_event_for_app_me.txt"
-            test_file_contents = "This is a test - an endless series of them"
+            test_file_name = self.test_output_filename_1
+            test_file_contents = self.test_output_str_1
 
             await self.write_and_read_back_test_file(
                 tmp_dir_path=tmp_dir_path,
@@ -160,8 +164,8 @@ class TestFileTypeFSOutput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFile
             test_fs_output = await self.get_FileSystemOutput(tmp_dir_path)
 
             # Writing an object out for appending
-            test_file_name = "test_event_for_app_me.txt"
-            test_file_contents = "This is a test - an endless series of them"
+            test_file_name = self.test_output_filename_1
+            test_file_contents = self.test_output_str_1
             await self.write_and_read_back_test_file(
                 tmp_dir_path=tmp_dir_path,
                 test_file_name=test_file_name,
@@ -216,8 +220,8 @@ class TestFileTypeFSOutput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFile
             test_fs_output = await self.get_FileSystemOutput(tmp_dir_path)
 
             # Writing an object out for appending
-            test_file_name = "test_event_for_app_me.txt"
-            test_file_contents = "This is a test - an endless series of them"
+            test_file_name = self.test_output_filename_1
+            test_file_contents = self.test_output_str_1
             await self.write_and_read_back_test_file(
                 tmp_dir_path=tmp_dir_path,
                 test_file_name=test_file_name,

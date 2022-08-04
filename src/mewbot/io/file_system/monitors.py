@@ -710,7 +710,7 @@ class _EventHandler(FileSystemEventHandler):  # type: ignore
     ) -> None:
         self._loop = loop
         self._queue = queue
-        super(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def on_any_event(self, event: FileSystemEvent) -> None:
         try:

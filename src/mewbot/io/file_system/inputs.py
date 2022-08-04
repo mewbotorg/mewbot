@@ -427,11 +427,6 @@ class DirTypeFSInput(Input):
                 'Starting DirTypeFSInput - monitoring existing dir "%s"', self._input_path
             )
 
-        elif self._input_path_exists and self._input_path_type == "dir":
-            self._logger.warning(
-                "Starting DirTypeFSInput - monitoring dir is a file '%s'", self._input_path
-            )
-
         else:
             self._logger.info(
                 'Waiting to start DirTypeFSInput - provided input path did not exist "%s"',
