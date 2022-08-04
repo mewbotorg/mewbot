@@ -43,10 +43,6 @@ class CreatedFileFSInputEvent(FileFSInputEvent):
     which is being monitored.
     """
 
-    # file_size: str
-    # entire_file: str
-    # file_read_mode: str
-
 
 @dataclasses.dataclass
 class UpdatedFileFSInputEvent(FileFSInputEvent):
@@ -54,10 +50,6 @@ class UpdatedFileFSInputEvent(FileFSInputEvent):
     Called when a file is updated - either at the location which is being monitored or inside a dir
     which is being monitored.
     """
-
-    # file_size: str
-    # entire_file: str
-    # file_read_mode: str
 
 
 @dataclasses.dataclass
@@ -68,10 +60,6 @@ class MovedFileFSInputEvent(FileFSInputEvent):
     """
 
     file_src: str
-
-    # file_size: str
-    # entire_file: str
-    # file_read_mode: str
 
 
 @dataclasses.dataclass

@@ -168,12 +168,6 @@ class BaseObserver:
         else:
             self._logger.info("Unhandled event in _process_event - %s", event)
 
-    async def _process_file_event(self, event: FileSystemEvent) -> None:
-        """
-        Take an event and process it before putting it on the wire.
-        """
-        raise NotImplementedError(f"{event} - file_event - cannot be handled")
-
     def watch(self) -> None:
         """
         Use watchdog in a separate thread to watch a dir for changes.
@@ -196,6 +190,57 @@ class BaseObserver:
             )
         except RuntimeError:  # Can happen when the shutdown is not clean
             return
+
+    async def _process_file_event(self, event: FileSystemEvent) -> None:
+        """
+        Take an event and process it before putting it on the wire.
+        """
+
+        if isinstance(event, watchdog.events.FileCreatedEvent):
+
+            await self._process_file_creation_event(event)
+
+        elif isinstance(event, watchdog.events.FileModifiedEvent):
+
+            await self._process_file_modified_event(event)
+
+        elif isinstance(
+            event, (watchdog.events.FileMovedEvent, watchdog.events.FileSystemMovedEvent)
+        ):
+
+            await self._process_file_move_event(event)
+
+        elif isinstance(event, watchdog.events.FileDeletedEvent):
+
+            await self._process_file_delete_event(event)
+
+        else:
+            self._logger.warning("Unexpected case in _process_file_event - %s", event)
+
+    async def _process_file_creation_event(
+        self, event: watchdog.events.FileCreatedEvent
+    ) -> None:
+        raise NotImplementedError("Cannot handle FileCreatedEvent")
+
+    async def _process_file_modified_event(
+        self, event: watchdog.events.FileModifiedEvent
+    ) -> None:
+        raise NotImplementedError("Cannot handle FileModifiedEvent")
+
+    async def _process_file_move_event(
+        self,
+        event: Union[
+            watchdog.events.FileSystemMovedEvent, watchdog.events.FileSystemMovedEvent
+        ],
+    ) -> None:
+        raise NotImplementedError(
+            "Cannot handle FileSystemMovedEvent or FileSystemMovedEvent"
+        )
+
+    async def _process_file_delete_event(
+        self, event: watchdog.events.FileDeletedEvent
+    ) -> None:
+        raise NotImplementedError("Cannot handle FileDeletedEvent")
 
     async def _process_dir_event(self, event: FileSystemEvent) -> None:
         """
@@ -291,32 +336,6 @@ class WindowsFileSystemObserver(BaseObserver):
         self._logger.info(
             "dir cache built for %s - %i dirs found", self._input_path, len(self._dir_cache)
         )
-
-    async def _process_file_event(self, event: FileSystemEvent) -> None:
-        """
-        Take an event and process it before putting it on the wire.
-        """
-
-        if isinstance(event, watchdog.events.FileCreatedEvent):
-
-            await self._process_file_creation_event(event)
-
-        elif isinstance(event, watchdog.events.FileModifiedEvent):
-
-            await self._process_file_modified_event(event)
-
-        elif isinstance(
-            event, (watchdog.events.FileMovedEvent, watchdog.events.FileSystemMovedEvent)
-        ):
-
-            await self._process_file_move_event(event)
-
-        elif isinstance(event, watchdog.events.FileDeletedEvent):
-
-            await self._process_file_delete_event(event)
-
-        else:
-            self._logger.warning("Unexpected case in _process_file_event - %s", event)
 
     async def _process_file_creation_event(
         self, event: watchdog.events.FileCreatedEvent
@@ -621,32 +640,6 @@ class LinuxFileSystemObserver(BaseObserver):
         self._logger = logging.getLogger(__name__ + ":" + type(self).__name__)
 
         self._internal_queue = asyncio.Queue()
-
-    async def _process_file_event(self, event: FileSystemEvent) -> None:
-        """
-        Take an event and process it before putting it on the wire.
-        """
-
-        if isinstance(event, watchdog.events.FileCreatedEvent):
-
-            await self._process_file_creation_event(event)
-
-        elif isinstance(event, watchdog.events.FileModifiedEvent):
-
-            await self._process_file_modified_event(event)
-
-        elif isinstance(
-            event, (watchdog.events.FileMovedEvent, watchdog.events.FileSystemMovedEvent)
-        ):
-
-            await self._process_file_move_event(event)
-
-        elif isinstance(event, watchdog.events.FileDeletedEvent):
-
-            await self._process_file_delete_event(event)
-
-        else:
-            self._logger.warning("Unexpected case in _process_file_event - %s", event)
 
     async def _process_file_creation_event(
         self, event: watchdog.events.FileCreatedEvent

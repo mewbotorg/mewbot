@@ -195,39 +195,9 @@ class TestFileTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileE
 
             for i in range(10):
 
-                with open(input_path, "w", encoding="utf-8") as test_outfile:
-                    test_outfile.write(
-                        f"\nThe testing will continue until moral improves! - time {i}"
-                    )
-                await self.process_file_event_queue_response(
-                    output_queue=output_queue,
-                    file_path=input_path,
-                    event_type=InputFileFileCreationInputEvent,
+                await self.create_overwrite_update_unlink_file(
+                    input_path=input_path, output_queue=output_queue, i=str(i)
                 )
-
-                with open(input_path, "w", encoding="utf-8") as test_outfile:
-                    test_outfile.write(
-                        f"\nThe testing will continue until moral improves! - time {i}"
-                    )
-
-                await self.process_file_event_queue_response(
-                    output_queue=output_queue,
-                    event_type=UpdatedFileFSInputEvent,
-                    file_path=input_path,
-                )
-
-                with open(input_path, "a", encoding="utf-8") as test_outfile:
-                    test_outfile.write(
-                        f"\nThe testing will continue until moral improves! - time {i}"
-                    )
-
-                await self.process_file_event_queue_response(
-                    output_queue=output_queue,
-                    event_type=UpdatedFileFSInputEvent,
-                    file_path=input_path,
-                )
-
-                os.unlink(input_path)
 
                 await self.process_file_event_queue_response(
                     output_queue=output_queue,
@@ -236,6 +206,43 @@ class TestFileTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileE
                 )
 
             await self.cancel_task(run_task)
+
+    async def create_overwrite_update_unlink_file(
+        self, input_path: str, output_queue: asyncio.Queue[InputEvent], i: str = "Not in loop"
+    ) -> None:
+
+        with open(input_path, "w", encoding="utf-8") as test_outfile:
+            test_outfile.write(
+                f"\nThe testing will continue until moral improves! - time {i}"
+            )
+        await self.process_file_event_queue_response(
+            output_queue=output_queue,
+            file_path=input_path,
+            event_type=InputFileFileCreationInputEvent,
+        )
+
+        with open(input_path, "w", encoding="utf-8") as test_outfile:
+            test_outfile.write(
+                f"\nThe testing will continue until moral improves! - time {i}"
+            )
+
+        await self.process_file_event_queue_response(
+            output_queue=output_queue,
+            event_type=UpdatedFileFSInputEvent,
+            file_path=input_path,
+        )
+
+        with open(input_path, "a", encoding="utf-8") as test_outfile:
+            test_outfile.write(
+                f"\nThe testing will continue until moral improves! - time {i}"
+            )
+
+        await self.process_file_event_queue_response(
+            output_queue=output_queue,
+            event_type=UpdatedFileFSInputEvent,
+            file_path=input_path,
+        )
+        os.unlink(input_path)
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(sys.platform.startswith("win"), reason="Linux (like) only test")
@@ -254,40 +261,9 @@ class TestFileTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileE
 
             run_task, output_queue = await self.get_FileTypeFSInput(input_path)
 
-            for i in range(10):
+            for _ in range(10):
 
-                with open(input_path, "w", encoding="utf-8") as test_outfile:
-                    test_outfile.write(
-                        f"\nThe testing will continue until moral improves! - time {i}"
-                    )
-                await self.process_file_event_queue_response(
-                    output_queue=output_queue,
-                    file_path=input_path,
-                    event_type=InputFileFileCreationInputEvent,
-                )
-
-                with open(input_path, "w", encoding="utf-8") as test_outfile:
-                    test_outfile.write(
-                        f"\nThe testing will continue until moral improves! - time {i}"
-                    )
-
-                await self.process_file_event_queue_response(
-                    output_queue=output_queue,
-                    event_type=UpdatedFileFSInputEvent,
-                    file_path=input_path,
-                )
-
-                with open(input_path, "a", encoding="utf-8") as test_outfile:
-                    test_outfile.write(
-                        f"\nThe testing will continue until moral improves! - time {i}"
-                    )
-
-                await self.process_file_event_queue_response(
-                    output_queue=output_queue,
-                    event_type=UpdatedFileFSInputEvent,
-                    file_path=input_path,
-                )
-                os.unlink(input_path)
+                await self.create_overwrite_update_unlink_file(input_path, output_queue)
 
                 await asyncio.sleep(0.5)
 
@@ -367,45 +343,48 @@ class TestFileTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileE
                 event_type=UpdatedFileFSInputEvent,
             )
 
-            for i in range(5):
-
-                # Generate some events which should end up in the queue
-                # - Using blocking methods - this should still work
-                with open(tmp_file_path, "w", encoding="utf-8") as test_outfile:
-                    test_outfile.write(
-                        f"\nThe testing will continue until moral improves! - time {i}"
-                    )
-                await self.process_file_event_queue_response(
-                    output_queue=output_queue,
-                    file_path=tmp_file_path,
-                    event_type=UpdatedFileFSInputEvent,
-                )
-
-                # Delete the file - then recreate it
-                os.unlink(tmp_file_path)
-
-                await self.process_file_event_queue_response(
-                    output_queue=output_queue,
-                    file_path=tmp_file_path,
-                    event_type=InputFileFileDeletionInputEvent,
-                )
-
-                # Generate some events which should end up in the queue
-                # - Using blocking methods - this should still work
-                with open(tmp_file_path, "w", encoding="utf-8") as test_outfile:
-                    test_outfile.write("\nThe testing will continue until moral improves!")
-
-                await self.process_file_event_queue_response(
-                    output_queue=output_queue,
-                    file_path=tmp_file_path,
-                    event_type=InputFileFileCreationInputEvent,
-                )
-
             # Otherwise the queue seems to be blocking pytest from a clean exit.
             await self.cancel_task(run_task)
 
             # Tests are NOW making a clean exist after this test
             # This seems to have been a problem with the presence of a queue
+
+    async def update_delete_file_loop(
+        self, tmp_file_path: str, output_queue: asyncio.Queue[InputEvent]
+    ) -> None:
+
+        for i in range(5):
+            # Generate some events which should end up in the queue
+            # - Using blocking methods - this should still work
+            with open(tmp_file_path, "w", encoding="utf-8") as test_outfile:
+                test_outfile.write(
+                    f"\nThe testing will continue until moral improves! - time {i}"
+                )
+            await self.process_file_event_queue_response(
+                output_queue=output_queue,
+                file_path=tmp_file_path,
+                event_type=UpdatedFileFSInputEvent,
+            )
+
+            # Delete the file - then recreate it
+            os.unlink(tmp_file_path)
+
+            await self.process_file_event_queue_response(
+                output_queue=output_queue,
+                file_path=tmp_file_path,
+                event_type=InputFileFileDeletionInputEvent,
+            )
+
+            # Generate some events which should end up in the queue
+            # - Using blocking methods - this should still work
+            with open(tmp_file_path, "w", encoding="utf-8") as test_outfile:
+                test_outfile.write("\nThe testing will continue until moral improves!")
+
+            await self.process_file_event_queue_response(
+                output_queue=output_queue,
+                file_path=tmp_file_path,
+                event_type=InputFileFileCreationInputEvent,
+            )
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(sys.platform.startswith("win"), reason="Linux (like) only test")
@@ -576,39 +555,9 @@ class TestFileTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileE
                 output_queue=output_queue, event_type=UpdatedFileFSInputEvent
             )
 
-            for i in range(5):
-                # Generate some events which should end up in the queue
-                # - Using blocking methods - this should still work
-                with open(tmp_file_path, "w", encoding="utf-8") as test_outfile:
-                    test_outfile.write(
-                        f"\nThe testing will continue until moral improves! - time {i}"
-                    )
-
-                await self.process_file_event_queue_response(
-                    output_queue=output_queue,
-                    event_type=UpdatedFileFSInputEvent,
-                    file_path=tmp_file_path,
-                )
-
-                # Delete the file - then recreate it
-                os.unlink(tmp_file_path)
-
-                await self.process_file_event_queue_response(
-                    output_queue=output_queue,
-                    event_type=InputFileFileDeletionInputEvent,
-                    file_path=tmp_file_path,
-                )
-
-                # Generate some events which should end up in the queue
-                # - Using blocking methods - this should still work
-                with open(tmp_file_path, "w", encoding="utf-8") as test_outfile:
-                    test_outfile.write("\nThe testing will continue until moral improves!")
-
-                await self.process_file_event_queue_response(
-                    output_queue=output_queue,
-                    event_type=InputFileFileCreationInputEvent,
-                    file_path=tmp_file_path,
-                )
+            await self.update_delete_file_loop(
+                tmp_file_path=tmp_file_path, output_queue=output_queue
+            )
 
             # Otherwise the queue seems to be blocking pytest from a clean exit.
             await self.cancel_task(run_task)
