@@ -7,7 +7,7 @@ from typing import Optional, Set, Sequence, Type, List
 import dataclasses
 import logging
 
-import discord  # type: ignore
+import discord
 
 from mewbot.api.v1 import IOConfig, Input, Output, InputEvent, OutputEvent
 
@@ -66,7 +66,7 @@ class DiscordOutputEvent(OutputEvent):
     """
 
     text: str
-    message: discord.message
+    message: discord.Message
     use_message_channel: bool
 
 
@@ -108,7 +108,7 @@ class DiscordIO(IOConfig):
         return [self._output]
 
 
-class DiscordInput(Input, discord.Client):  # type: ignore
+class DiscordInput(Input):
     """
     Uses py-cord as a backend to connect, receive and send messages to discord.
     """
@@ -116,6 +116,7 @@ class DiscordInput(Input, discord.Client):  # type: ignore
     _logger: logging.Logger
     _token: str
     _startup_queue_depth: int
+    _client: discord.Client
 
     def __init__(self, token: str, startup_queue_depth: int = 0) -> None:
         """
@@ -126,9 +127,10 @@ class DiscordInput(Input, discord.Client):  # type: ignore
         """
         assert startup_queue_depth >= 0, "Does not support a negative startup_queue_depth"
 
-        super(Input, self).__init__()  # pylint: disable=bad-super-call
-        super(discord.Client, self).__init__()  # pylint: disable=bad-super-call
+        super().__init__()
 
+        intents = discord.Intents.all()
+        self._client = discord.Client(intents=intents)
         self._token = token
         self._logger = logging.getLogger(__name__ + "DiscordInput")
 
@@ -151,14 +153,14 @@ class DiscordInput(Input, discord.Client):  # type: ignore
         """
         self._logger.info("About to connect to Discord")
 
-        await super().start(self._token)
+        await self._client.start(self._token)
 
     async def on_ready(self) -> None:
         """
         Called once at the start, after the bot has connected to discord.
         :return:
         """
-        self._logger.info("%s has connected to Discord!", self.user)
+        self._logger.info("%s has connected to Discord!", self._client.user)
 
         await self.retrieve_old_message()
 
@@ -184,13 +186,14 @@ class DiscordInput(Input, discord.Client):  # type: ignore
         # - return the queue depth number of items from the sorted list
         past_messages: List[discord.Message] = []
 
-        # Short cut for itterating over all guilds, then all channels
-        for channel in self.get_all_channels():
+        # Shortcut for iterating over all guilds, then all channels
+        for channel in self._client.get_all_channels():
+
             # Ignoring everything which is not a text channel - nothing to do with past voice
             if not isinstance(channel, discord.channel.TextChannel):
                 continue
 
-            messages = await channel.history(limit=5).flatten()
+            messages = [x async for x in channel.history(limit=5)]
             past_messages.extend(messages)
 
         # Sort the messages and put the last five on the wire
@@ -198,7 +201,7 @@ class DiscordInput(Input, discord.Client):  # type: ignore
             past_messages, key=lambda x: float(x.created_at.timestamp()), reverse=True
         )
 
-        for message in past_messages[0:self._startup_queue_depth]:
+        for message in past_messages[: self._startup_queue_depth]:
 
             if not isinstance(message, discord.Message):
                 self._logger.info("Expected a message and got a %s", type(message))
@@ -213,13 +216,11 @@ class DiscordInput(Input, discord.Client):  # type: ignore
         :param message:
         :return:
         """
-        self._logger.info(message.content)
-
         if not self.queue:
             return
 
         await self.queue.put(
-            DiscordMessageCreationEvent(text=message.content, message=message)
+            DiscordMessageCreationEvent(text=str(message.clean_content), message=message)
         )
 
     async def on_member_join(self, member: discord.Member) -> None:
