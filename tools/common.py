@@ -46,6 +46,9 @@ class ToolChain(abc.ABC):
         self.success = True
 
     def __call__(self) -> None:
+        if not os.path.exists("./reports"):
+            os.mkdir("./reports")
+
         issues = list(self.run())
 
         if self.is_ci:
