@@ -76,10 +76,14 @@ such as links to decisions about the structure of the code and notes features th
 The use of comments to note problems or future fixes is discouraged, and merges containing them will not be approved.
 Instead, create an issue to track the required change.
 
-<!--
 ## Testing
-This section is to be drafted as part of #11 "Add testing harness"
--->
+
+Testing an application framework which primarily deals with network interactions is always a difficult problem.
+The design of mewbot uses a number of components which communicate by passing dataclasses to each other.
+This assists with testing by allowing us to craft inputs which can then be injected to produce verifiable outputs.
+
+Tests are performed using the `pytest` testing framework, with tests located in the `tests` folder.
+Merge requests should not reduce the overall test coverage of the framework, as calculated by Sonar
 
 ## Branches And Commits
 
