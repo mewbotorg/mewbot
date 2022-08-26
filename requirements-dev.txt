@@ -4,13 +4,18 @@
 
 -r requirements.txt
 
-black~=22.6
-flake8~=5.0
-mypy>=0.940
-pylint~=2.14
+# Copyright linting toolchain
 reuse~=1.0
 
+# Python Linting toolchain
+black~=22.6
+flake8>=5.0
+pylint>=2.14
+
+# Type checking toolchain
+mypy>=0.940
 types-PyYAML~=6.0
 
+# Testing toolchain
 pytest>=7.1.1
 pytest-cov>=3.0.0
