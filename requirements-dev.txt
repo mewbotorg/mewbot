@@ -7,7 +7,7 @@
 black~=22.6
 flake8~=5.0
 mypy>=0.940
-pylint~=2.14
+pylint~=2.15
 reuse~=1.0
 
 types-PyYAML~=6.0
