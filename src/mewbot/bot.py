@@ -53,6 +53,18 @@ class Bot:
     def get_data_source(self, name: str) -> Optional[DataSource[Any]]:
         return self._datastores.get(name)
 
+    def get_io_configs(self):
+        """
+        Note - updating the return object wil NOT update the bot's IOConfigs once run has been called.
+        """
+        return self._io_configs
+
+    def get_behaviours(self):
+        """
+        Note - updating the return object wil NOT update the bot's Behaviors once run has been called.
+        """
+        return self._behaviours
+
     def _marshal_behaviours(self) -> Dict[Type[InputEvent], Set[BehaviourInterface]]:
         behaviours: Dict[Type[InputEvent], Set[BehaviourInterface]] = {}
 
