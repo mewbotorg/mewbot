@@ -18,6 +18,7 @@ class ComponentRegistry(abc.ABCMeta):
     """MetaType which reg"""
 
     registered: List[Type[Any]] = []
+    uuid: str
 
     _api_versions: Dict[ComponentKind, Dict[str, Type[Component]]] = {}
 
