@@ -18,6 +18,7 @@ class ComponentRegistry(abc.ABCMeta):
     """MetaType which reg"""
 
     registered: List[Type[Any]] = []
+    uuid: str  # This property is unused but fixes some linting issues in __call__
 
     _api_versions: Dict[ComponentKind, Dict[str, Type[Component]]] = {}
 
