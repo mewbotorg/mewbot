@@ -10,6 +10,7 @@ import logging
 import discord
 
 from mewbot.api.v1 import IOConfig, Input, Output, InputEvent, OutputEvent
+from mewbot.core import InputQueue
 
 
 @dataclasses.dataclass
@@ -116,7 +117,7 @@ class DiscordInput(Input):
     _logger: logging.Logger
     _token: str
     _startup_queue_depth: int
-    _client: discord.Client
+    _client: InternalMewbotDiscordClient
 
     def __init__(self, token: str, startup_queue_depth: int = 0) -> None:
         """
@@ -130,11 +131,19 @@ class DiscordInput(Input):
         super().__init__()
 
         intents = discord.Intents.all()
-        self._client = discord.Client(intents=intents)
+        self._client = InternalMewbotDiscordClient(intents=intents)
         self._token = token
         self._logger = logging.getLogger(__name__ + "DiscordInput")
 
         self._startup_queue_depth = startup_queue_depth
+
+        self._client._logger = self._logger
+        self._client._startup_queue_depth = self._startup_queue_depth
+        self._client.queue = self.queue
+
+    def bind(self, queue: InputQueue) -> None:
+        self.queue = queue
+        self._client.queue = queue
 
     @staticmethod
     def produces_inputs() -> Set[Type[InputEvent]]:
@@ -155,12 +164,20 @@ class DiscordInput(Input):
 
         await self._client.start(self._token)
 
+
+class InternalMewbotDiscordClient(discord.Client):
+
+    _logger: logging.Logger
+    _startup_queue_depth: int
+
+    queue: Optional[InputQueue]
+
     async def on_ready(self) -> None:
         """
         Called once at the start, after the bot has connected to discord.
         :return:
         """
-        self._logger.info("%s has connected to Discord!", self._client.user)
+        self._logger.info("%s has connected to Discord!", self.user)
 
         await self.retrieve_old_message()
 
@@ -187,7 +204,7 @@ class DiscordInput(Input):
         past_messages: List[discord.Message] = []
 
         # Shortcut for iterating over all guilds, then all channels
-        for channel in self._client.get_all_channels():
+        for channel in self.get_all_channels():
 
             # Ignoring everything which is not a text channel - nothing to do with past voice
             if not isinstance(channel, discord.channel.TextChannel):
