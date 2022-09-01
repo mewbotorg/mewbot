@@ -84,9 +84,13 @@ class IOConfig(Component):
     def get_outputs(self) -> Sequence[Output]:
         ...
 
+    async def status(self) -> str:
+        pass
+
 
 class Input:
-    queue: Optional[InputQueue]
+
+    queue: Optional[InputQueue]  # Queue for all Input events
 
     def __init__(self) -> None:
         self.queue = None
@@ -253,6 +257,9 @@ class Behaviour(Component):
             "conditions": [x.serialise() for x in self.conditions],
             "actions": [x.serialise() for x in self.actions],
         }
+
+    async def status(self) -> str:
+        pass
 
 
 __all__ = [

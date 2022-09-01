@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional, Set, Sequence, Type, List
+from typing import Optional, Set, Sequence, Type, List, Dict
 
 import dataclasses
 import logging
@@ -11,6 +11,7 @@ import discord
 
 from mewbot.api.v1 import IOConfig, Input, Output, InputEvent, OutputEvent
 from mewbot.core import InputQueue
+from mewbot.manager import ManagerInputEvent
 
 
 @dataclasses.dataclass
@@ -109,6 +110,15 @@ class DiscordIO(IOConfig):
         return [self._output]
 
 
+@dataclasses.dataclass
+class ManagerData:
+
+    manager_trigger_data: Dict[str, Set[str]]
+
+    manager_input_queue: Optional[InputQueue]  # Queue to communicate back to the manager
+    manager_output_queue: Optional[InputQueue]  # Queue to accept manager commands
+
+
 class DiscordInput(Input):
     """
     Uses py-cord as a backend to connect, receive and send messages to discord.
@@ -118,6 +128,7 @@ class DiscordInput(Input):
     _token: str
     _startup_queue_depth: int
     _client: InternalMewbotDiscordClient
+    _manager_data: Optional[ManagerData]
 
     def __init__(self, token: str, startup_queue_depth: int = 0) -> None:
         """
@@ -141,9 +152,26 @@ class DiscordInput(Input):
         self._client._startup_queue_depth = self._startup_queue_depth
         self._client.queue = self.queue
 
-    def bind(self, queue: InputQueue) -> None:
+    def bind(
+        self,
+        queue: InputQueue,
+        manager_trigger_data: Optional[Dict[str, Set[str]]] = None,
+        manager_input_queue: Optional[InputQueue] = None,
+        manager_output_queue: Optional[InputQueue] = None,
+    ) -> None:
+
         self.queue = queue
         self._client.queue = queue
+
+        if manager_trigger_data is not None:
+
+            self._manager_data = ManagerData(
+                manager_trigger_data=manager_trigger_data,
+                manager_input_queue=manager_input_queue,
+                manager_output_queue=manager_output_queue,
+            )
+
+            self._client.manager_data = self._manager_data
 
     @staticmethod
     def produces_inputs() -> Set[Type[InputEvent]]:
@@ -164,6 +192,12 @@ class DiscordInput(Input):
 
         await self._client.start(self._token)
 
+    async def status(self) -> str:
+        """
+        Returns the current status of this input as a string.
+        """
+        return f"Connected as {self._client.user}"
+
 
 class InternalMewbotDiscordClient(discord.Client):
 
@@ -171,6 +205,23 @@ class InternalMewbotDiscordClient(discord.Client):
     _startup_queue_depth: int
 
     queue: Optional[InputQueue]
+
+    manager_data: Optional[ManagerData] = None
+
+    def check_str_against_manager_trigger_data(self, cmd_str: str) -> bool:
+        """
+        Check to see if a string matches any of the trigger criteria provided by the manager.
+        """
+        if self.manager_data is None:
+            return False
+
+        if (
+            "simple_strs" in self.manager_data.manager_trigger_data.keys()
+            and cmd_str in self.manager_data.manager_trigger_data["simple_strs"]
+        ):
+            return True
+
+        return False
 
     async def on_ready(self) -> None:
         """
@@ -233,6 +284,21 @@ class InternalMewbotDiscordClient(discord.Client):
         :param message:
         :return:
         """
+        if self.manager_data is not None and self.check_str_against_manager_trigger_data(
+            message.content
+        ):
+
+            if not self.manager_data.manager_input_queue:
+                return
+
+            await self.manager_data.manager_input_queue.put(
+                ManagerInputEvent(
+                    trigger_input_event=DiscordMessageCreationEvent(
+                        text=str(message.clean_content), message=message
+                    )
+                )
+            )
+
         if not self.queue:
             return
 

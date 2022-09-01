@@ -53,15 +53,19 @@ class Bot:
     def get_data_source(self, name: str) -> Optional[DataSource[Any]]:
         return self._datastores.get(name)
 
-    def get_io_configs(self):
+    def get_io_configs(self) -> List[IOConfigInterface]:
         """
-        Note - updating the return object wil NOT update the bot's IOConfigs once run has been called.
+        A list of all the IOConfigs know to the bot.
+        Note - updating the return object wil NOT update the bot's IOConfigs once run has been
+        called.
         """
         return self._io_configs
 
-    def get_behaviours(self):
+    def get_behaviours(self) -> List[BehaviourInterface]:
         """
-        Note - updating the return object wil NOT update the bot's Behaviors once run has been called.
+        A list of all the behaviors known to the bot.
+        Note - updating the return object wil NOT update the bot's Behaviors once run has been
+        called.
         """
         return self._behaviours
 

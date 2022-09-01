@@ -31,6 +31,9 @@ class IOConfigInterface(Protocol):
     def get_outputs(self) -> Sequence[OutputInterface]:
         pass
 
+    async def status(self) -> str:
+        pass
+
 
 @runtime_checkable
 class InputInterface(Protocol):
@@ -115,6 +118,9 @@ class BehaviourInterface(Protocol):
         pass
 
     async def process(self, event: InputEvent) -> None:
+        pass
+
+    async def status(self) -> str:
         pass
 
 
