@@ -10,8 +10,7 @@ import logging
 import discord
 
 from mewbot.api.v1 import IOConfig, Input, Output, InputEvent, OutputEvent
-from mewbot.core import InputQueue
-from mewbot.manager import ManagerInputEvent
+from mewbot.core import InputQueue, ManagerInputEvent, ManagerOutputQueue, ManagerInputQueue
 
 
 @dataclasses.dataclass
@@ -115,8 +114,10 @@ class ManagerData:
 
     manager_trigger_data: Dict[str, Set[str]]
 
-    manager_input_queue: Optional[InputQueue]  # Queue to communicate back to the manager
-    manager_output_queue: Optional[InputQueue]  # Queue to accept manager commands
+    manager_input_queue: Optional[
+        ManagerInputQueue
+    ]  # Queue to communicate back to the manager
+    manager_output_queue: Optional[ManagerOutputQueue]  # Queue to accept manager commands
 
 
 class DiscordInput(Input):
@@ -156,8 +157,8 @@ class DiscordInput(Input):
         self,
         queue: InputQueue,
         manager_trigger_data: Optional[Dict[str, Set[str]]] = None,
-        manager_input_queue: Optional[InputQueue] = None,
-        manager_output_queue: Optional[InputQueue] = None,
+        manager_input_queue: Optional[ManagerInputQueue] = None,
+        manager_output_queue: Optional[ManagerOutputQueue] = None,
     ) -> None:
 
         self.queue = queue

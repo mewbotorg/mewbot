@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
 
+"""
+Interfaces for Components and Events to pass between them.
+These interfaces are the minimum guarantees for the implementations,
+which will be consistent between API versions.
+
+We can only define methods in these interfaces and not properties.
+If a property-like behaviour becomes necessary, we can use an abstract @property.
+"""
+
 from __future__ import annotations
 
-from typing import Any, Dict, List, Protocol, Sequence, Set, Type, Union, runtime_checkable, Optional
+from typing import Any, Dict, List, Protocol, Sequence, Set, Type, Union, runtime_checkable
 
 import asyncio
 import enum
@@ -24,13 +33,18 @@ OutputQueue = asyncio.Queue[OutputEvent]
 
 
 @dataclasses.dataclass
-class ManagerInputEvent(InputEvent):
+class ManagerInputEvent:
     """
     Base class for input events flowing to the manager.
     Should (probably) not be used directly.
     """
 
     trigger_input_event: InputEvent
+
+
+@dataclasses.dataclass
+class ManagerOutputEvent:
+    """fdfdsfdsfsf"""
 
 
 @dataclasses.dataclass
@@ -46,10 +60,12 @@ class ManagerInfoInputEvent(ManagerInputEvent):
     Base class for passing information to the manager.
     May be information it has requested.
     """
+
     info_type: str = ""
 
 
-ManagerInputQueue = asyncio.Queue[Union[ManagerCommandInputEvent, ManagerInfoInputEvent]]
+ManagerInputQueue = asyncio.Queue[ManagerInputEvent]
+ManagerOutputQueue = asyncio.Queue[ManagerOutputEvent]
 
 
 @runtime_checkable
@@ -155,14 +171,13 @@ class BehaviourInterface(Protocol):
 
 @runtime_checkable
 class ManagerInterface(Protocol):
-
-    manager_input_queue: Optional[InputQueue]  # Queue to communicate back to the manager
-    manager_output_queue: Optional[InputQueue]  # Queue to accept manager commands
-
-    async def status(self) -> str:
+    def bind(self, in_queue: ManagerInputQueue, out_queue: ManagerOutputQueue) -> None:
         pass
 
-    async def help(self) -> str:
+    async def status(self) -> Dict[str, Dict[str, str]]:
+        pass
+
+    async def help(self) -> Dict[str, Dict[str, str]]:
         pass
 
 
@@ -221,6 +236,8 @@ __all__ = [
     "ManagerInterface",
     "InputEvent",
     "OutputEvent",
+    "ManagerInputEvent",
+    "ManagerInputQueue",
     "InputQueue",
     "OutputQueue",
 ]

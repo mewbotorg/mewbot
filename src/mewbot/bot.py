@@ -20,6 +20,8 @@ from mewbot.core import (
     OutputEvent,
     InputQueue,
     OutputQueue,
+    ManagerInputQueue,
+    ManagerOutputQueue,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -46,7 +48,7 @@ class Bot:
             self._marshal_behaviours(),
             self._marshal_inputs(),
             self._marshal_outputs(),
-            self._manager
+            self._manager,
         )
         runner.run()
 
@@ -143,9 +145,8 @@ class BotRunner:
 
         self.manager = manager
         # If the manager has been set, then prepare queues for it
-        if manager is not None:
-            self.manager.manager_input_queue = InputQueue()
-            self.manager.manager_output_queue = OutputQueue()
+        if self.manager:
+            self.manager.bind(ManagerInputQueue(), ManagerOutputQueue())
 
     def run(self, _loop: Optional[asyncio.AbstractEventLoop] = None) -> None:
         if self._running:

@@ -6,15 +6,14 @@ active.
 They also permit operations on the bot itself - such as enabling or disabling commands and viewing
 history"""
 
-import dataclasses
+from typing import Dict, AnyStr
+
 import logging
 import pprint
 
-from typing import Dict, AnyStr, Optional
-
-from mewbot.api.v1 import InputEvent, Manager
+from mewbot.api.v1 import Manager
 from mewbot.bot import Bot, BotRunner
-from mewbot.core import ManagerInputQueue, ManagerInputEvent, ManagerCommandInputEvent, ManagerInfoInputEvent
+from mewbot.core import ManagerInputEvent
 
 
 class BasicManager(Manager):
@@ -47,8 +46,7 @@ class BasicManager(Manager):
         The manager is intended to run parallel to the bot itseld, gathering information and providing a control
         interface to it.
         """
-        while True:
-
+        while self.manager_input_queue:
             manager_input_event: ManagerInputEvent = await self.manager_input_queue.get()
 
             print(manager_input_event)

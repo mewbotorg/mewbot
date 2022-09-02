@@ -26,6 +26,7 @@ from mewbot.core import (
     TriggerInterface,
     ConditionInterface,
     ActionInterface,
+    ManagerOutputQueue,
 )
 from mewbot.config import BehaviourConfigBlock, ConfigBlock
 
@@ -263,11 +264,17 @@ class Behaviour(Component):
         pass
 
 
-# @ComponentRegistry.register_api_version(ComponentKind.Manager, "v1")
+@ComponentRegistry.register_api_version(ComponentKind.Manager, "v1")
 class Manager(Component):
 
-    manager_input_queue: Optional[ManagerInputQueue]  # Queue to communicate back to the manager
-    manager_output_queue: Optional[InputQueue]  # Queue to accept manager commands
+    manager_input_queue: Optional[
+        ManagerInputQueue
+    ]  # Queue to communicate back to the manager
+    manager_output_queue: Optional[ManagerOutputQueue]  # Queue to accept manager commands
+
+    def bind(self, in_queue: ManagerInputQueue, out_queue: ManagerOutputQueue) -> None:
+        self.manager_input_queue = in_queue
+        self.manager_output_queue = out_queue
 
     @abc.abstractmethod
     async def status(self) -> Dict[str, Dict[str, str]]:
