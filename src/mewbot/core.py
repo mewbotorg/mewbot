@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Protocol, Sequence, Set, Type, Union, runtime_checkable
+from typing import Any, Dict, List, Protocol, Sequence, Set, Type, Union, runtime_checkable, Optional
 
 import asyncio
 import enum
@@ -21,6 +21,35 @@ class OutputEvent:
 
 InputQueue = asyncio.Queue[InputEvent]
 OutputQueue = asyncio.Queue[OutputEvent]
+
+
+@dataclasses.dataclass
+class ManagerInputEvent(InputEvent):
+    """
+    Base class for input events flowing to the manager.
+    Should (probably) not be used directly.
+    """
+
+    trigger_input_event: InputEvent
+
+
+@dataclasses.dataclass
+class ManagerCommandInputEvent(ManagerInputEvent):
+    """
+    Base class for issuing commands to the manager.
+    """
+
+
+@dataclasses.dataclass
+class ManagerInfoInputEvent(ManagerInputEvent):
+    """
+    Base class for passing information to the manager.
+    May be information it has requested.
+    """
+    info_type: str = ""
+
+
+ManagerInputQueue = asyncio.Queue[Union[ManagerCommandInputEvent, ManagerInfoInputEvent]]
 
 
 @runtime_checkable
@@ -124,12 +153,26 @@ class BehaviourInterface(Protocol):
         pass
 
 
+@runtime_checkable
+class ManagerInterface(Protocol):
+
+    manager_input_queue: Optional[InputQueue]  # Queue to communicate back to the manager
+    manager_output_queue: Optional[InputQueue]  # Queue to accept manager commands
+
+    async def status(self) -> str:
+        pass
+
+    async def help(self) -> str:
+        pass
+
+
 Component = Union[
     BehaviourInterface,
     IOConfigInterface,
     TriggerInterface,
     ConditionInterface,
     ActionInterface,
+    ManagerInterface,
 ]
 
 
@@ -142,6 +185,7 @@ class ComponentKind(str, enum.Enum):
     IOConfig = "IOConfig"
     Template = "Template"
     DataSource = "DataSource"
+    Manager = "Manager"
 
     @classmethod
     def values(cls) -> List[str]:
@@ -155,6 +199,7 @@ class ComponentKind(str, enum.Enum):
             cls.Condition: ConditionInterface,
             cls.Action: ActionInterface,
             cls.IOConfig: IOConfigInterface,
+            cls.Manager: ManagerInterface,
         }
 
         if value in _map:
@@ -173,6 +218,7 @@ __all__ = [
     "TriggerInterface",
     "ConditionInterface",
     "ActionInterface",
+    "ManagerInterface",
     "InputEvent",
     "OutputEvent",
     "InputQueue",

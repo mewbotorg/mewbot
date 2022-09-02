@@ -10,19 +10,14 @@ import dataclasses
 import logging
 import pprint
 
-from typing import Dict, AnyStr
+from typing import Dict, AnyStr, Optional
 
-from mewbot.api.v1 import InputEvent
+from mewbot.api.v1 import InputEvent, Manager
 from mewbot.bot import Bot, BotRunner
+from mewbot.core import ManagerInputQueue, ManagerInputEvent, ManagerCommandInputEvent, ManagerInfoInputEvent
 
 
-@dataclasses.dataclass
-class ManagerInputEvent(InputEvent):
-
-    trigger_input_event: InputEvent
-
-
-class Manager:
+class BasicManager(Manager):
 
     _managed_bot: Bot
     _managed_bot_runner: BotRunner
@@ -32,12 +27,7 @@ class Manager:
     # Commands for the manager - and are they enabled or not
     COMMANDS: Dict[str, bool] = {"status": True}
 
-    def __init__(
-        self, managed_bot: Bot, managed_bot_runner: BotRunner, command_prefix: str = "!"
-    ) -> None:
-
-        self._managed_bot = managed_bot
-        self._managed_bot_runner = managed_bot_runner
+    def __init__(self, command_prefix: str = "!") -> None:
 
         self.command_prefix = command_prefix
 
@@ -50,6 +40,18 @@ class Manager:
     @bot.setter
     def bot(self, new_bot: Bot) -> None:
         raise AttributeError("Cannot change bot once manager has been initialized")
+
+    async def run(self) -> None:
+        """
+        Run the manager.
+        The manager is intended to run parallel to the bot itseld, gathering information and providing a control
+        interface to it.
+        """
+        while True:
+
+            manager_input_event: ManagerInputEvent = await self.manager_input_queue.get()
+
+            print(manager_input_event)
 
     async def status(self) -> Dict[str, Dict[str, str]]:
         """
@@ -70,6 +72,9 @@ class Manager:
 
         self._logger.info(self.render_status(status))
         return status
+
+    async def help(self) -> Dict[str, Dict[str, str]]:
+        return {}
 
     @staticmethod
     def render_status(status: Dict[AnyStr, Dict[AnyStr, AnyStr]]) -> str:

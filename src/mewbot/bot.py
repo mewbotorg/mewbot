@@ -16,6 +16,7 @@ from mewbot.core import (
     InputInterface,
     InputEvent,
     OutputInterface,
+    ManagerInterface,
     OutputEvent,
     InputQueue,
     OutputQueue,
@@ -25,10 +26,14 @@ logging.basicConfig(level=logging.INFO)
 
 
 class Bot:
+
     name: str  # The bot's name
+
     _io_configs: List[IOConfigInterface]  # Connections to bot makes to other services
     _behaviours: List[BehaviourInterface]  # All the things the bot does
     _datastores: Dict[str, DataSource[Any]]  # Data sources and stores for this bot
+
+    _manager: Optional[ManagerInterface]
 
     def __init__(self, name: str) -> None:
         self.name = name
@@ -41,6 +46,7 @@ class Bot:
             self._marshal_behaviours(),
             self._marshal_inputs(),
             self._marshal_outputs(),
+            self._manager
         )
         runner.run()
 
@@ -49,6 +55,10 @@ class Bot:
 
     def add_behaviour(self, behaviour: BehaviourInterface) -> None:
         self._behaviours.append(behaviour)
+
+    def set_manager(self, manager: ManagerInterface) -> None:
+        self._manager = manager
+        self._manager._managed_bot = self
 
     def get_data_source(self, name: str) -> Optional[DataSource[Any]]:
         return self._datastores.get(name)
@@ -99,12 +109,18 @@ class Bot:
 
 
 class BotRunner:
+
+    # pylint: disable=too-many-instance-attributes
+    # Can be fixed later
+
     input_event_queue: InputQueue
     output_event_queue: OutputQueue
 
     inputs: Set[InputInterface]
     outputs: Dict[Type[OutputEvent], Set[OutputInterface]] = {}
     behaviours: Dict[Type[InputEvent], Set[BehaviourInterface]] = {}
+
+    manager: Optional[ManagerInterface]
 
     _running: bool = False
 
@@ -113,6 +129,7 @@ class BotRunner:
         behaviours: Dict[Type[InputEvent], Set[BehaviourInterface]],
         inputs: Set[InputInterface],
         outputs: Dict[Type[OutputEvent], Set[OutputInterface]],
+        manager: Optional[ManagerInterface] = None,
     ) -> None:
 
         self.logger = logging.getLogger(__name__ + "BotRunner")
@@ -123,6 +140,12 @@ class BotRunner:
         self.inputs = inputs
         self.outputs = outputs
         self.behaviours = behaviours
+
+        self.manager = manager
+        # If the manager has been set, then prepare queues for it
+        if manager is not None:
+            self.manager.manager_input_queue = InputQueue()
+            self.manager.manager_output_queue = OutputQueue()
 
     def run(self, _loop: Optional[asyncio.AbstractEventLoop] = None) -> None:
         if self._running:

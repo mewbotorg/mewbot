@@ -21,6 +21,7 @@ from mewbot.core import (
     InputQueue,
     OutputEvent,
     OutputQueue,
+    ManagerInputQueue,
     ComponentKind,
     TriggerInterface,
     ConditionInterface,
@@ -262,6 +263,21 @@ class Behaviour(Component):
         pass
 
 
+# @ComponentRegistry.register_api_version(ComponentKind.Manager, "v1")
+class Manager(Component):
+
+    manager_input_queue: Optional[ManagerInputQueue]  # Queue to communicate back to the manager
+    manager_output_queue: Optional[InputQueue]  # Queue to accept manager commands
+
+    @abc.abstractmethod
+    async def status(self) -> Dict[str, Dict[str, str]]:
+        pass
+
+    @abc.abstractmethod
+    async def help(self) -> Dict[str, Dict[str, str]]:
+        pass
+
+
 __all__ = [
     "IOConfig",
     "Input",
@@ -272,4 +288,5 @@ __all__ = [
     "Action",
     "InputEvent",
     "OutputEvent",
+    "Manager",
 ]
