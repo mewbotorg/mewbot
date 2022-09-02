@@ -9,5 +9,10 @@ setuptools~=65.3
 # Discord Module
 py-cord~=2.1.1
 
+# File Watcher Modules
+watchfiles~=0.15.0
+watchdog~=2.1.9
+aiopath>=0.5
+
 # Notifications module (windows)
 win10toast~=0.9; sys_platform == "win32"
