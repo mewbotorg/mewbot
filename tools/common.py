@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+import os
 from typing import Generator, List, Set
 
 import dataclasses
@@ -46,6 +47,9 @@ class ToolChain(abc.ABC):
         self.success = True
 
     def __call__(self) -> None:
+        if not os.path.exists("./reports"):
+            os.mkdir("./reports")
+
         issues = list(self.run())
 
         if self.is_ci:
@@ -81,6 +85,9 @@ class ToolChain(abc.ABC):
             sys.stdout.write(run.stdout.decode("utf-8"))
             sys.stdout.write(run.stderr.decode("utf-8"))
             print("::endgroup::")
+
+            with open(f"reports/{name}.txt", "wb") as log_file:
+                log_file.write(run.stdout)
         else:
             run.stdout = b""
             run.stderr = b""
