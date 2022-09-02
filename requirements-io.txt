@@ -12,3 +12,8 @@ win10toast~=0.9; sys_platform == "win32"
 
 # RSS reader
 feedparser~=6.0.10
+
+# File Watcher Modules
+watchfiles~=0.15.0
+watchdog~=2.1.9
+aiopath>=0.5
