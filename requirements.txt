@@ -7,7 +7,7 @@ aiohttp>=3.8.0,<3.9.0  # Waiting for py-cord to upgrade
 setuptools~=65.3
 
 # Discord Module
-py-cord~=2.1.0
+py-cord~=2.1.1
 
 # Notifications module (windows)
 win10toast~=0.9; sys_platform == "win32"
