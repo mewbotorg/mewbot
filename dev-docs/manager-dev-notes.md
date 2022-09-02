@@ -96,7 +96,30 @@ Disadvantages
 
 
 
-### 
+### Ben's Thoughts
 
+More Manager Concepts
 
+- manager acting as a control bus
+- can create and edit bot state
+- manages the bot runners
 
+- bots know about their manager
+- bots have access to a queue to send requests to their manager
+- behaviours can send requests to this queue via a specific OutputEvent -- ManagerCommandEvent
+   - other Outputs can accept these events (for logging)
+
+- the manager can access and update state of all components in the current process
+   - defined this way so, in the case of distribution, ownership is clear
+   - this does mean that there is a manager running per process / distributed chunk
+
+- potential base API changes
+   - need to add the human-readable string method to components (see design-docs)
+   - help string for components
+   - status \[enum?] for components
+   - lifecycle changes
+      - add `async def shutdown` to Input and Output?
+   - OFF TOPIC FOR THIS:
+      - loggers
+      - metrics (moving `send` to Input would allow for counters per event type, for example)
+      - hmmm, manager would be a good way to handle internal prometheus scraping
