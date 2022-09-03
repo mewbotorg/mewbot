@@ -71,7 +71,7 @@ class GeneralUtils:
 
         # We need to retain control of the thread to delay shutdown
         # And to probe the results
-        run_task = asyncio.get_running_loop().create_task(test_fs_input.run())
+        run_task = asyncio.get_running_loop().create_task(test_fs_input.run(), name="barrr")
 
         # Give the class a chance to actually do init
         await asyncio.sleep(0.5)
@@ -91,7 +91,7 @@ class GeneralUtils:
 
         # We need to retain control of the thread to delay shutdown
         # And to probe the results
-        run_task = asyncio.get_running_loop().create_task(test_fs_input.run())
+        run_task = asyncio.get_running_loop().create_task(test_fs_input.run(), name="foooo")
 
         return run_task, output_queue
 
