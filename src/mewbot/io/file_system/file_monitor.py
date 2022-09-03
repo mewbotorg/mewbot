@@ -85,7 +85,7 @@ class FileMonitorInput(Input):
     _run = False
     _polling_interval: float = 0.5
 
-    def __init__(self, path: Optional[str] = None) -> None:
+    def __init__(self, path: Optional[AsyncPath] = None) -> None:
         super().__init__()
 
         self._logger = logging.getLogger(__name__ + ":" + type(self).__name__)

@@ -2,6 +2,10 @@
 # Including running a full bot with logging triggers and actions.
 # However, individual components also have to be isolated for testing purposes.
 
+from __future__ import annotations
+
+from typing import Optional, Type
+
 import asyncio
 import logging
 import sys
@@ -9,11 +13,13 @@ import tempfile
 import os
 import uuid
 
+import aiopath
 import pytest
 
 from mewbot.api.v1 import InputEvent
 from mewbot.io.file_system.file_monitor import (
     FileMonitorInput,
+    FileMonitorInputEvent,
     MonitoredFileWasCreatedInputEvent,
     MonitoredFileWasUpdatedInputEvent,
     MonitoredFileWasDeletedOrMovedInputEvent,
@@ -24,6 +30,79 @@ from .utils import FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEvents
 # pylint: disable=invalid-name
 # for clarity, test functions should be named after the things they test
 # which means CamelCase in function names
+
+
+class FileMonitorTestHarnessGenerator:
+    temp_dir: str
+    path: aiopath.AsyncPath
+    name: str
+
+    inner: Optional[FileMonitorTestHarness] = None
+
+    def __init__(self, temp_dir: str, name: str) -> None:
+        self.temp_dir = temp_dir
+        self.name = name
+        self.path = aiopath.AsyncPath(temp_dir, name)
+
+    async def create_file(self, text: str = "") -> None:
+        await self.path.write_text(text)
+
+    async def __aenter__(self) -> FileMonitorTestHarness:
+        self.inner = FileMonitorTestHarness(self.path, self.name)
+        return self.inner
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.inner.input.shutdown()
+        await self.inner.task
+
+        events = []
+
+        while True:
+            try:
+                events.append(self.inner.queue.get_nowait())
+            except asyncio.QueueEmpty:
+                break
+
+        assert not events, "Extra events in test harness"
+
+
+class FileMonitorTestHarness:
+    tempdir: tempfile.TemporaryDirectory
+    input: FileMonitorInput
+    queue: asyncio.Queue[InputEvent]
+    task: asyncio.Task
+    path: aiopath.AsyncPath
+
+    def __init__(self, path: aiopath.AsyncPath, name: str):
+        self.path = path
+        self.queue = asyncio.Queue()
+        self.input = FileMonitorInput(self.path)
+        self.input.bind(self.queue)
+        self.task = asyncio.get_running_loop().create_task(self.input.run(), name=name)
+
+    async def create_file(self, content: str = "") -> None:
+        if await self.path.exists():
+            raise FileExistsError
+
+        await self.path.write_text(content)
+
+    async def update_file(self, content: str = "", must_exist: bool = False) -> None:
+        if must_exist and not await self.path.exists():
+            raise FileExistsError
+
+        await self.path.write_text(content)
+
+    async def delete_file(self, content: str = "") -> None:
+        if not await self.path.exists():
+            raise FileExistsError
+
+        await self.path.write_text(content)
+
+    async def expect_event(self, typed: Type[FileMonitorInputEvent]) -> FileMonitorInputEvent:
+        event = await asyncio.wait_for(self.queue.get(), 1)
+
+        assert isinstance(event, typed)
+        return event
 
 
 class TestFileMonitorInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEvents):
@@ -61,14 +140,9 @@ class TestFileMonitorInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFile
         The object it's pointed at is a dir.
         """
         with tempfile.TemporaryDirectory() as tmp_dir_path:
-            test_fs_input = FileMonitorInput(path=tmp_dir_path)
-            assert isinstance(test_fs_input, FileMonitorInput)
+            async with FileMonitorTestHarnessGenerator(tmp_dir_path, "no-act") as harness:
+                await asyncio.sleep(0.5)
 
-            # We need to retain control of the thread to preform shutdown
-            asyncio.get_running_loop().create_task(test_fs_input.run())
-
-            await asyncio.sleep(0.5)
-            # Note - manually stopping the loop seems to lead to a rather nasty cash
 
     @pytest.mark.asyncio()
     async def test_FileMonitorInput_run_without_error_existing_file(self) -> None:
@@ -88,7 +162,7 @@ class TestFileMonitorInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFile
             assert isinstance(test_fs_input, FileMonitorInput)
 
             # Start running the test input
-            task = asyncio.get_running_loop().create_task(test_fs_input.run())
+            task = asyncio.get_running_loop().create_task(test_fs_input.run(), name="foo")
 
             # Wait half a second to see if anything falls over
             await asyncio.sleep(0.5)
