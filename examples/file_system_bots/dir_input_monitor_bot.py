@@ -10,18 +10,7 @@ import logging
 
 from mewbot.api.v1 import Trigger, Action
 from mewbot.core import InputEvent, OutputEvent, OutputQueue
-from mewbot.io.file_system import (
-    DirectoryCreatedInWatchedDirInputEvent,
-    DirectoryInMonitoredDirectoryWasUpdatedInputEvent,
-    DirectoryMovedIntoOrFromWatchedDirInputEvent,
-    DirectoryDeletedInMonitoredDirectoryInputEvent,
-    MonitoredFileWasCreatedInputEvent,
-    MonitoredFileWasUpdatedInputEvent,
-    FileMovedIntoOrFromWatchedDirInputEvent,
-    MonitoredFileWasDeletedInputEvent,
-    FileCreatedInMonitoredDirectoryInputEvent,
-    FileDeletedFromMonitoredDirectoryInputEvent,
-)
+from mewbot.io.file_system import DirectoryMonitorInputEvent
 
 
 class DirSystemAllCommandTrigger(Trigger):
@@ -31,38 +20,13 @@ class DirSystemAllCommandTrigger(Trigger):
 
     @staticmethod
     def consumes_inputs() -> Set[Type[InputEvent]]:
-        return {
-            DirectoryCreatedInWatchedDirInputEvent,
-            DirectoryInMonitoredDirectoryWasUpdatedInputEvent,
-            DirectoryMovedIntoOrFromWatchedDirInputEvent,
-            DirectoryDeletedInMonitoredDirectoryInputEvent,
-            MonitoredFileWasCreatedInputEvent,
-            MonitoredFileWasUpdatedInputEvent,
-            FileMovedIntoOrFromWatchedDirInputEvent,
-            MonitoredFileWasDeletedInputEvent,
-            FileCreatedInMonitoredDirectoryInputEvent,
-            FileDeletedFromMonitoredDirectoryInputEvent,
-        }
+        return {DirectoryMonitorInputEvent}
 
     def matches(self, event: InputEvent) -> bool:
 
         print("-------\n", "event seen by matches - ", event, "\n-------")
 
-        if not isinstance(
-            event,
-            (
-                    DirectoryCreatedInWatchedDirInputEvent,
-                    DirectoryInMonitoredDirectoryWasUpdatedInputEvent,
-                    DirectoryMovedIntoOrFromWatchedDirInputEvent,
-                    DirectoryDeletedInMonitoredDirectoryInputEvent,
-                    MonitoredFileWasCreatedInputEvent,
-                    FileMovedIntoOrFromWatchedDirInputEvent,
-                    MonitoredFileWasUpdatedInputEvent,
-                    MonitoredFileWasDeletedInputEvent,
-                    FileCreatedInMonitoredDirectoryInputEvent,
-                    FileDeletedFromMonitoredDirectoryInputEvent,
-            ),
-        ):
+        if not isinstance(event, DirectoryMonitorInputEvent):
             return False
 
         return True
@@ -82,18 +46,7 @@ class DirSystemInputPrintResponse(Action):
 
     @staticmethod
     def consumes_inputs() -> Set[Type[InputEvent]]:
-        return {
-            DirectoryCreatedInWatchedDirInputEvent,
-            DirectoryInMonitoredDirectoryWasUpdatedInputEvent,
-            DirectoryMovedIntoOrFromWatchedDirInputEvent,
-            DirectoryDeletedInMonitoredDirectoryInputEvent,
-            MonitoredFileWasCreatedInputEvent,
-            MonitoredFileWasUpdatedInputEvent,
-            FileMovedIntoOrFromWatchedDirInputEvent,
-            MonitoredFileWasDeletedInputEvent,
-            FileCreatedInMonitoredDirectoryInputEvent,
-            FileDeletedFromMonitoredDirectoryInputEvent,
-        }
+        return {DirectoryMonitorInputEvent}
 
     @staticmethod
     def produces_outputs() -> Set[Type[OutputEvent]]:
@@ -103,7 +56,7 @@ class DirSystemInputPrintResponse(Action):
         """
         Construct a DiscordOutputEvent with the result of performing the calculation.
         """
-        if not isinstance(event, InputEvent):
+        if not isinstance(event, DirectoryMonitorInputEvent):
             self._logger.warning("Received wrong event type %s", type(event))
             return
 
