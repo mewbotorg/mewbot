@@ -1,26 +1,23 @@
 import asyncio
-
 from typing import Tuple, Optional, List, Union, Type
 
 from mewbot.api.v1 import InputEvent
-from mewbot.io.file_system import (
-    DirTypeFSInput,
-    FileTypeFSInput,
-)
-from mewbot.io.file_system.events import (
-    MonitoredFileWasCreatedInputEvent,
-    WatchedFileWasDeletedOrMovedInputEvent,
+from mewbot.io.file_system.dir_monitor import (
+    DirectoryMonitorInput,
+    DirectoryMonitorInputEvent,
     FileCreatedInMonitoredDirectoryInputEvent,
+    DirectoryCreatedInWatchedDirInputEvent,
+    DirectoryInMonitoredDirectoryWasUpdatedInputEvent,
+    DirectoryMovedIntoOrFromWatchedDirInputEvent,
+    DirectoryDeletedInMonitoredDirectoryInputEvent,
+    FileDeletedFromMonitoredDirectoryInputEvent,
+)
+from mewbot.io.file_system.file_monitor import (
+    FileMonitorInput,
     FileMonitorInputEvent,
     MonitoredFileWasCreatedInputEvent,
     MonitoredFileWasUpdatedInputEvent,
-    FileMovedIntoOrFromWatchedDirInputEvent,
-    MonitoredFileWasDeletedInputEvent,
-    DirectoryMonitorInputEvent,
-    DirectoryCreatedInWatchedDirInputEvent,
-    DirectoryMovedIntoOrFromWatchedDirInputEvent,
-    DirectoryInMonitoredDirectoryWasUpdatedInputEvent,
-    DirectoryDeletedInMonitoredDirectoryInputEvent,
+    MonitoredFileWasDeletedOrMovedInputEvent,
 )
 
 
@@ -66,8 +63,8 @@ class GeneralUtils:
         input_path: str,
     ) -> Tuple[asyncio.Task[None], asyncio.Queue[InputEvent]]:
 
-        test_fs_input = DirTypeFSInput(input_path=input_path)
-        assert isinstance(test_fs_input, DirTypeFSInput)
+        test_fs_input = DirectoryMonitorInput(input_path=input_path)
+        assert isinstance(test_fs_input, DirectoryMonitorInput)
 
         output_queue: asyncio.Queue[InputEvent] = asyncio.Queue()
         test_fs_input.queue = output_queue
@@ -82,12 +79,12 @@ class GeneralUtils:
         return run_task, output_queue
 
     @staticmethod
-    async def get_FileTypeFSInput(
+    async def get_test_input(
         input_path: str,
     ) -> Tuple[asyncio.Task[None], asyncio.Queue[InputEvent]]:
 
-        test_fs_input = FileTypeFSInput(input_path=input_path)
-        assert isinstance(test_fs_input, FileTypeFSInput)
+        test_fs_input = FileMonitorInput(path=input_path)
+        assert isinstance(test_fs_input, FileMonitorInput)
 
         output_queue: asyncio.Queue[InputEvent] = asyncio.Queue()
         test_fs_input.queue = output_queue
@@ -136,11 +133,7 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
     async def process_file_event_queue_response(
         self,
         output_queue: asyncio.Queue[InputEvent],
-        event_type: Union[
-            Type[FileMonitorInputEvent],
-            Type[MonitoredFileWasCreatedInputEvent],
-            Type[WatchedFileWasDeletedOrMovedInputEvent],
-        ],
+        event_type: Type[FileMonitorInputEvent],
         file_path: Optional[str] = None,
         allowed_queue_size: int = 0,
     ) -> None:
@@ -188,11 +181,7 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
     @staticmethod
     def validate_file_input_event(
         input_event: InputEvent,
-        event_type: Union[
-            Type[FileMonitorInputEvent],
-            Type[MonitoredFileWasCreatedInputEvent],
-            Type[WatchedFileWasDeletedOrMovedInputEvent],
-        ],
+        event_type: Type[FileMonitorInputEvent],
         file_path: Optional[str] = None,
         message: str = "",
     ) -> None:
@@ -203,14 +192,7 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
         )
 
         if file_path is not None:
-            assert isinstance(
-                input_event,
-                (
-                    FileMonitorInputEvent,
-                    MonitoredFileWasCreatedInputEvent,
-                    WatchedFileWasDeletedOrMovedInputEvent,
-                ),
-            )
+            assert isinstance(input_event, FileMonitorInputEvent)
             assert input_event.path == file_path
 
     def check_queue_for_file_creation_input_event(
@@ -315,7 +297,7 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
             raise NotImplementedError(f"{output_queue} of unsupported type")
 
         for event in input_events:
-            if isinstance(event, FileMovedIntoOrFromWatchedDirInputEvent):
+            if isinstance(event, FileDeletedFromMonitoredDirectoryInputEvent):
                 self.validate_file_move_input_event(
                     input_event=event,
                     file_src_path=file_src_parth,
@@ -384,7 +366,7 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
             raise NotImplementedError(f"{output_queue} of unsupported type")
 
         for event in input_events:
-            if isinstance(event, MonitoredFileWasDeletedInputEvent):
+            if isinstance(event, FileDeletedFromMonitoredDirectoryInputEvent):
                 self.validate_file_deletion_input_event(
                     input_event=event, file_path=file_path, message=message
                 )
@@ -401,19 +383,20 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
         message: str = "",
     ) -> None:
 
+        assert isinstance(
+            input_event, MonitoredFileWasDeletedOrMovedInputEvent
+        ), f"expected DeletedFileFSInputEvent - got {input_event}" + (
+            f" - {message}" if message else ""
+        )
+
         if file_path is not None:
-            assert isinstance(
-                input_event, MonitoredFileWasDeletedInputEvent
-            ), f"expected DeletedFileFSInputEvent - got {input_event}" + (
-                f" - {message}" if message else ""
-            )
             assert file_path == input_event.path, (
                 f"file path does not match expected - wanted {file_path}, "
                 f"got {input_event.path}"
             )
         else:
             assert isinstance(
-                input_event, MonitoredFileWasDeletedInputEvent
+                input_event, MonitoredFileWasDeletedOrMovedInputEvent
             ), f"expected DeletedFileFSInputEvent - got {input_event}" + (
                 f" - {message}" if message else ""
             )
@@ -537,7 +520,9 @@ class FileSystemTestUtilsDirEvents(GeneralUtils):
         err_str = f"Expected UpdatedDirFSInputEvent - got {input_event}" + (
             f" - {message}" if message else ""
         )
-        assert isinstance(input_event, DirectoryInMonitoredDirectoryWasUpdatedInputEvent), err_str
+        assert isinstance(
+            input_event, DirectoryInMonitoredDirectoryWasUpdatedInputEvent
+        ), err_str
 
         if dir_path is not None:
             assert (
@@ -653,7 +638,7 @@ class FileSystemTestUtilsDirEvents(GeneralUtils):
         message: str = "",
     ) -> None:
         assert isinstance(
-            input_event, WatchedFileWasDeletedOrMovedInputEvent
+            input_event, MonitoredFileWasDeletedOrMovedInputEvent
         ), f"Expected DeletedDirFSInputEvent - got {input_event}" + (
             f" - {message}" if message else ""
         )

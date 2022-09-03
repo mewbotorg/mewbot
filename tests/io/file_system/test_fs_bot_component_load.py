@@ -4,7 +4,7 @@ from typing import Type
 
 from tests.common import BaseTestClassWithConfig
 
-from mewbot.io.file_system import FileSystemIO
+from mewbot.io.file_system import FileSystemMonitor
 from mewbot.api.v1 import IOConfig
 
 # pylint: disable=R0903
@@ -12,10 +12,10 @@ from mewbot.api.v1 import IOConfig
 #  grouping and then individual tests alongside these
 
 
-class TestIoFileSystem(BaseTestClassWithConfig[FileSystemIO]):
+class TestIoFileSystem(BaseTestClassWithConfig[FileSystemMonitor]):
     config_file: str = "examples/file_system_bots/file_input_monitor_bot.yaml"
-    implementation: Type[FileSystemIO] = FileSystemIO
+    implementation: Type[FileSystemMonitor] = FileSystemMonitor
 
     def test_check_class(self) -> None:
-        assert isinstance(self.component, FileSystemIO)
+        assert isinstance(self.component, FileSystemMonitor)
         assert isinstance(self.component, IOConfig)

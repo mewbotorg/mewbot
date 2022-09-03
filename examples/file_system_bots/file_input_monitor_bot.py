@@ -10,12 +10,7 @@ import logging
 
 from mewbot.api.v1 import Trigger, Action
 from mewbot.core import InputEvent, OutputEvent, OutputQueue
-from mewbot.io.file_system import (
-    FileSystemInputEvent,
-    MonitoredFileWasUpdatedInputEvent,
-    MonitoredFileWasCreatedInputEvent,
-    WatchedFileWasDeletedOrMovedInputEvent,
-)
+from mewbot.io.file_system import FileMonitorInputEvent
 
 
 class FileSystemAllCommandTrigger(Trigger):
@@ -25,22 +20,10 @@ class FileSystemAllCommandTrigger(Trigger):
 
     @staticmethod
     def consumes_inputs() -> Set[Type[InputEvent]]:
-        return {
-            MonitoredFileWasCreatedInputEvent,
-            MonitoredFileWasUpdatedInputEvent,
-            WatchedFileWasDeletedOrMovedInputEvent,
-        }
+        return {FileMonitorInputEvent}
 
     def matches(self, event: InputEvent) -> bool:
-
-        if not isinstance(
-            event,
-            (
-                    MonitoredFileWasCreatedInputEvent,
-                    MonitoredFileWasUpdatedInputEvent,
-                    WatchedFileWasDeletedOrMovedInputEvent,
-            ),
-        ):
+        if not isinstance(event, FileMonitorInputEvent):
             return False
 
         return True
@@ -60,11 +43,7 @@ class FileSystemInputPrintResponse(Action):
 
     @staticmethod
     def consumes_inputs() -> Set[Type[InputEvent]]:
-        return {
-            MonitoredFileWasCreatedInputEvent,
-            MonitoredFileWasUpdatedInputEvent,
-            WatchedFileWasDeletedOrMovedInputEvent,
-        }
+        return {FileMonitorInputEvent}
 
     @staticmethod
     def produces_outputs() -> Set[Type[OutputEvent]]:
@@ -74,7 +53,7 @@ class FileSystemInputPrintResponse(Action):
         """
         Construct a DiscordOutputEvent with the result of performing the calculation.
         """
-        if not isinstance(event, FileSystemInputEvent):
+        if not isinstance(event, FileMonitorInputEvent):
             self._logger.warning("Received wrong event type %s", type(event))
             return
 
