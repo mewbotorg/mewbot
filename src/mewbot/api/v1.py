@@ -27,6 +27,7 @@ from mewbot.core import (
     ConditionInterface,
     ActionInterface,
     ManagerOutputQueue,
+    BotBase,
 )
 from mewbot.config import BehaviourConfigBlock, ConfigBlock
 
@@ -86,19 +87,36 @@ class IOConfig(Component):
     def get_outputs(self) -> Sequence[Output]:
         ...
 
-    async def status(self) -> str:
+    async def status(self) -> Dict[str, List[str]]:
         pass
 
 
 class Input:
 
     queue: Optional[InputQueue]  # Queue for all Input events
+    manager_trigger_data: Optional[Dict[str, Set[str]]]
+    # If a manager is active, the data needed for the input to know if a command is manager or not
+    manager_input_queue: Optional[
+        ManagerInputQueue
+    ]  # Send commands/info requests to the manager
+    manager_output_queue: Optional[
+        ManagerOutputQueue
+    ]  # Recieve commands/info requests from the manager
 
     def __init__(self) -> None:
         self.queue = None
 
-    def bind(self, queue: InputQueue) -> None:
+    def bind(
+        self,
+        queue: InputQueue,
+        manager_trigger_data: Optional[Dict[str, Set[str]]] = None,
+        manager_input_queue: Optional[ManagerInputQueue] = None,
+        manager_output_queue: Optional[ManagerOutputQueue] = None,
+    ) -> None:
         self.queue = queue
+        self.manager_trigger_data = manager_trigger_data
+        self.manager_input_queue = manager_input_queue
+        self.manager_output_queue = manager_output_queue
 
     @staticmethod
     def produces_inputs() -> Set[Type[InputEvent]]:
@@ -110,6 +128,9 @@ class Input:
     @abc.abstractmethod
     async def run(self) -> None:
         pass
+
+    async def status(self) -> str:
+        return f"{self} does not have a status method."
 
 
 class Output:
@@ -126,6 +147,9 @@ class Output:
         :param event:
         :return:
         """
+
+    async def status(self) -> str:
+        pass
 
 
 @ComponentRegistry.register_api_version(ComponentKind.Trigger, "v1")
@@ -271,13 +295,42 @@ class Manager(Component):
         ManagerInputQueue
     ]  # Queue to communicate back to the manager
     manager_output_queue: Optional[ManagerOutputQueue]  # Queue to accept manager commands
+    _managed_bot: BotBase
 
     def bind(self, in_queue: ManagerInputQueue, out_queue: ManagerOutputQueue) -> None:
         self.manager_input_queue = in_queue
         self.manager_output_queue = out_queue
 
+    def set_bot(self, new_bot: BotBase) -> None:
+        self._managed_bot = new_bot
+
+    def get_bot(self) -> BotBase:
+        return self._managed_bot
+
+    def get_trigger_data(self) -> Dict[str, Set[str]]:
+        """
+        Trigger data required by each of the individual inputs to tell if an incoming event is a
+        command intended for the manager.
+        """
+
+    def get_in_queue(self) -> Optional[ManagerInputQueue]:
+        """
+        Returns the queue used to communicate commands/info requests/ etc. to the manager.
+        """
+        return self.manager_input_queue
+
+    def get_out_queue(self) -> Optional[ManagerOutputQueue]:
+        """
+        Returns the
+        """
+        return self.manager_output_queue
+
     @abc.abstractmethod
-    async def status(self) -> Dict[str, Dict[str, str]]:
+    async def run(self) -> None:
+        pass
+
+    @abc.abstractmethod
+    async def status(self) -> Dict[str, Dict[str, Union[str, Dict[str, List[str]]]]]:
         pass
 
     @abc.abstractmethod

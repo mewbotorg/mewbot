@@ -10,7 +10,13 @@ import logging
 import discord
 
 from mewbot.api.v1 import IOConfig, Input, Output, InputEvent, OutputEvent
-from mewbot.core import InputQueue, ManagerInputEvent, ManagerOutputQueue, ManagerInputQueue
+from mewbot.core import (
+    InputQueue,
+    ManagerInfoInputEvent,
+    ManagerOutputQueue,
+    ManagerInfoOutputEvent,
+    ManagerInputQueue,
+)
 
 
 @dataclasses.dataclass
@@ -72,6 +78,7 @@ class DiscordOutputEvent(OutputEvent):
 
 
 class DiscordIO(IOConfig):
+
     _input: Optional[DiscordInput] = None
     _output: Optional[DiscordOutput] = None
     _token: str = ""
@@ -107,6 +114,20 @@ class DiscordIO(IOConfig):
             self._output = DiscordOutput()
 
         return [self._output]
+
+    async def status(self) -> Dict[str, List[str]]:
+
+        status_dict: Dict[str, List[str]] = {}
+
+        status_dict["inputs"] = []
+        for _input in self.get_inputs():
+            status_dict["inputs"].append(await _input.status())
+
+        status_dict["outputs"] = []
+        for _output in self.get_outputs():
+            status_dict["outputs"].append(await _output.status())
+
+        return status_dict
 
 
 @dataclasses.dataclass
@@ -161,11 +182,13 @@ class DiscordInput(Input):
         manager_output_queue: Optional[ManagerOutputQueue] = None,
     ) -> None:
 
+        self._logger.info("Binding queue %s", queue)
         self.queue = queue
         self._client.queue = queue
 
         if manager_trigger_data is not None:
 
+            self._logger.info("Manager detected - binding queues")
             self._manager_data = ManagerData(
                 manager_trigger_data=manager_trigger_data,
                 manager_input_queue=manager_input_queue,
@@ -289,14 +312,17 @@ class InternalMewbotDiscordClient(discord.Client):
             message.content
         ):
 
+            self._logger.info("Manager command detected - %s", message.content)
+
             if not self.manager_data.manager_input_queue:
                 return
 
             await self.manager_data.manager_input_queue.put(
-                ManagerInputEvent(
+                ManagerInfoInputEvent(
+                    info_type=str(message.clean_content),
                     trigger_input_event=DiscordMessageCreationEvent(
                         text=str(message.clean_content), message=message
-                    )
+                    ),
                 )
             )
 
@@ -385,3 +411,21 @@ class DiscordOutput(Output):
             return True
 
         raise NotImplementedError("Currently can only respond to a message")
+
+    async def manager_output(self, event: ManagerInfoOutputEvent) -> bool:
+        """
+        Does the work of transmitting manager events to the world.
+        If the event is a command event, the it should have been processed ... elsewhere.
+        """
+        # We only know how to reply to discord events
+        if not isinstance(event.trigger_input_event, DiscordMessageCreationEvent):
+            return False
+
+        await event.trigger_input_event.message.channel.send(event.info_str)
+        return True
+
+    async def status(self) -> str:
+        """
+        Returns the current status of this input as a string.
+        """
+        return f"{self} - currently only reply"

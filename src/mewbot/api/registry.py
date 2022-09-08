@@ -81,6 +81,8 @@ class ComponentRegistry(abc.ABCMeta):
                     f"Component kind '{kind}' not valid (must be one of {ComponentKind.values()})"
                 )
 
+            # NOTE - This error can also be triggered if there is a mismatch between the interface
+            # declared in the api definition and the one declared in the core
             if not issubclass(api, ComponentKind.interface(kind)):
                 raise TypeError(f"{api} does not meet the contract of a {kind.value}")
 

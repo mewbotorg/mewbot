@@ -91,11 +91,6 @@ Disadvantages
  - We're doing the triggering in the Input itself - it's conceptually mismatched to the current design ethos
  - Means more computation is occurring in the Input - which might not be where people expect.
 
-
-
-
-
-
 ### Ben's Thoughts
 
 More Manager Concepts
@@ -123,3 +118,21 @@ More Manager Concepts
       - loggers
       - metrics (moving `send` to Input would allow for counters per event type, for example)
       - hmmm, manager would be a good way to handle internal prometheus scraping
+
+### Alex continues wiring
+
+Getting input into the manager is now working.
+Now to get output out of it.
+(For the moment, all I want is a "!status" command to _actually_ work).
+
+The manager input events are generated in the Input. There are times when inputs do trivially correspond to outputs.
+But this is not always the case.
+
+So - two different ways of doing this
+ - "reply" - the message, in some way, is sent back to where it came from
+ - "multicast" - the message is sent everywhere
+
+However, before we can send the message back to where it came from - in any sense at all - we need to know where that is.
+So messages need to be tagged with the uuid of the IOConfig that created them.
+Which means the input needed to know the uuid of the IOConfig which is managing it.
+

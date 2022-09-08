@@ -9,10 +9,8 @@ import itertools
 import logging
 import signal
 
-from mewbot.data import DataSource
 from mewbot.core import (
     BehaviourInterface,
-    IOConfigInterface,
     InputInterface,
     InputEvent,
     OutputInterface,
@@ -22,21 +20,13 @@ from mewbot.core import (
     OutputQueue,
     ManagerInputQueue,
     ManagerOutputQueue,
+    BotBase,
 )
 
 logging.basicConfig(level=logging.INFO)
 
 
-class Bot:
-
-    name: str  # The bot's name
-
-    _io_configs: List[IOConfigInterface]  # Connections to bot makes to other services
-    _behaviours: List[BehaviourInterface]  # All the things the bot does
-    _datastores: Dict[str, DataSource[Any]]  # Data sources and stores for this bot
-
-    _manager: Optional[ManagerInterface]
-
+class Bot(BotBase):
     def __init__(self, name: str) -> None:
         self.name = name
         self._io_configs = []
@@ -48,38 +38,9 @@ class Bot:
             self._marshal_behaviours(),
             self._marshal_inputs(),
             self._marshal_outputs(),
-            self._manager,
+            self.get_manager(),
         )
         runner.run()
-
-    def add_io_config(self, ioc: IOConfigInterface) -> None:
-        self._io_configs.append(ioc)
-
-    def add_behaviour(self, behaviour: BehaviourInterface) -> None:
-        self._behaviours.append(behaviour)
-
-    def set_manager(self, manager: ManagerInterface) -> None:
-        self._manager = manager
-        self._manager._managed_bot = self
-
-    def get_data_source(self, name: str) -> Optional[DataSource[Any]]:
-        return self._datastores.get(name)
-
-    def get_io_configs(self) -> List[IOConfigInterface]:
-        """
-        A list of all the IOConfigs know to the bot.
-        Note - updating the return object wil NOT update the bot's IOConfigs once run has been
-        called.
-        """
-        return self._io_configs
-
-    def get_behaviours(self) -> List[BehaviourInterface]:
-        """
-        A list of all the behaviors known to the bot.
-        Note - updating the return object wil NOT update the bot's Behaviors once run has been
-        called.
-        """
-        return self._behaviours
 
     def _marshal_behaviours(self) -> Dict[Type[InputEvent], Set[BehaviourInterface]]:
         behaviours: Dict[Type[InputEvent], Set[BehaviourInterface]] = {}
@@ -166,6 +127,7 @@ class BotRunner:
 
         input_task = loop.create_task(self.process_input_queue())
         input_task.add_done_callback(stop)
+
         output_task = loop.create_task(self.process_output_queue())
         output_task.add_done_callback(stop)
 
@@ -217,10 +179,28 @@ class BotRunner:
             behaviour.bind_output(self.output_event_queue)
 
         # Startup the inputs
+        self.logger.info(
+            "About to bind inputs %s - manager is %s", str(self.inputs), self.manager
+        )
         for _input in self.inputs:
-            _input.bind(self.input_event_queue)
+            if self.manager is None:
+                _input.bind(self.input_event_queue)
+                self.logger.info("Starting input %s", _input)
+                input_tasks.append(loop.create_task(_input.run()))
+                continue
+
+            _input.bind(
+                queue=self.input_event_queue,
+                manager_trigger_data=self.manager.get_trigger_data(),
+                manager_input_queue=self.manager.get_in_queue(),
+                manager_output_queue=self.manager.get_out_queue(),
+            )
             self.logger.info("Starting input %s", _input)
             input_tasks.append(loop.create_task(_input.run()))
+
+        # Start the manager - if there is one to start
+        if self.manager:
+            input_tasks.append(loop.create_task(self.manager.run()))
 
         return input_tasks
 
