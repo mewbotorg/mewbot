@@ -54,6 +54,9 @@ class ManagerInputEvent:
 
     trigger_input_event: InputEvent
 
+    # The io config containing the input which created this event
+    io_config_src_uuid: str
+
 
 @dataclasses.dataclass
 class ManagerCommandInputEvent(ManagerInputEvent):
@@ -78,6 +81,9 @@ class ManagerOutputEvent:
     Base class for output events flowing out of the manager.
     Should (probably) not be used directly.
     """
+
+    target_uuid: str  # The uuid of the component this message is for
+    # Pass "all" to affect all components (usually a bad idea)
 
     # If this is a response by the manager to an input event, include it
     trigger_input_event: Optional[InputEvent]
@@ -106,12 +112,37 @@ class IOConfigInterface(Protocol):
     def get_outputs(self) -> Sequence[OutputInterface]:
         pass
 
+    async def accept_manager_output(self, manager_output: ManagerOutputEvent) -> bool:
+        """
+        Can this IOConfig process a manager request?
+        """
+
     async def status(self) -> Dict[str, List[str]]:
         pass
+
+    def get_uuid(self) -> str:
+        """
+        Need to use this instead of a property to fool the type checking.
+        """
+
+    def set_io_config_uuids(self) -> None:
+        """
+        Iterates over the inputs and outputs, setting the io_config_uuid.
+        """
 
 
 @runtime_checkable
 class InputInterface(Protocol):
+    def get_uuid(self) -> str:
+        """
+        Returns the uuid of the Output.
+        """
+
+    def get_io_config_uuid(self) -> str:
+        """
+        Returns the uuid of the IOConfig this is part of
+        """
+
     @staticmethod
     def produces_inputs() -> Set[Type[InputEvent]]:
         """
@@ -133,6 +164,9 @@ class InputInterface(Protocol):
     async def status(self) -> str:
         pass
 
+    def set_io_config_uuid(self, new_uuid: str) -> None:
+        pass
+
 
 @runtime_checkable
 class OutputInterface(Protocol):
@@ -151,6 +185,19 @@ class OutputInterface(Protocol):
         """
 
     async def status(self) -> str:
+        pass
+
+    def get_uuid(self) -> str:
+        """
+        Returns the uuid of the Output.
+        """
+
+    def get_io_config_uuid(self) -> str:
+        """
+        Returns the uuid of the IOConfig this is part of
+        """
+
+    def set_io_config_uuid(self, new_uuid: str) -> None:
         pass
 
 
@@ -231,8 +278,16 @@ class ManagerInterface(Protocol):
     def get_out_queue(self) -> Optional[ManagerOutputQueue]:
         pass
 
-    async def run(self) -> None:
+    async def process_manager_input_queue(self) -> None:
         pass
+
+    async def process_manager_output_queue(self) -> None:
+        pass
+
+    async def run(self) -> None:
+        """
+        Method which does the heavy lifting of getting the manager going.
+        """
 
     async def status(self) -> Dict[str, Dict[str, Union[str, Dict[str, List[str]]]]]:
         pass
@@ -356,4 +411,5 @@ __all__ = [
     "ManagerOutputQueue",
     "InputQueue",
     "OutputQueue",
+    "BotBase",
 ]

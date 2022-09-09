@@ -6,14 +6,21 @@ active.
 They also permit operations on the bot itself - such as enabling or disabling commands and viewing
 history"""
 
-from typing import Dict, Set, Union, List
+from typing import Dict, Set, Union, List, Optional
 
+import asyncio
 import logging
 import yaml
 
 from mewbot.api.v1 import Manager
 from mewbot.bot import Bot, BotRunner
-from mewbot.core import ManagerInputEvent, ManagerInfoInputEvent
+from mewbot.core import (
+    ManagerInputEvent,
+    ManagerInfoInputEvent,
+    ManagerInfoOutputEvent,
+    IOConfigInterface,
+    ManagerOutputEvent,
+)
 
 
 class BasicManager(Manager):
@@ -23,14 +30,35 @@ class BasicManager(Manager):
     command_prefix: str
     _logger: logging.Logger
 
+    manager_tasks: List[asyncio.Task[None]]
+
+    io_configs: List[IOConfigInterface]
+
     # Commands for the manager - and are they enabled or not
     COMMANDS: Dict[str, bool] = {"status": True}
 
-    def __init__(self, command_prefix: str = "!") -> None:
+    def __init__(
+        self, io_configs: Optional[List[IOConfigInterface]] = None, command_prefix: str = "!"
+    ) -> None:
+
+        self.io_configs = io_configs if io_configs else []
 
         self.command_prefix = command_prefix
 
         self._logger = logging.getLogger(__name__ + "Manager")
+
+        self.manager_tasks = []
+
+    def strip_command_prefix(self, cmd_text: str) -> str:
+        """
+        Strip the manager command prefix - intended to bring the command into standard form.
+        """
+        # Originally
+        # return cmd_text[len(self.command_prefix):]
+        # but black on windows keeps adding whitespace before the : - for some reason
+        # which annoys the linters
+        cmd_prefix_length = len(self.command_prefix)
+        return cmd_text[cmd_prefix_length:]
 
     @property
     def bot(self) -> Bot:
@@ -47,17 +75,34 @@ class BasicManager(Manager):
             }
         }
 
-    async def run(self) -> None:
+    async def run(self, _loop: Optional[asyncio.AbstractEventLoop] = None) -> None:
         """
         Run the manager.
-        The manager is intended to run parallel to the bot itseld, gathering information and
+        The manager is intended to run parallel to the bot itself, gathering information and
         providing a control interface to it.
+        (Eventually - still shaking out the interface and how things work).
         """
+        loop = _loop if _loop else asyncio.get_event_loop()
+
+        self.manager_tasks.append(loop.create_task(self.manager.process_manager_input_queue()))
+        self.manager_tasks.append(loop.create_task(self.manager.process_manager_output_queue()))
+
+    async def process_manager_input_queue(self) -> None:
+        """
+        Take ManagerInputEvents off the manager_input_queue - process them and generated output
+        events
+        """
+
         self._logger.info("Manager %s starting", self)
 
         while self.manager_input_queue:
 
-            manager_input_event: ManagerInputEvent = await self.manager_input_queue.get()
+            try:
+                manager_input_event: ManagerInputEvent = await asyncio.wait_for(
+                    self.manager_input_queue.get(), 5
+                )
+            except asyncio.exceptions.TimeoutError:
+                continue
 
             if isinstance(manager_input_event, ManagerInfoInputEvent):
                 cmd_text = self.strip_command_prefix(manager_input_event.info_type)
@@ -67,18 +112,42 @@ class BasicManager(Manager):
             if cmd_text == "status":
                 status_dict = await self.status()
                 status_str = self.render_status(status_dict)
-                print(status_str)
+                await self.manager_output_queue.put(
+                    ManagerInfoOutputEvent(
+                        trigger_input_event=manager_input_event.trigger_input_event,
+                        target_uuid=manager_input_event.io_config_src_uuid,
+                        send_type="reply",
+                        info_str=status_str,
+                    )
+                )
+                continue
 
-    def strip_command_prefix(self, cmd_text: str) -> str:
-        """
-        Strip the manager command prefix - intended to bring the command into standard form.
-        """
-        # Originally
-        # return cmd_text[len(self.command_prefix):]
-        # but black on windows keeps adding whitespace before the : - for some reason
-        # which annoys the linters
-        cmd_prefix_length = len(self.command_prefix)
-        return cmd_text[cmd_prefix_length:]
+            self._logger.warning(
+                "Unknown command - %s - received by Manager - %s", cmd_text, str(self)
+            )
+
+    async def process_manager_output_queue(self) -> None:
+
+        while self.manager_output_queue:
+
+            try:
+                manager_output_event: ManagerOutputEvent = await asyncio.wait_for(
+                    self.manager_output_queue.get(), 5
+                )
+            except asyncio.exceptions.TimeoutError:
+                continue
+
+            target_uuid = manager_output_event.target_uuid
+            if target_uuid == "all":
+                # Not implemented yet
+                continue
+
+            # Eventually will check all components
+            for io_config in self.io_configs:
+
+                io_config_uuid = io_config.get_uuid()
+                if io_config_uuid == target_uuid:
+                    await io_config.accept_manager_output(manager_output_event)
 
     async def status(self) -> Dict[str, Dict[str, Union[str, Dict[str, List[str]]]]]:
         """
@@ -109,4 +178,4 @@ class BasicManager(Manager):
 
     @staticmethod
     def render_status(status: Dict[str, Dict[str, Union[str, Dict[str, List[str]]]]]) -> str:
-        return str(yaml.dump(status, default_flow_style=False))
+        return str(yaml.dump(status, default_flow_style=False, width=1000))

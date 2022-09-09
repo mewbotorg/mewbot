@@ -14,6 +14,7 @@ from mewbot.core import (
     InputQueue,
     ManagerInfoInputEvent,
     ManagerOutputQueue,
+    ManagerOutputEvent,
     ManagerInfoOutputEvent,
     ManagerInputQueue,
 )
@@ -115,6 +116,21 @@ class DiscordIO(IOConfig):
 
         return [self._output]
 
+    async def accept_manager_output(self, out_msg: ManagerOutputEvent) -> bool:
+        """
+        Process a command/send request from the manager.
+        """
+        if not self._output:
+            return False
+
+        # We are transmitting information
+        # Which we hopefully know how to do, because the manager has identified that the input event
+        # which triggered the processing came from this IOConfig
+        if isinstance(out_msg, ManagerInfoOutputEvent):
+            return await self._output.manager_output(out_msg)
+
+        return False
+
     async def status(self) -> Dict[str, List[str]]:
 
         status_dict: Dict[str, List[str]] = {}
@@ -174,6 +190,10 @@ class DiscordInput(Input):
         self._client._startup_queue_depth = self._startup_queue_depth
         self._client.queue = self.queue
 
+    def set_io_config_uuid(self, new_uuid: str) -> None:
+        self.io_config_uuid = new_uuid
+        self._client.io_config_uuid = new_uuid
+
     def bind(
         self,
         queue: InputQueue,
@@ -220,13 +240,18 @@ class DiscordInput(Input):
         """
         Returns the current status of this input as a string.
         """
-        return f"Connected as {self._client.user}"
+        return (
+            f"DiscordInput - {self.uuid} - Part of {self.io_config_uuid}"
+            f" - Connected as {self._client.user}"
+        )
 
 
 class InternalMewbotDiscordClient(discord.Client):
 
     _logger: logging.Logger
     _startup_queue_depth: int
+
+    io_config_uuid: str = "Not set by parent Input"
 
     queue: Optional[InputQueue]
 
@@ -323,6 +348,7 @@ class InternalMewbotDiscordClient(discord.Client):
                     trigger_input_event=DiscordMessageCreationEvent(
                         text=str(message.clean_content), message=message
                     ),
+                    io_config_src_uuid=self.io_config_uuid,
                 )
             )
 
@@ -428,4 +454,7 @@ class DiscordOutput(Output):
         """
         Returns the current status of this input as a string.
         """
-        return f"{self} - currently only reply"
+        return (
+            f"DiscordOutput - {self.uuid} - "
+            f"Part of {self.io_config_uuid} - currently only reply"
+        )

@@ -14,6 +14,7 @@ from typing import (
 )
 
 import abc
+import uuid
 
 from mewbot.api.registry import ComponentRegistry
 from mewbot.core import (
@@ -27,6 +28,7 @@ from mewbot.core import (
     ConditionInterface,
     ActionInterface,
     ManagerOutputQueue,
+    ManagerOutputEvent,
     BotBase,
 )
 from mewbot.config import BehaviourConfigBlock, ConfigBlock
@@ -79,19 +81,43 @@ class IOConfig(Component):
     Define a service that mewbot can connect to.
     """
 
+    def set_io_config_uuids(self) -> None:
+        """
+        Iterates over the inputs and outputs, setting the io_config_uuid.
+        """
+        for _input in self.get_inputs():
+            _input.set_io_config_uuid(self.uuid)
+
+        for _output in self.get_outputs():
+            _output.set_io_config_uuid(self.uuid)
+
+    def get_uuid(self) -> str:
+        return self.uuid
+
     @abc.abstractmethod
     def get_inputs(self) -> Sequence[Input]:
-        ...
+        """
+        Return a sequence of all the Inputs defined in the IOConfig.
+        """
 
     @abc.abstractmethod
     def get_outputs(self) -> Sequence[Output]:
         ...
+
+    async def accept_manager_output(self, manager_output: ManagerOutputEvent) -> bool:
+        """
+        Can this IOConfig process a manager request?
+        """
 
     async def status(self) -> Dict[str, List[str]]:
         pass
 
 
 class Input:
+
+    _id: str = str(uuid.uuid4())  # Can always be overridden later
+    # If this input is part of an IOConfig, then this is it's uuid
+    io_config_uuid: str = "Not set by parent IOConfig"
 
     queue: Optional[InputQueue]  # Queue for all Input events
     manager_trigger_data: Optional[Dict[str, Set[str]]]
@@ -101,7 +127,7 @@ class Input:
     ]  # Send commands/info requests to the manager
     manager_output_queue: Optional[
         ManagerOutputQueue
-    ]  # Recieve commands/info requests from the manager
+    ]  # Receive commands/info requests from the manager
 
     def __init__(self) -> None:
         self.queue = None
@@ -130,10 +156,42 @@ class Input:
         pass
 
     async def status(self) -> str:
-        return f"{self} does not have a status method."
+        return (
+            f"Input {self} - {self._id} - part of {self.io_config_uuid} - "
+            f"does not have a status method."
+        )
+
+    @property
+    def uuid(self) -> str:
+        return self._id
+
+    @uuid.setter
+    def uuid(self, _id: str) -> None:
+        if hasattr(self, "_id"):
+            raise AttributeError("Can not set the ID of a component outside of creation")
+
+        self._id = _id
+
+    def get_uuid(self) -> str:
+        return self._id
+
+    def get_io_config_uuid(self) -> str:
+        return self.io_config_uuid
+
+    def set_io_config_uuid(self, new_uuid: str) -> None:
+        self.io_config_uuid = new_uuid
 
 
 class Output:
+    """
+    Base class for output methods - provides a method for the bot to output events
+    in a particular way, with a particular config.
+    """
+
+    _id: str = str(uuid.uuid4())  # Can always be overridden later
+    # If this input is part of an IOConfig, then this is it's uuid
+    io_config_uuid: str = "Not set by parent IOConfig"
+
     @staticmethod
     def consumes_outputs() -> Set[Type[OutputEvent]]:
         """
@@ -145,11 +203,33 @@ class Output:
         """
         Does the work of transmitting the event to the world.
         :param event:
-        :return:
+        :return : Did the message send successfully using this output.
         """
 
     async def status(self) -> str:
-        pass
+        """
+        Generates a status string summarizing the status of this output.
+        """
+
+    @property
+    def uuid(self) -> str:
+        return self._id
+
+    @uuid.setter
+    def uuid(self, _id: str) -> None:
+        if hasattr(self, "_id"):
+            raise AttributeError("Can not set the ID of a component outside of creation")
+
+        self._id = _id
+
+    def get_uuid(self) -> str:
+        return self._id
+
+    def get_io_config_uuid(self) -> str:
+        return self.io_config_uuid
+
+    def set_io_config_uuid(self, new_uuid: str) -> None:
+        self.io_config_uuid = new_uuid
 
 
 @ComponentRegistry.register_api_version(ComponentKind.Trigger, "v1")
@@ -327,6 +407,14 @@ class Manager(Component):
 
     @abc.abstractmethod
     async def run(self) -> None:
+        pass
+
+    @abc.abstractmethod
+    async def process_manager_input_queue(self) -> None:
+        pass
+
+    @abc.abstractmethod
+    async def process_manager_output_queue(self) -> None:
         pass
 
     @abc.abstractmethod

@@ -34,6 +34,9 @@ class Bot(BotBase):
         self._datastores = {}
 
     def run(self) -> None:
+
+        self._preflight()
+
         runner = BotRunner(
             self._marshal_behaviours(),
             self._marshal_inputs(),
@@ -41,6 +44,21 @@ class Bot(BotBase):
             self.get_manager(),
         )
         runner.run()
+
+    def _preflight(self) -> None:
+        """
+        Does any setup work which needs to happen before the behaviors/inputs/outputs are
+        marshalled.
+        This includes
+         - propagating the uuids from the IOConfigs to the inputs/output
+        """
+        # Set the io_config_uuids for every input/output known to the system
+        for connection in self._io_configs:
+            connection.set_io_config_uuids()
+
+        manager = self.get_manager()
+        if manager:
+            manager.io_configs = self.get_io_configs()
 
     def _marshal_behaviours(self) -> Dict[Type[InputEvent], Set[BehaviourInterface]]:
         behaviours: Dict[Type[InputEvent], Set[BehaviourInterface]] = {}
@@ -200,7 +218,9 @@ class BotRunner:
 
         # Start the manager - if there is one to start
         if self.manager:
-            input_tasks.append(loop.create_task(self.manager.run()))
+            # Fixme: Replace this with a single call to run
+            input_tasks.append(loop.create_task(self.manager.process_manager_input_queue()))
+            input_tasks.append(loop.create_task(self.manager.process_manager_output_queue()))
 
         return input_tasks
 

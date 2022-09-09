@@ -136,3 +136,10 @@ However, before we can send the message back to where it came from - in any sens
 So messages need to be tagged with the uuid of the IOConfig that created them.
 Which means the input needed to know the uuid of the IOConfig which is managing it.
 
+I think there needs to be three functions running in the manager
+ - run_manager - which controls the other processes
+ - process_manager_input_queue - takes events off the manager input queue
+ - process_manager_output_queue - responsible for calling the IOConfigs and others to tell them to actually do stuff
+
+This way there is a pleasing symmetry with the bot which is being managed.
+Which seems to be a good way to cut down on potential confusion.
