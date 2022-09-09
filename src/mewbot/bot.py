@@ -58,7 +58,7 @@ class Bot(BotBase):
 
         manager = self.get_manager()
         if manager:
-            manager.io_configs = self.get_io_configs()
+            manager.set_io_configs(self.get_io_configs())
 
     def _marshal_behaviours(self) -> Dict[Type[InputEvent], Set[BehaviourInterface]]:
         behaviours: Dict[Type[InputEvent], Set[BehaviourInterface]] = {}
@@ -149,7 +149,7 @@ class BotRunner:
         output_task = loop.create_task(self.process_output_queue())
         output_task.add_done_callback(stop)
 
-        input_tasks = self.setup_tasks(loop)
+        other_tasks = self.setup_tasks(loop)
 
         # Handle correctly terminating the loop
         self.add_signal_handlers(loop, stop)
@@ -158,7 +158,7 @@ class BotRunner:
             loop.run_forever()
         finally:
             # Stop accepting new events
-            for task in input_tasks:
+            for task in other_tasks:
                 if not task.done():
                     result = task.cancel()
                     self.logger.warning("Cancelling %s: %s", task, result)
@@ -189,7 +189,7 @@ class BotRunner:
             pass
 
     def setup_tasks(self, loop: asyncio.AbstractEventLoop) -> List[asyncio.Task[None]]:
-        input_tasks: List[asyncio.Task[None]] = []
+        other_tasks: List[asyncio.Task[None]] = []
 
         # Startup the outputs - which are contained in the behaviors
         for behaviour in itertools.chain(*self.behaviours.values()):
@@ -204,7 +204,7 @@ class BotRunner:
             if self.manager is None:
                 _input.bind(self.input_event_queue)
                 self.logger.info("Starting input %s", _input)
-                input_tasks.append(loop.create_task(_input.run()))
+                other_tasks.append(loop.create_task(_input.run()))
                 continue
 
             _input.bind(
@@ -214,15 +214,15 @@ class BotRunner:
                 manager_output_queue=self.manager.get_out_queue(),
             )
             self.logger.info("Starting input %s", _input)
-            input_tasks.append(loop.create_task(_input.run()))
+            other_tasks.append(loop.create_task(_input.run()))
 
         # Start the manager - if there is one to start
         if self.manager:
-            # Fixme: Replace this with a single call to run
-            input_tasks.append(loop.create_task(self.manager.process_manager_input_queue()))
-            input_tasks.append(loop.create_task(self.manager.process_manager_output_queue()))
+            other_tasks.append(loop.create_task(self.manager.run()))
+            other_tasks.append(loop.create_task(self.manager.process_manager_input_queue()))
+            other_tasks.append(loop.create_task(self.manager.process_manager_output_queue()))
 
-        return input_tasks
+        return other_tasks
 
     async def process_input_queue(self) -> None:
         while self._running:

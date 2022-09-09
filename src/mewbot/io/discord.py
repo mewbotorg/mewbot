@@ -116,7 +116,7 @@ class DiscordIO(IOConfig):
 
         return [self._output]
 
-    async def accept_manager_output(self, out_msg: ManagerOutputEvent) -> bool:
+    async def accept_manager_output(self, manager_output: ManagerOutputEvent) -> bool:
         """
         Process a command/send request from the manager.
         """
@@ -126,8 +126,8 @@ class DiscordIO(IOConfig):
         # We are transmitting information
         # Which we hopefully know how to do, because the manager has identified that the input event
         # which triggered the processing came from this IOConfig
-        if isinstance(out_msg, ManagerInfoOutputEvent):
-            return await self._output.manager_output(out_msg)
+        if isinstance(manager_output, ManagerInfoOutputEvent):
+            return await self._output.manager_output(manager_output)
 
         return False
 

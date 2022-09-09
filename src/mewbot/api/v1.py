@@ -14,7 +14,7 @@ from typing import (
 )
 
 import abc
-import uuid
+import uuid as system_uuid  # linter hack
 
 from mewbot.api.registry import ComponentRegistry
 from mewbot.core import (
@@ -29,6 +29,7 @@ from mewbot.core import (
     ActionInterface,
     ManagerOutputQueue,
     ManagerOutputEvent,
+    IOConfigInterface,
     BotBase,
 )
 from mewbot.config import BehaviourConfigBlock, ConfigBlock
@@ -115,7 +116,7 @@ class IOConfig(Component):
 
 class Input:
 
-    _id: str = str(uuid.uuid4())  # Can always be overridden later
+    _id: str = str(system_uuid.uuid4())  # Can always be overridden later
     # If this input is part of an IOConfig, then this is it's uuid
     io_config_uuid: str = "Not set by parent IOConfig"
 
@@ -188,7 +189,7 @@ class Output:
     in a particular way, with a particular config.
     """
 
-    _id: str = str(uuid.uuid4())  # Can always be overridden later
+    _id: str = str(system_uuid.uuid4())  # Can always be overridden later
     # If this input is part of an IOConfig, then this is it's uuid
     io_config_uuid: str = "Not set by parent IOConfig"
 
@@ -375,6 +376,9 @@ class Manager(Component):
         ManagerInputQueue
     ]  # Queue to communicate back to the manager
     manager_output_queue: Optional[ManagerOutputQueue]  # Queue to accept manager commands
+
+    io_configs: List[IOConfigInterface]
+
     _managed_bot: BotBase
 
     def bind(self, in_queue: ManagerInputQueue, out_queue: ManagerOutputQueue) -> None:
@@ -386,6 +390,9 @@ class Manager(Component):
 
     def get_bot(self) -> BotBase:
         return self._managed_bot
+
+    def set_io_configs(self, io_configs: List[IOConfigInterface]) -> None:
+        self.io_configs = io_configs
 
     def get_trigger_data(self) -> Dict[str, Set[str]]:
         """
@@ -419,11 +426,12 @@ class Manager(Component):
 
     @abc.abstractmethod
     async def status(self) -> Dict[str, Dict[str, Union[str, Dict[str, List[str]]]]]:
-        pass
+        # To stop the limiter getting confused with the definitions in core.py
+        raise NotImplementedError
 
     @abc.abstractmethod
     async def help(self) -> Dict[str, Dict[str, str]]:
-        pass
+        raise NotImplementedError
 
 
 __all__ = [

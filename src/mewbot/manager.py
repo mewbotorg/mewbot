@@ -32,8 +32,6 @@ class BasicManager(Manager):
 
     manager_tasks: List[asyncio.Task[None]]
 
-    io_configs: List[IOConfigInterface]
-
     # Commands for the manager - and are they enabled or not
     COMMANDS: Dict[str, bool] = {"status": True}
 
@@ -75,17 +73,13 @@ class BasicManager(Manager):
             }
         }
 
-    async def run(self, _loop: Optional[asyncio.AbstractEventLoop] = None) -> None:
+    async def run(self) -> None:
         """
         Run the manager.
         The manager is intended to run parallel to the bot itself, gathering information and
         providing a control interface to it.
         (Eventually - still shaking out the interface and how things work).
         """
-        loop = _loop if _loop else asyncio.get_event_loop()
-
-        self.manager_tasks.append(loop.create_task(self.manager.process_manager_input_queue()))
-        self.manager_tasks.append(loop.create_task(self.manager.process_manager_output_queue()))
 
     async def process_manager_input_queue(self) -> None:
         """
@@ -112,6 +106,9 @@ class BasicManager(Manager):
             if cmd_text == "status":
                 status_dict = await self.status()
                 status_str = self.render_status(status_dict)
+                if self.manager_output_queue is None:
+                    continue
+
                 await self.manager_output_queue.put(
                     ManagerInfoOutputEvent(
                         trigger_input_event=manager_input_event.trigger_input_event,

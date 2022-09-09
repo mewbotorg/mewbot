@@ -278,6 +278,9 @@ class ManagerInterface(Protocol):
     def get_out_queue(self) -> Optional[ManagerOutputQueue]:
         pass
 
+    def set_io_configs(self, io_configs: List[IOConfigInterface]) -> None:
+        pass
+
     async def process_manager_input_queue(self) -> None:
         pass
 
