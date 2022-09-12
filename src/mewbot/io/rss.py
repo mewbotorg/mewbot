@@ -142,6 +142,9 @@ class RSSIO(IOConfig):
         self._input.sites = sites
 
     def get_inputs(self) -> Sequence[Input]:
+        """
+        Returns the inputs supported by the IOConfig - starting them if needed
+        """
         if not self._input:
             self._input = RSSInput(self._sites, self._polling_every)
 
@@ -161,7 +164,7 @@ class RSSInputState:
 
     def start(self) -> None:
         """
-        Caculates all internal states based off _sites
+        Calculates all internal states based off _sites
         """
         self._sites_iter = cycle(iter(self._sites))
 
