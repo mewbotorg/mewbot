@@ -1,4 +1,8 @@
+
 from typing import Type
+
+import asyncio
+import pytest
 
 from tests.common import BaseTestClassWithConfig
 
@@ -37,3 +41,19 @@ class TestRSSIO(BaseTestClassWithConfig[RSSIO]):
             pass
 
         self.component.sites = []
+
+    @pytest.mark.asyncio
+    async def test_component_run(self):
+        """
+        Run the component - should run without throwing an error.
+        """
+        component_rss_input = self.component.get_inputs()
+        assert isinstance(component_rss_input, list)
+        assert len(component_rss_input) == 1
+        
+        test_rss_io_input = component_rss_input[0]
+
+        try:
+            await asyncio.wait_for(test_rss_io_input.run(), 6)
+        except asyncio.exceptions.TimeoutError:
+            pass
