@@ -195,6 +195,10 @@ class RSSInputState:
     def sites_started(self) -> Set[str]:
         return self._sites_started
 
+    @property
+    def sent_entries_size(self) -> int:
+        return len(self._sent_entries)
+
     def note_site_started(self, site_started: str) -> None:
         """
         Record that a site has been successfully started.
@@ -205,8 +209,8 @@ class RSSInputState:
         """
         Record that an entry with a uid has been put on the wire.
         Now broken down by site so that we can more easily purge the old entries.
-        When they have been superceeded by new ones.
-        Otherwise they would just accumulate endlessly - a nasty memory leak.
+        When they have been superseded by new ones.
+        Otherwise, they would just accumulate endlessly - a nasty memory leak.
         """
         self._sent_entries[site_url].add(site_uid)
 
@@ -433,7 +437,7 @@ class RSSInput(Input):
         site_newsfeed = await self.fetch_feed(site_url)
         site_entries = site_newsfeed.entries
 
-        # Itterate backwards until we run into an entry which has already been sent
+        # Iterate backwards until we run into an entry which has already been sent
         transmitted_count = 0
         for entry in site_entries:
 
