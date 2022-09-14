@@ -136,7 +136,7 @@ def lint_black_diffs(
 
 
 if __name__ == "__main__":
-    is_ci = "GITHUB_ACTIONS" in os.environ
+    is_ci = "GITHUB_ACTION" in os.environ
 
     linter = LintToolchain("src", "examples", "tests", "tools", in_ci=is_ci)
     linter()
