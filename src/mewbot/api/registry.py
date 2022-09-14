@@ -15,27 +15,10 @@ from mewbot.core import ComponentKind, Component
 
 # noinspection PyMethodParameters
 class ComponentRegistry(abc.ABCMeta):
-    """ComponentRegistry is a AbstractBaseClasses MetaClass which instruments
-    class definition to automatically record and classify classes implementing
-    MewBot's interfaces, and then modifies instance creation to assign properties.
-
-    A base class, or API version, is registered using the
-    ComponentRegistry.register_api_version decorator, which maps a Interface
-    and API version to that base class. Any class which extends that base class
-    will be registered, and can then be seen in the registered class list for
-    that interface.
-
-    The registry also enforces certain constraints; a class can not extends more
-    than one base class (i.e. can not implement multiple API version nor can it
-    implement multiple APIs).
-
-    When an instance of one of the registered class is created, it is assigned
-    a UUID, and any parameters which match properties are initialised.
-    Any remaining properties are then passed to the underlying constructor.
-    """
+    """MetaType which reg"""
 
     registered: List[Type[Any]] = []
-    uuid: str  # This property is unused but fixes some linting issues in __call__
+    uuid: str
 
     _api_versions: Dict[ComponentKind, Dict[str, Type[Component]]] = {}
 
@@ -98,6 +81,8 @@ class ComponentRegistry(abc.ABCMeta):
                     f"Component kind '{kind}' not valid (must be one of {ComponentKind.values()})"
                 )
 
+            # NOTE - This error can also be triggered if there is a mismatch between the interface
+            # declared in the api definition and the one declared in the core
             if not issubclass(api, ComponentKind.interface(kind)):
                 raise TypeError(f"{api} does not meet the contract of a {kind.value}")
 
