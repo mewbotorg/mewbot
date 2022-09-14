@@ -6,9 +6,9 @@ SPDX-License-Identifier: BSD-2-Clause
 
 # MewBot
 
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](CONTRIBUTORS.md)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![Linting](https://github.com/mewler/mewbot/actions/workflows/pylint.yml/badge.svg)](https://github.com/mewler/mewbot/actions/workflows/pylint.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mewler_mewbot&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mewler_mewbot)
@@ -70,8 +70,14 @@ python3 -m examples examples/trivial_socket.yaml
 
 #### Running the tests and linters
 
-You can run the linters via the convenience script `tools/lint.py`.
+You can run the linters via the convenience script `python3 -m tools.lint`.
+This runs the auto-formatter `black`, two opinionated linting tools in `flake8`
+and `pylint`, and the `mypy` type checker in strict mode.
 
-You can run the test framework using the convenience script `tools/test.py` (via `python -m tools.test`). This outputs html details of code coverage in `.coverage_html`.
+You can run the test framework using the convenience script `python3 -m tools.test`.
+Locally this will default to running all tests in parallel for fast testing.
+You can add the flag `--cov` to enable coverage, which will output coverage information
+both to the terminal and store details of code coverage as webpages in `coverage/`.
 
-> :warning: However, as of this commit, no tests exist.
+More information on the linters and tests can be found in the
+[contributor documentation](./CONTRIBUTING.md).

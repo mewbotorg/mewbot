@@ -1,0 +1,123 @@
+name: Auto-Review
+
+on:
+  push:
+    branches:
+      - mainline
+  pull_request:
+  release:
+    types:
+      - published
+
+concurrency:
+  group: review-${{ github.head_ref }}
+  cancel-in-progress: true
+
+env:
+  DEFAULT_PYTHON: 3.9
+
+jobs:
+  lint:
+    name: Lint Python code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python ${{ env.DEFAULT_PYTHON }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run:  pip install -r requirements-dev.txt
+
+      - name: Run Linters
+        run: python3 -m tools.lint
+        env:
+          PYTHONPATH: "./src:."
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: lint-results
+          path: reports
+
+  test:
+    name: Test Python code
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        version: ["3.9", "3.10"]
+      fail-fast: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python ${{ matrix.version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.version }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run:  pip install -r requirements-dev.txt
+
+      - name: Run Tests
+        run: python3 -m tools.test --cov
+        env:
+          PYTHONPATH: "./src:."
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-${{ matrix.version }}
+          path: reports
+
+  sonarcloud:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+
+    if: always()
+
+    needs:
+      - lint
+      - test
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        if: always()
+        with:
+          name: lint-results
+          path: reports
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        if: always()
+        with:
+          name: test-results-${{ env.DEFAULT_PYTHON }}
+          path: reports
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
