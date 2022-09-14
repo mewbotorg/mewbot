@@ -24,9 +24,7 @@ src/mewbot.egg-info
 examples/TrivialDiscordBot/secrets.json
 
 # Coverage artefacts
-/.coverage
-/.coverage.*
-/coverage/
-/reports/
+.coverage
+/.coverage_html/
 /.pytest_cache/
 /junit.xml
