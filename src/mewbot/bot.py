@@ -9,27 +9,24 @@ import itertools
 import logging
 import signal
 
-from mewbot.data import DataSource
 from mewbot.core import (
     BehaviourInterface,
-    IOConfigInterface,
     InputInterface,
     InputEvent,
     OutputInterface,
+    ManagerInterface,
     OutputEvent,
     InputQueue,
     OutputQueue,
+    ManagerInputQueue,
+    ManagerOutputQueue,
+    BotBase,
 )
 
 logging.basicConfig(level=logging.INFO)
 
 
-class Bot:
-    name: str  # The bot's name
-    _io_configs: List[IOConfigInterface]  # Connections to bot makes to other services
-    _behaviours: List[BehaviourInterface]  # All the things the bot does
-    _datastores: Dict[str, DataSource[Any]]  # Data sources and stores for this bot
-
+class Bot(BotBase):
     def __init__(self, name: str) -> None:
         self.name = name
         self._io_configs = []
@@ -37,21 +34,31 @@ class Bot:
         self._datastores = {}
 
     def run(self) -> None:
+
+        self._preflight()
+
         runner = BotRunner(
             self._marshal_behaviours(),
             self._marshal_inputs(),
             self._marshal_outputs(),
+            self.get_manager(),
         )
         runner.run()
 
-    def add_io_config(self, ioc: IOConfigInterface) -> None:
-        self._io_configs.append(ioc)
+    def _preflight(self) -> None:
+        """
+        Does any setup work which needs to happen before the behaviors/inputs/outputs are
+        marshalled.
+        This includes
+         - propagating the uuids from the IOConfigs to the inputs/output
+        """
+        # Set the io_config_uuids for every input/output known to the system
+        for connection in self._io_configs:
+            connection.set_io_config_uuids()
 
-    def add_behaviour(self, behaviour: BehaviourInterface) -> None:
-        self._behaviours.append(behaviour)
-
-    def get_data_source(self, name: str) -> Optional[DataSource[Any]]:
-        return self._datastores.get(name)
+        manager = self.get_manager()
+        if manager:
+            manager.set_io_configs(self.get_io_configs())
 
     def _marshal_behaviours(self) -> Dict[Type[InputEvent], Set[BehaviourInterface]]:
         behaviours: Dict[Type[InputEvent], Set[BehaviourInterface]] = {}
@@ -83,12 +90,18 @@ class Bot:
 
 
 class BotRunner:
+
+    # pylint: disable=too-many-instance-attributes
+    # Can be fixed later
+
     input_event_queue: InputQueue
     output_event_queue: OutputQueue
 
     inputs: Set[InputInterface]
     outputs: Dict[Type[OutputEvent], Set[OutputInterface]] = {}
     behaviours: Dict[Type[InputEvent], Set[BehaviourInterface]] = {}
+
+    manager: Optional[ManagerInterface]
 
     _running: bool = False
 
@@ -97,6 +110,7 @@ class BotRunner:
         behaviours: Dict[Type[InputEvent], Set[BehaviourInterface]],
         inputs: Set[InputInterface],
         outputs: Dict[Type[OutputEvent], Set[OutputInterface]],
+        manager: Optional[ManagerInterface] = None,
     ) -> None:
 
         self.logger = logging.getLogger(__name__ + "BotRunner")
@@ -107,6 +121,11 @@ class BotRunner:
         self.inputs = inputs
         self.outputs = outputs
         self.behaviours = behaviours
+
+        self.manager = manager
+        # If the manager has been set, then prepare queues for it
+        if self.manager:
+            self.manager.bind(ManagerInputQueue(), ManagerOutputQueue())
 
     def run(self, _loop: Optional[asyncio.AbstractEventLoop] = None) -> None:
         if self._running:
@@ -126,10 +145,11 @@ class BotRunner:
 
         input_task = loop.create_task(self.process_input_queue())
         input_task.add_done_callback(stop)
+
         output_task = loop.create_task(self.process_output_queue())
         output_task.add_done_callback(stop)
 
-        input_tasks = self.setup_tasks(loop)
+        other_tasks = self.setup_tasks(loop)
 
         # Handle correctly terminating the loop
         self.add_signal_handlers(loop, stop)
@@ -138,7 +158,7 @@ class BotRunner:
             loop.run_forever()
         finally:
             # Stop accepting new events
-            for task in input_tasks:
+            for task in other_tasks:
                 if not task.done():
                     result = task.cancel()
                     self.logger.warning("Cancelling %s: %s", task, result)
@@ -169,7 +189,7 @@ class BotRunner:
             pass
 
     def setup_tasks(self, loop: asyncio.AbstractEventLoop) -> List[asyncio.Task[None]]:
-        input_tasks: List[asyncio.Task[None]] = []
+        other_tasks: List[asyncio.Task[None]] = []
 
         # Startup the outputs - which are contained in the behaviors
         for behaviour in itertools.chain(*self.behaviours.values()):
@@ -177,12 +197,32 @@ class BotRunner:
             behaviour.bind_output(self.output_event_queue)
 
         # Startup the inputs
+        self.logger.info(
+            "About to bind inputs %s - manager is %s", str(self.inputs), self.manager
+        )
         for _input in self.inputs:
-            _input.bind(self.input_event_queue)
-            self.logger.info("Starting input %s", _input)
-            input_tasks.append(loop.create_task(_input.run()))
+            if self.manager is None:
+                _input.bind(self.input_event_queue)
+                self.logger.info("Starting input %s", _input)
+                other_tasks.append(loop.create_task(_input.run()))
+                continue
 
-        return input_tasks
+            _input.bind(
+                queue=self.input_event_queue,
+                manager_trigger_data=self.manager.get_trigger_data(),
+                manager_input_queue=self.manager.get_in_queue(),
+                manager_output_queue=self.manager.get_out_queue(),
+            )
+            self.logger.info("Starting input %s", _input)
+            other_tasks.append(loop.create_task(_input.run()))
+
+        # Start the manager - if there is one to start
+        if self.manager:
+            other_tasks.append(loop.create_task(self.manager.run()))
+            other_tasks.append(loop.create_task(self.manager.process_manager_input_queue()))
+            other_tasks.append(loop.create_task(self.manager.process_manager_output_queue()))
+
+        return other_tasks
 
     async def process_input_queue(self) -> None:
         while self._running:
