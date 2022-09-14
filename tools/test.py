@@ -1,77 +1,82 @@
 #!/usr/bin/env python3
 
 from __future__ import annotations
-
 from typing import List, Generator
 
-import argparse
 import os
+import subprocess
 
 from tools.common import Annotation, ToolChain
 
 
 class TestToolchain(ToolChain):
-    coverage: bool = False
-
     def run(self) -> Generator[Annotation, None, None]:
         args = self.build_pytest_args()
 
         result = self.run_tool("PyTest (Testing Framework)", *args)
 
-        if result.returncode < 0:
-            yield Annotation("error", "tools/test.py", 1, 1, "Tests Failed", "")
+        yield from self.parse_pytest_out(result)
 
     def build_pytest_args(self) -> List[str]:
-        """Builds out the `pytest` command
-
-        This varies based on what output types are requested (human vs code
-        readable), and whether coverage is enabled.
-        Due to issues with pytest-cov handling, parallelisation is disabled
-        when coverage is enabled
-        https://github.com/nedbat/coveragepy/issues/1303#issuecomment-1014915146
-        """
-
-        args = [
-            "pytest",
-            "--new-first",  # Do uncached tests first -- likely to be more relevant.
-            "--durations=0",  # Report all tests that take more than 1s to complete
-            "--durations-min=1",
-            "--junitxml=reports/junit.xml",
-        ]
-
-        if not self.coverage:
-            args.append("--dist=load")  # Distribute between processes based on load
-            args.append("--numprocesses=auto")  # Run processes equal to CPU count
-            return args
-
-        args.append("--cov")  # Enable coverage tracking for code in the './src'
-        args.append("--cov-report=xml:reports/coverage.xml")  # Record coverage summary in XML
+        args = ["pytest", "--cov"]
 
         if self.is_ci:
-            # Simple terminal output
+            # Term-only
             args.append("--cov-report=term")
+            args.append("--junitxml=junit.xml")
         else:
-            # Output to terminal, showing only lines which are not covered
+            # Output to term
+            #  term-missing gives us line numbers where things are missing
             args.append("--cov-report=term-missing")
-            # Output to html, coverage is the folder containing the output
-            args.append("--cov-report=html:coverage")
+            # Output to html
+            #  .coverage_html is the folder containing the output
+            args.append("--cov-report=html:.coverage_html")
 
         return args
 
+    def parse_pytest_out(
+        self, result: subprocess.CompletedProcess[bytes]
+    ) -> Generator[Annotation, None, None]:
+        outputs = result.stdout.decode("utf-8").split("\n")
+        current_test = ""
+        in_failures = False
 
-def parse_options() -> argparse.Namespace:
-    default = "GITHUB_ACTIONS" in os.environ
+        for line in outputs:
+            if line == "":
+                continue
 
-    parser = argparse.ArgumentParser(description="Run tests for mewbot")
-    parser.add_argument("--ci", dest="is_ci", action="store_true", default=default)
-    parser.add_argument("--cov", dest="coverage", action="store_true", default=False)
+            # Limit checking of some elements purely to where they are declared
+            # (the "FAILURES" block)
+            in_failures = self.check_if_in_failure(line, in_failures)
 
-    return parser.parse_args()
+            if in_failures:
+                if line.startswith("_") and len(line.split(" ")) == 3:
+                    # New file
+                    current_test = line.split(" ")[1]
+
+                elif in_failures and ".py:" in line:
+                    filepath, line, err = line.split(":", 2)
+                    err = err or "OtherError"
+
+                    yield Annotation("error", filepath, int(line), 1, err, current_test)
+
+            if ("FAIL Required test coverage" in line) and ("not reached." in line):
+                yield Annotation("error", "tools/test.py", 1, 1, "CoverageError", line)
+                self.success = False
+
+    @staticmethod
+    def check_if_in_failure(line: str, in_failures: bool) -> bool:
+        """Detect if we are entering or leaving the 'Failures' block"""
+        if "= FAILURES =" in line:
+            in_failures = True
+        elif "- coverage:" in line:
+            in_failures = False
+
+        return in_failures
 
 
 if __name__ == "__main__":
-    options = parse_options()
+    is_ci = "GITHUB_ACTION" in os.environ
 
-    testing = TestToolchain("tests", in_ci=options.is_ci)
-    testing.coverage = options.coverage
+    testing = TestToolchain("tests", in_ci=is_ci)
     testing()
