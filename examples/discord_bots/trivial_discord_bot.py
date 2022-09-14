@@ -23,6 +23,9 @@ class DiscordTextCommandTrigger(Trigger):
 
     @staticmethod
     def consumes_inputs() -> Set[Type[InputEvent]]:
+        """
+        Input classes accepted by this Trigger.
+        """
         return {DiscordMessageCreationEvent}
 
     @property
