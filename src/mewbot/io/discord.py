@@ -2,14 +2,22 @@
 
 from __future__ import annotations
 
-from typing import Optional, Set, Sequence, Type, List
+from typing import Optional, Set, Sequence, Type, List, Dict
 
 import dataclasses
 import logging
 
 import discord
 
-from mewbot.api.v1 import IOConfig, Input, Output, InputEvent, OutputEvent
+from mewbot.api.v1 import (
+    IOConfig,
+    Input,
+    Output,
+    InputEvent,
+    OutputEvent,
+    ManagerInputQueue,
+    ManagerOutputQueue,
+)
 from mewbot.core import InputQueue
 
 
@@ -141,9 +149,19 @@ class DiscordInput(Input):
         self._client._startup_queue_depth = self._startup_queue_depth
         self._client.queue = self.queue
 
-    def bind(self, queue: InputQueue) -> None:
+    def bind(
+        self,
+        queue: InputQueue,
+        manager_trigger_data: Optional[Dict[str, Set[str]]] = None,
+        manager_input_queue: Optional[ManagerInputQueue] = None,
+        manager_output_queue: Optional[ManagerOutputQueue] = None,
+    ) -> None:
         self.queue = queue
         self._client.queue = queue
+
+        assert manager_trigger_data is None
+        assert manager_input_queue is None
+        assert manager_output_queue is None
 
     @staticmethod
     def produces_inputs() -> Set[Type[InputEvent]]:

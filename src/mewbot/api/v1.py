@@ -14,6 +14,7 @@ from typing import (
 )
 
 import abc
+import uuid as system_uuid  # linter hack
 
 from mewbot.api.registry import ComponentRegistry
 from mewbot.core import (
@@ -21,10 +22,15 @@ from mewbot.core import (
     InputQueue,
     OutputEvent,
     OutputQueue,
+    ManagerInputQueue,
     ComponentKind,
     TriggerInterface,
     ConditionInterface,
     ActionInterface,
+    ManagerOutputQueue,
+    ManagerOutputEvent,
+    IOConfigInterface,
+    BotBase,
 )
 from mewbot.config import BehaviourConfigBlock, ConfigBlock
 
@@ -76,23 +82,68 @@ class IOConfig(Component):
     Define a service that mewbot can connect to.
     """
 
+    def set_io_config_uuids(self) -> None:
+        """
+        Iterates over the inputs and outputs, setting the io_config_uuid.
+        """
+        for _input in self.get_inputs():
+            _input.set_io_config_uuid(self.uuid)
+
+        for _output in self.get_outputs():
+            _output.set_io_config_uuid(self.uuid)
+
+    def get_uuid(self) -> str:
+        return self.uuid
+
     @abc.abstractmethod
     def get_inputs(self) -> Sequence[Input]:
-        ...
+        """
+        Return a sequence of all the Inputs defined in the IOConfig.
+        """
 
     @abc.abstractmethod
     def get_outputs(self) -> Sequence[Output]:
         ...
 
+    async def accept_manager_output(self, manager_output: ManagerOutputEvent) -> bool:
+        """
+        Can this IOConfig process a manager request?
+        """
+
+    async def status(self) -> Dict[str, List[str]]:
+        pass
+
 
 class Input:
-    queue: Optional[InputQueue]
+
+    _id: str = str(system_uuid.uuid4())  # Can always be overridden later
+    # If this input is part of an IOConfig, then this is it's uuid
+    io_config_uuid: str = "Not set by parent IOConfig"
+
+    queue: Optional[InputQueue]  # Queue for all Input events
+    manager_trigger_data: Optional[Dict[str, Set[str]]]
+    # If a manager is active, the data needed for the input to know if a command is manager or not
+    manager_input_queue: Optional[
+        ManagerInputQueue
+    ]  # Send commands/info requests to the manager
+    manager_output_queue: Optional[
+        ManagerOutputQueue
+    ]  # Receive commands/info requests from the manager
 
     def __init__(self) -> None:
         self.queue = None
 
-    def bind(self, queue: InputQueue) -> None:
+    def bind(
+        self,
+        queue: InputQueue,
+        manager_trigger_data: Optional[Dict[str, Set[str]]] = None,
+        manager_input_queue: Optional[ManagerInputQueue] = None,
+        manager_output_queue: Optional[ManagerOutputQueue] = None,
+    ) -> None:
         self.queue = queue
+        self.manager_trigger_data = manager_trigger_data
+        self.manager_input_queue = manager_input_queue
+        self.manager_output_queue = manager_output_queue
 
     @staticmethod
     def produces_inputs() -> Set[Type[InputEvent]]:
@@ -105,8 +156,43 @@ class Input:
     async def run(self) -> None:
         pass
 
+    async def status(self) -> str:
+        return (
+            f"Input {self} - {self._id} - part of {self.io_config_uuid} - "
+            f"does not have a status method."
+        )
+
+    @property
+    def uuid(self) -> str:
+        return self._id
+
+    @uuid.setter
+    def uuid(self, _id: str) -> None:
+        if hasattr(self, "_id"):
+            raise AttributeError("Can not set the ID of a component outside of creation")
+
+        self._id = _id
+
+    def get_uuid(self) -> str:
+        return self._id
+
+    def get_io_config_uuid(self) -> str:
+        return self.io_config_uuid
+
+    def set_io_config_uuid(self, new_uuid: str) -> None:
+        self.io_config_uuid = new_uuid
+
 
 class Output:
+    """
+    Base class for output methods - provides a method for the bot to output events
+    in a particular way, with a particular config.
+    """
+
+    _id: str = str(system_uuid.uuid4())  # Can always be overridden later
+    # If this input is part of an IOConfig, then this is it's uuid
+    io_config_uuid: str = "Not set by parent IOConfig"
+
     @staticmethod
     def consumes_outputs() -> Set[Type[OutputEvent]]:
         """
@@ -118,8 +204,33 @@ class Output:
         """
         Does the work of transmitting the event to the world.
         :param event:
-        :return:
+        :return : Did the message send successfully using this output.
         """
+
+    async def status(self) -> str:
+        """
+        Generates a status string summarizing the status of this output.
+        """
+
+    @property
+    def uuid(self) -> str:
+        return self._id
+
+    @uuid.setter
+    def uuid(self, _id: str) -> None:
+        if hasattr(self, "_id"):
+            raise AttributeError("Can not set the ID of a component outside of creation")
+
+        self._id = _id
+
+    def get_uuid(self) -> str:
+        return self._id
+
+    def get_io_config_uuid(self) -> str:
+        return self.io_config_uuid
+
+    def set_io_config_uuid(self, new_uuid: str) -> None:
+        self.io_config_uuid = new_uuid
 
 
 @ComponentRegistry.register_api_version(ComponentKind.Trigger, "v1")
@@ -254,6 +365,74 @@ class Behaviour(Component):
             "actions": [x.serialise() for x in self.actions],
         }
 
+    async def status(self) -> str:
+        pass
+
+
+@ComponentRegistry.register_api_version(ComponentKind.Manager, "v1")
+class Manager(Component):
+
+    manager_input_queue: Optional[
+        ManagerInputQueue
+    ]  # Queue to communicate back to the manager
+    manager_output_queue: Optional[ManagerOutputQueue]  # Queue to accept manager commands
+
+    io_configs: List[IOConfigInterface]
+
+    _managed_bot: BotBase
+
+    def bind(self, in_queue: ManagerInputQueue, out_queue: ManagerOutputQueue) -> None:
+        self.manager_input_queue = in_queue
+        self.manager_output_queue = out_queue
+
+    def set_bot(self, new_bot: BotBase) -> None:
+        self._managed_bot = new_bot
+
+    def get_bot(self) -> BotBase:
+        return self._managed_bot
+
+    def set_io_configs(self, io_configs: List[IOConfigInterface]) -> None:
+        self.io_configs = io_configs
+
+    def get_trigger_data(self) -> Dict[str, Set[str]]:
+        """
+        Trigger data required by each of the individual inputs to tell if an incoming event is a
+        command intended for the manager.
+        """
+
+    def get_in_queue(self) -> Optional[ManagerInputQueue]:
+        """
+        Returns the queue used to communicate commands/info requests/ etc. to the manager.
+        """
+        return self.manager_input_queue
+
+    def get_out_queue(self) -> Optional[ManagerOutputQueue]:
+        """
+        Returns the
+        """
+        return self.manager_output_queue
+
+    @abc.abstractmethod
+    async def run(self) -> None:
+        pass
+
+    @abc.abstractmethod
+    async def process_manager_input_queue(self) -> None:
+        pass
+
+    @abc.abstractmethod
+    async def process_manager_output_queue(self) -> None:
+        pass
+
+    @abc.abstractmethod
+    async def status(self) -> Dict[str, Dict[str, Union[str, Dict[str, List[str]]]]]:
+        # To stop the limiter getting confused with the definitions in core.py
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def help(self) -> Dict[str, Dict[str, str]]:
+        raise NotImplementedError
+
 
 __all__ = [
     "IOConfig",
@@ -265,4 +444,7 @@ __all__ = [
     "Action",
     "InputEvent",
     "OutputEvent",
+    "Manager",
+    "ManagerInputQueue",
+    "ManagerOutputQueue",
 ]
