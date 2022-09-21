@@ -7,7 +7,7 @@ from typing import Type, Dict, Set, List, Union, Tuple
 import asyncio
 import pytest
 
-from tests.common import BaseTestClassWithConfig
+from tests.common import BaseTestClassWithConfig, TestTools
 
 from mewbot.bot import Bot
 from mewbot.core import (
@@ -18,15 +18,16 @@ from mewbot.core import (
     ManagerOutputEvent,
     ManagerCommandInputEvent,
 )
-from mewbot.core import ManagerOutputQueue
+from mewbot.core import ManagerOutputQueue, ManagerInterface
 from mewbot.manager import BasicManager
+
 
 # pylint: disable=R0903
 #  Disable "too few public methods" for test cases - most test files will be classes used for
 #  grouping and then individual tests alongside these
 
 
-class TestManagedBot(BaseTestClassWithConfig[BasicManager]):
+class TestBotManager(BaseTestClassWithConfig[BasicManager], TestTools):
     config_file: str = "examples/discord_bots/trivial_discord_bot_managed.yaml"
     implementation: Type[BasicManager] = BasicManager
 
@@ -48,6 +49,36 @@ class TestManagedBot(BaseTestClassWithConfig[BasicManager]):
             for key_val in trigger_data[key]:
                 assert isinstance(key_val, str)
 
+    def test_manager_serialise(self) -> None:
+        """
+        Tests the serialise function of the manager - which converts it to a YAML
+        block
+        :return:
+        """
+        test_bot = Bot("Unconnected Bot for testing")
+        self.component.set_bot(test_bot)
+
+        self.component.serialise()
+
+    def test_manager_set_io_configs(self) -> None:
+        """
+        Tests the manager set_io_configs method - just passing in an empty list.
+        :return:
+        """
+        self.component.set_io_configs([])
+
+    def test_manager_uuid(self) -> None:
+        """
+        Should have been read in and set from the manager definition YAML.
+        :return:
+        """
+        assert self.component.uuid == "aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa04"
+
+        try:
+            self.component.uuid = "new very bad uuid"
+        except AttributeError:
+            pass
+
     def test_strip_command_prefix(self) -> None:
         """
         Transforms the command input into a standard form to be accepted by the
@@ -68,6 +99,7 @@ class TestManagedBot(BaseTestClassWithConfig[BasicManager]):
         self.component.set_bot(test_bot)
 
         assert test_bot == self.component.bot
+        assert test_bot == self.component.get_bot()
 
         try:
             self.component.bot = test_bot
@@ -133,11 +165,23 @@ class TestManagedBot(BaseTestClassWithConfig[BasicManager]):
         )
         await test_input_queue.put(invalid_info_input)
 
+        # There should be an event already in the queue - so the timeout does not matter
+        try:
+            await asyncio.wait_for(self.component.process_manager_input_queue(), 1)
+        except asyncio.exceptions.TimeoutError:
+            pass
+
         # This event should be ignored - for now
         test_manager_cmd_input: ManagerCommandInputEvent = ManagerCommandInputEvent(
             trigger_input_event=InputEvent(), io_config_src_uuid="not a real uuid"
         )
         await test_input_queue.put(test_manager_cmd_input)
+
+        # There should be an event already in the queue - so the timeout does not matter
+        try:
+            await asyncio.wait_for(self.component.process_manager_input_queue(), 1)
+        except asyncio.exceptions.TimeoutError:
+            pass
 
         # There should be an event already in the queue - so the timeout does not matter
         try:
@@ -148,6 +192,46 @@ class TestManagedBot(BaseTestClassWithConfig[BasicManager]):
         assert test_output_queue.qsize() == 1
 
     @pytest.mark.asyncio
+    async def test_manager_command_event_ignored(self) -> None:
+
+        test_input_queue, test_output_queue = self.prep_component_with_bot_and_queues()
+
+        # This event should be ignored - for now
+        test_manager_cmd_input: ManagerCommandInputEvent = ManagerCommandInputEvent(
+            trigger_input_event=InputEvent(), io_config_src_uuid="not a real uuid"
+        )
+        await test_input_queue.put(test_manager_cmd_input)
+
+        # There should be an event already in the queue - so the timeout does not matter
+        try:
+            await asyncio.wait_for(self.component.process_manager_input_queue(), 1)
+        except asyncio.exceptions.TimeoutError:
+            pass
+
+        assert test_output_queue.qsize() == 0
+
+    @pytest.mark.asyncio
+    async def test_bad_info_request_ignored(self) -> None:
+        test_input_queue, test_output_queue = self.prep_component_with_bot_and_queues()
+
+        # This event should be processed
+        # But the system doesn't know how to handle it - so it should be ignored
+        invalid_info_input: ManagerInputEvent = ManagerInfoInputEvent(
+            info_type="!not_a_status_command_or_any_command",
+            trigger_input_event=InputEvent(),
+            io_config_src_uuid="not_a_uuid",
+        )
+        await test_input_queue.put(invalid_info_input)
+
+        # There should be an event already in the queue - so the timeout does not matter
+        try:
+            await asyncio.wait_for(self.component.process_manager_input_queue(), 1)
+        except asyncio.exceptions.TimeoutError:
+            pass
+
+        assert test_output_queue.qsize() == 0
+
+    @pytest.mark.asyncio
     async def test_process_manager_iq_valid_io_input_event_out_q_none(self) -> None:
         """
         Tests running the process_manager_input_queue function with a properly set
@@ -155,7 +239,7 @@ class TestManagedBot(BaseTestClassWithConfig[BasicManager]):
         There are no events on this queue.
         This should return immediately.
         """
-        test_input_queue, _ = self.prep_component_with_bot_and_queues()
+        test_input_queue, test_output_queue = self.prep_component_with_bot_and_queues()
 
         self.component.manager_output_queue = None
 
@@ -172,6 +256,8 @@ class TestManagedBot(BaseTestClassWithConfig[BasicManager]):
             await asyncio.wait_for(self.component.process_manager_input_queue(), 1)
         except asyncio.exceptions.TimeoutError:
             pass
+
+        assert test_output_queue.qsize() == 0
 
     @pytest.mark.asyncio
     async def test_process_manager_iq_valid_io_input_event_valid_out_q(self) -> None:
@@ -344,3 +430,29 @@ class TestManagedBot(BaseTestClassWithConfig[BasicManager]):
         self.component.bind(in_queue=test_input_queue, out_queue=test_output_queue)
 
         return test_input_queue, test_output_queue
+
+    @pytest.mark.ascynio
+    async def test_manager_status(self) -> None:
+
+        managed_bot = self.get_managed_discord_bot()
+
+        self.component.set_bot(new_bot=managed_bot)
+
+        status_dict = await self.component.status()
+        assert isinstance(status_dict, dict)
+
+
+class TestUnboundManagerInit:
+    @staticmethod
+    def test_manager_without_queue_bindings() -> None:
+        test_manager: ManagerInterface = BasicManager()
+
+        # No queues have been set up - so this should be as is
+        try:
+            assert test_manager.get_in_queue() is None
+        except AttributeError:
+            pass
+        try:
+            assert test_manager.get_out_queue() is None
+        except AttributeError:
+            pass

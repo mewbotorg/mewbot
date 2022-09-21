@@ -29,5 +29,5 @@ actions:
 
 kind: Manager
 implementation: mewbot.manager.BasicManager
-uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa02
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa04
 properties: {}

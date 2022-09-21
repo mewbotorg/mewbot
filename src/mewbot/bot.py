@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Set, Type, Callable
+from typing import Any, Dict, List, Optional, Set, Type, Callable, Tuple
 
 import asyncio
 import itertools
@@ -24,69 +24,6 @@ from mewbot.core import (
 )
 
 logging.basicConfig(level=logging.INFO)
-
-
-class Bot(BotBase):
-    def __init__(self, name: str) -> None:
-        self.name = name
-        self._io_configs = []
-        self._behaviours = []
-        self._datastores = {}
-
-    def run(self) -> None:
-
-        self._preflight()
-
-        runner = BotRunner(
-            self._marshal_behaviours(),
-            self._marshal_inputs(),
-            self._marshal_outputs(),
-            self.get_manager(),
-        )
-        runner.run()
-
-    def _preflight(self) -> None:
-        """
-        Does any setup work which needs to happen before the behaviors/inputs/outputs are
-        marshalled.
-        This includes
-         - propagating the uuids from the IOConfigs to the inputs/output
-        """
-        # Set the io_config_uuids for every input/output known to the system
-        for connection in self._io_configs:
-            connection.set_io_config_uuids()
-
-        manager = self.get_manager()
-        if manager:
-            manager.set_io_configs(self.get_io_configs())
-
-    def _marshal_behaviours(self) -> Dict[Type[InputEvent], Set[BehaviourInterface]]:
-        behaviours: Dict[Type[InputEvent], Set[BehaviourInterface]] = {}
-
-        for behaviour in self._behaviours:
-            for event_type in behaviour.consumes_inputs():
-                behaviours.setdefault(event_type, set()).add(behaviour)
-
-        return behaviours
-
-    def _marshal_inputs(self) -> Set[InputInterface]:
-        inputs = set()
-
-        for connection in self._io_configs:
-            for con_input in connection.get_inputs():
-                inputs.add(con_input)
-
-        return inputs
-
-    def _marshal_outputs(self) -> Dict[Type[OutputEvent], Set[OutputInterface]]:
-        outputs: Dict[Type[OutputEvent], Set[OutputInterface]] = {}
-
-        for connection in self._io_configs:
-            for _output in connection.get_outputs():
-                for event_type in _output.consumes_outputs():
-                    outputs.setdefault(event_type, set()).add(_output)
-
-        return outputs
 
 
 class BotRunner:
@@ -127,14 +64,30 @@ class BotRunner:
         if self.manager:
             self.manager.bind(ManagerInputQueue(), ManagerOutputQueue())
 
-    def run(self, _loop: Optional[asyncio.AbstractEventLoop] = None) -> None:
-        if self._running:
-            raise RuntimeError("Bot is already running")
-
-        loop = _loop if _loop else asyncio.get_event_loop()
-
-        self.logger.info("Starting main event loop")
+    def note_startup(self) -> None:
+        """
+        Note that the runner has started.
+        (Interface added for testing purposes).
+        :return:
+        """
         self._running = True
+
+    def start_shutdown(self) -> None:
+        """
+        Inform the runner that shutdown has been called for from elsewhere in the program.
+        (Not via keyboard interrupt).
+        :return:
+        """
+        self._running = False
+
+    def prepare_loop_tasks(
+        self, loop: asyncio.AbstractEventLoop
+    ) -> Tuple[asyncio.Task[None], asyncio.Task[None], List[asyncio.Task[None]]]:
+        """
+        Prepare tasks for the loop to run.
+        :param loop:
+        :return:
+        """
 
         def stop(info: Optional[Any] = None) -> None:
             self.logger.warning("Stop called: %s", info)
@@ -143,29 +96,74 @@ class BotRunner:
                 loop.stop()
             self._running = False
 
-        input_task = loop.create_task(self.process_input_queue())
+        input_task: asyncio.Task[None] = loop.create_task(self.process_input_queue())
         input_task.add_done_callback(stop)
 
-        output_task = loop.create_task(self.process_output_queue())
+        output_task: asyncio.Task[None] = loop.create_task(self.process_output_queue())
         output_task.add_done_callback(stop)
 
-        other_tasks = self.setup_tasks(loop)
+        other_tasks: List[asyncio.Task[None]] = self.setup_tasks(loop)
 
         # Handle correctly terminating the loop
         self.add_signal_handlers(loop, stop)
 
-        try:
-            loop.run_forever()
-        finally:
-            # Stop accepting new events
-            for task in other_tasks:
-                if not task.done():
-                    result = task.cancel()
-                    self.logger.warning("Cancelling %s: %s", task, result)
+        return input_task, output_task, other_tasks
 
-            # Finish processing anything already in the queues.
-            loop.run_until_complete(input_task)
-            loop.run_until_complete(output_task)
+    def run(self, _loop: Optional[asyncio.AbstractEventLoop] = None) -> None:
+
+        if self._running:
+            raise RuntimeError("Bot is already running")
+
+        loop = _loop if _loop else asyncio.get_event_loop()
+
+        self.logger.info("Starting main event loop")
+        self._running = True
+
+        input_task, output_task, other_tasks = self.prepare_loop_tasks(loop)
+
+        try:
+            self.run_loop(loop)
+        finally:
+            self.shutdown_tasks(
+                loop=loop,
+                input_task=input_task,
+                output_task=output_task,
+                other_tasks=other_tasks,
+            )
+
+    def shutdown_tasks(
+        self,
+        loop: asyncio.AbstractEventLoop,
+        input_task: asyncio.Task[None],
+        output_task: asyncio.Task[None],
+        other_tasks: List[asyncio.Task[None]],
+    ) -> None:
+        """
+        Preform the shutdown tasks to properly terminate the loop.
+        :param loop:
+        :param input_task:
+        :param output_task:
+        :param other_tasks:
+        :return:
+        """
+        # Stop accepting new events
+        for task in other_tasks:
+            if not task.done():
+                result = task.cancel()
+                self.logger.warning("Cancelling %s: %s", task, result)
+
+        # Finish processing anything already in the queues.
+        loop.run_until_complete(input_task)
+        loop.run_until_complete(output_task)
+
+    @staticmethod
+    def run_loop(program_loop: asyncio.AbstractEventLoop) -> None:
+        """
+        Isolate the process of actually running the bot - so it can be overridden for testing.
+        purposes.
+        :return:
+        """
+        program_loop.run_forever()
 
     @staticmethod
     def add_signal_handlers(
@@ -247,3 +245,96 @@ class BotRunner:
                 if isinstance(event, event_type):
                     for output in self.outputs[event_type]:
                         await output.output(event)
+
+
+class Bot(BotBase):
+    """
+    The Bot itself - will run to process inputs and produce outputs
+    """
+
+    _runner: Optional[BotRunner]
+
+    def __init__(self, name: str, runner: Type[BotRunner] = BotRunner) -> None:
+        self.name = name
+        self._io_configs = []
+        self._behaviours = []
+        self._datastores = {}
+
+        self.runner_class = runner
+        self._runner = None
+
+    def build_runner(self) -> None:
+        """
+        Initialize the runner and prepare it to be actually run.
+        :return:
+        """
+        self._preflight()
+
+        self._runner = self.runner_class(
+            self._marshal_behaviours(),
+            self._marshal_inputs(),
+            self._marshal_outputs(),
+            self.get_manager(),
+        )
+
+    @property
+    def runner(self) -> BotRunner:
+        if self._runner is not None:
+            return self._runner
+        raise AttributeError("_runner is None - have you called build_runner?")
+
+    @runner.setter
+    def runner(self, value: BotRunner) -> None:
+        raise AttributeError("You cannot set the runner directly - call build_runner")
+
+    def run(self) -> None:
+        """
+        Runner is broken down to facilitate easier testing.
+        :return:
+        """
+        self.build_runner()
+
+        self.runner.run()
+
+    def _preflight(self) -> None:
+        """
+        Does any setup work which needs to happen before the behaviors/inputs/outputs are
+        marshalled.
+        This includes
+         - propagating the uuids from the IOConfigs to the inputs/output
+        """
+        # Set the io_config_uuids for every input/output known to the system
+        for connection in self._io_configs:
+            connection.set_io_config_uuids()
+
+        manager = self.get_manager()
+        if manager:
+            manager.set_io_configs(self.get_io_configs())
+
+    def _marshal_behaviours(self) -> Dict[Type[InputEvent], Set[BehaviourInterface]]:
+        behaviours: Dict[Type[InputEvent], Set[BehaviourInterface]] = {}
+
+        for behaviour in self._behaviours:
+            for event_type in behaviour.consumes_inputs():
+                behaviours.setdefault(event_type, set()).add(behaviour)
+
+        return behaviours
+
+    def _marshal_inputs(self) -> Set[InputInterface]:
+        inputs = set()
+
+        for connection in self._io_configs:
+            for con_input in connection.get_inputs():
+                inputs.add(con_input)
+
+        return inputs
+
+    def _marshal_outputs(self) -> Dict[Type[OutputEvent], Set[OutputInterface]]:
+        outputs: Dict[Type[OutputEvent], Set[OutputInterface]] = {}
+
+        for connection in self._io_configs:
+            for _output in connection.get_outputs():
+                for event_type in _output.consumes_outputs():
+                    outputs.setdefault(event_type, set()).add(_output)
+
+        return outputs

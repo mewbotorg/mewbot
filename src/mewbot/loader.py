@@ -44,7 +44,7 @@ def configure_bot(name: str, stream: TextIO) -> Bot:
     number = 0
 
     for document in yaml.load_all(stream, Loader=yaml.CSafeLoader):
-        print(document["kind"])
+
         number += 1
 
         if not _REQUIRED_KEYS.issubset(document.keys()):

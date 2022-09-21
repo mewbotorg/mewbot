@@ -163,7 +163,6 @@ class DiscordInput(Input):
     """
 
     _logger: logging.Logger
-    _token: str
     _startup_queue_depth: int
     _client: InternalMewbotDiscordClient
     _manager_data: Optional[ManagerData]
@@ -181,7 +180,7 @@ class DiscordInput(Input):
 
         intents = discord.Intents.all()
         self._client = InternalMewbotDiscordClient(intents=intents)
-        self._token = token
+        self._client.token = token
         self._logger = logging.getLogger(__name__ + "DiscordInput")
 
         self._startup_queue_depth = startup_queue_depth
@@ -234,7 +233,7 @@ class DiscordInput(Input):
         """
         self._logger.info("About to connect to Discord")
 
-        await self._client.start(self._token)
+        await self._client.start(self._client.token)
 
     async def status(self) -> str:
         """
@@ -254,6 +253,7 @@ class InternalMewbotDiscordClient(discord.Client):
     io_config_uuid: str = "Not set by parent Input"
 
     queue: Optional[InputQueue]
+    token: str  # The token the client uses to connect
 
     manager_data: Optional[ManagerData] = None
 
