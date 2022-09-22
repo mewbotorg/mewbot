@@ -1,5 +1,10 @@
-import asyncio
+from __future__ import annotations
+
 from typing import Tuple, Optional, List, Union, Type
+
+import asyncio
+
+import aiopath
 
 from mewbot.api.v1 import InputEvent
 from mewbot.io.file_system.dir_monitor import (
@@ -11,6 +16,7 @@ from mewbot.io.file_system.dir_monitor import (
     DirectoryMovedIntoOrFromWatchedDirInputEvent,
     DirectoryDeletedInMonitoredDirectoryInputEvent,
     FileDeletedFromMonitoredDirectoryInputEvent,
+    FileMovedIntoOrFromWatchedDirInputEvent,
 )
 from mewbot.io.file_system.file_monitor import (
     FileMonitorInput,
@@ -80,7 +86,7 @@ class GeneralUtils:
 
     @staticmethod
     async def get_test_input(
-        input_path: str,
+        input_path: aiopath.path.AsyncPath,
     ) -> Tuple[asyncio.Task[None], asyncio.Queue[InputEvent]]:
 
         test_fs_input = FileMonitorInput(path=input_path)
@@ -344,7 +350,7 @@ class FileSystemTestUtilsFileEvents(GeneralUtils):
         )
 
         if file_src_path is not None:
-            assert input_event.file_src == file_src_path
+            assert input_event.moved_from_path == file_src_path
 
         if file_dst_path is not None:
             assert input_event.path == file_dst_path
