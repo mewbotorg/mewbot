@@ -15,7 +15,9 @@ from mewbot.core import InputQueue
 
 @dataclasses.dataclass
 class DiscordInputEvent(InputEvent):
-    pass
+    """
+    Base classes for all discord input events.
+    """
 
 
 @dataclasses.dataclass
@@ -72,6 +74,10 @@ class DiscordOutputEvent(OutputEvent):
 
 
 class DiscordIO(IOConfig):
+    """
+    Allows mewbot to connect to Discord.
+    """
+
     _input: Optional[DiscordInput] = None
     _output: Optional[DiscordOutput] = None
     _token: str = ""

@@ -16,7 +16,8 @@ __pycache__/
 .pydevproject
 
 # Build enivornment
-src/mewbot.egg-info
+# - Including all the environments in plugins
+*.egg-info
 /build/
 /dist/
 

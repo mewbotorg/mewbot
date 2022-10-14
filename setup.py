@@ -23,6 +23,7 @@ setuptools.setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         f"License :: OSI Approved :: {true_licence}",
+        "Framework :: Mewbot",
         "Operating System :: OS Independent",
     ],
     package_dir={"": "src"},

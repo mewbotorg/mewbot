@@ -81,6 +81,8 @@ class ComponentRegistry(abc.ABCMeta):
         for prop in to_delete:
             properties.pop(prop)
 
+        # TypeError here may be because the wrong number of properties are specified in the yaml
+        # block which defines the class you are trying to initialise
         obj.__init__(*args, **properties)
 
         return obj
@@ -95,7 +97,8 @@ class ComponentRegistry(abc.ABCMeta):
 
             if not isinstance(kind, ComponentKind):
                 raise TypeError(
-                    f"Component kind '{kind}' not valid (must be one of {ComponentKind.values()})"
+                    f"Component kind '{kind}' not valid "
+                    f"(must be one of {ComponentKind.values()})"
                 )
 
             if not issubclass(api, ComponentKind.interface(kind)):

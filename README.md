@@ -26,13 +26,14 @@ minimal coding experience.
 
 ### Packages and Modules
 
-| Package                   | Modules                             | Description                                                                                                                                |
-|---------------------------|-------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
-| `mewbot-core`             | `mewbot.core`                       | Base interfaces for all modules                                                                                                            |
-| `mewbot-dev`              | `mewbot.component`, `mewbot.api.v1` | Development libraries + component registry system. This is the package that all 3rd party libraries should depend on for their interfaces. |
-| `mewbot-runner`           | `mewbot.loader`, `mewbot.bot`       | Tools to load a bot, and run that bot.                                                                                                     |
-| `mewbot-[discord/twitch]` | `mewbot.io.[discord/twitch]`        | The bindings to connect MewBot to a given service.                                                                                         |
-| `mewbot-tests`            | `mewbot.tests`                      | Pytest test cases for MewBot.                                                                                                              |
+| Package              | Modules                             | Description                                                                                                                                |
+|----------------------|-------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| `mewbot-core`        | `mewbot.core`                       | Base interfaces for all modules                                                                                                            |
+| `mewbot-dev`         | `mewbot.component`, `mewbot.api.v1` | Development libraries + component registry system. This is the package that all 3rd party libraries should depend on for their interfaces. |
+| `mewbot-runner`      | `mewbot.loader`, `mewbot.bot`       | Tools to load a bot, and run that bot.                                                                                                     |
+| `mewbot-[discord/twitch]` | `mewbot.io.[discord/twitch]`   | The bindings to connect MewBot to a given service.                                                                                         |
+| `mewbot-tests`       | `mewbot.tests`                      | Pytest test cases for MewBot.                                                                                                              |
+| `mewbot-efficiency`  | `mewbot-efficiency`                 | Deployment version of mewbot with all the type info stripped - for preformance                                                             |
 
 ![module dependency graph](./mewbot.svg)
 
