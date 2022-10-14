@@ -46,10 +46,13 @@ class TestMewbotPluginManager:
 
         # There should now be one IOConfig class - the reddit one currently being used for
         # testing
-        io_config_classes = test_manager.get_plugin_io_config_classes()
+        io_config_classes = test_manager.get_all_plugin_io_config_classes()
         assert isinstance(io_config_classes, tuple)
 
         assert len(io_config_classes) == 1
+
+        io_config_classified_classes = test_manager.get_classified_io_config_classes()
+        assert "reddit" in io_config_classified_classes.keys()
 
     @staticmethod
     def test_get_plugin_input_classes() -> None:
@@ -60,8 +63,11 @@ class TestMewbotPluginManager:
         test_manager = PluginManager()
         assert test_manager is not None
 
-        # At the moment there should be no Input presenting classes
-        assert isinstance(test_manager.get_plugin_input_classes(), tuple)
+        # There should now be some reddit input presenting classes
+        assert isinstance(test_manager.get_all_plugin_input_classes(), tuple)
+
+        classified_input_classes = test_manager.get_classified_input_classes()
+        assert "reddit" in classified_input_classes.keys()
 
     @staticmethod
     def test_get_plugin_output_classes() -> None:
@@ -73,7 +79,10 @@ class TestMewbotPluginManager:
         assert test_manager is not None
 
         # At the moment there should be no Output presenting classes
-        assert isinstance(test_manager.get_plugin_output_classes(), tuple)
+        assert isinstance(test_manager.get_all_plugin_output_classes(), tuple)
+
+        classified_output_classes = test_manager.get_classified_output_classes()
+        assert not classified_output_classes
 
     @staticmethod
     def test_get_plugin_trigger_classes() -> None:
@@ -85,12 +94,16 @@ class TestMewbotPluginManager:
         assert test_manager is not None
 
         # At the moment there should be at least one Trigger presenting class
-        plugin_trigger_classes = test_manager.get_plugin_trigger_classes()
+        plugin_trigger_classes = test_manager.get_all_plugin_trigger_classes()
         assert isinstance(plugin_trigger_classes, tuple)
 
         # Hopefully a number of plugins should have been imported - or this test should not
         # be run
         assert len(plugin_trigger_classes) > 0
+
+        classified_triggers = test_manager.get_classified_trigger_classes()
+
+        assert [k for k in classified_triggers.keys()] == ["discord_dice_roller"], str(classified_triggers.keys())
 
     @staticmethod
     def test_get_plugin_condition_classes() -> None:
@@ -118,7 +131,7 @@ class TestMewbotPluginManager:
         assert test_manager is not None
 
         # There shouldn't be any Condition classes - for now
-        plugin_action_classes = test_manager.get_plugin_action_classes()
+        plugin_action_classes = test_manager.get_all_plugin_action_classes()
         assert isinstance(plugin_action_classes, tuple)
 
         # There should be at least one from mewbot-discord_dice_roller
@@ -135,7 +148,7 @@ class TestMewbotPluginManager:
         assert test_manager is not None
 
         # There shouldn't be any Condition classes - for now
-        plugin_behavior_classes = test_manager.get_plugin_behavior_classes()
+        plugin_behavior_classes = test_manager.get_all_plugin_behavior_classes()
         assert isinstance(plugin_behavior_classes, tuple)
 
         # There should be at least one from mewbot-discord_dice_roller
@@ -152,7 +165,7 @@ class TestMewbotPluginManager:
         test_manager = PluginManager()
         assert test_manager is not None
 
-        call_result = test_manager.get_available_plugin_classes()
+        call_result = test_manager.get_all_available_plugin_classes()
 
         assert isinstance(call_result, dict)
 
