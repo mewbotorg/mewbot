@@ -1,0 +1,30 @@
+kind: IOConfig
+implementation: mewbot_reddit.io_configs.reddit_password_io.RedditPasswordIO
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa00
+properties:
+  username: "[reddit-account-user-name]"
+  password: "[reddit-account-password]"
+  client_id: "[bot-client(app)-id]"
+  client_secret: "[bot-secret]"
+  subreddits: [  ]
+  redditors: [  ]
+
+
+---
+
+kind: Behaviour
+implementation: mewbot.api.v1.Behaviour
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa01
+properties:
+  name: 'Echo Inputs'
+triggers:
+  - kind: Trigger
+    implementation: examples.discord_bots.editor_warn_discord_bot.DiscordEditTrigger
+    uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa02
+    properties: {}
+conditions: []
+actions:
+  - kind: Action
+    implementation: examples.discord_bots.editor_warn_discord_bot.DiscordEditResponse
+    uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa03
+    properties: {}

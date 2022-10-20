@@ -103,7 +103,9 @@ class TestMewbotPluginManager:
 
         classified_triggers = test_manager.get_classified_trigger_classes()
 
-        assert [k for k in classified_triggers.keys()] == ["discord_dice_roller"], str(classified_triggers.keys())
+        assert [k for k in classified_triggers.keys()] == ["discord_dice_roller"], str(
+            classified_triggers.keys()
+        )
 
     @staticmethod
     def test_get_plugin_condition_classes() -> None:
@@ -117,7 +119,7 @@ class TestMewbotPluginManager:
         assert test_manager is not None
 
         # There shouldn't be any Condition classes - for now
-        plugin_condition_classes = test_manager.get_plugin_condition_classes()
+        plugin_condition_classes = test_manager.get_all_plugin_condition_classes()
         assert isinstance(plugin_condition_classes, tuple)
 
     @staticmethod
@@ -165,7 +167,7 @@ class TestMewbotPluginManager:
         test_manager = PluginManager()
         assert test_manager is not None
 
-        call_result = test_manager.get_all_available_plugin_classes()
+        call_result = test_manager.get_all_available_plugin_class_names()
 
         assert isinstance(call_result, dict)
 

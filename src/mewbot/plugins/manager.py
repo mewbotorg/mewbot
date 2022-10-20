@@ -59,31 +59,7 @@ class PluginManager:
         """
         return [po[0] for po in self._pluggy_pm.list_name_plugin()]
 
-    def get_available_plugin_classes(self) -> Dict[str, Dict[str, Tuple[str]]]:
-        """
-        Return plugins broken down by
-        :return:
-        """
-        rtn_dict: Dict[str, List[str]] = {}
-
-        io_configs = self.get_all_plugin_io_config_classes()
-        rtn_dict["IOConfigs"] = [self._get_plugin_component_name(pcls) for pcls in io_configs]
-        rtn_dict["Inputs"] = [pcls.__name__ for pcls in self.get_all_plugin_input_classes()]
-        rtn_dict["Outputs"] = [pcls.__name__ for pcls in self.get_all_plugin_output_classes()]
-        rtn_dict["Triggers"] = [
-            pcls.__name__ for pcls in self.get_all_plugin_trigger_classes()
-        ]
-        rtn_dict["Conditions"] = [
-            pcls.__name__ for pcls in self.get_plugin_condition_classes()
-        ]
-        rtn_dict["Actions"] = [pcls.__name__ for pcls in self.get_all_plugin_action_classes()]
-        rtn_dict["Behaviors"] = [
-            pcls.__name__ for pcls in self.get_all_plugin_behavior_classes()
-        ]
-
-        return rtn_dict
-
-    def get_all_available_plugin_classes(self) -> Dict[str, List[str]]:
+    def get_all_available_plugin_class_names(self) -> Dict[str, List[str]]:
         """
         Returns a dict keyed with the type of class available and valued with a list of the
         available types of that class.
@@ -99,7 +75,7 @@ class PluginManager:
             pcls.__name__ for pcls in self.get_all_plugin_trigger_classes()
         ]
         rtn_dict["Conditions"] = [
-            pcls.__name__ for pcls in self.get_plugin_condition_classes()
+            pcls.__name__ for pcls in self.get_all_plugin_condition_classes()
         ]
         rtn_dict["Actions"] = [pcls.__name__ for pcls in self.get_all_plugin_action_classes()]
         rtn_dict["Behaviors"] = [
@@ -352,7 +328,6 @@ class PluginManager:
         """
         return self._generic_get_classified_plugin_classes("get_output_classes", Output)
 
-
     # ---------
     # ----------
     # - TRIGGERS
@@ -383,7 +358,6 @@ class PluginManager:
         """
         return self._generic_get_classified_plugin_classes("get_trigger_classes", Trigger)
 
-
     # ----------
     # ------------
     # - CONDITIONS
@@ -395,17 +369,24 @@ class PluginManager:
         :return:
         """
         return self._generic_get_plugin_class(
-            "get_plugin_condition_classes",
+            "get_all_plugin_condition_classes",
             target_class_name=condition_name,
             target_class=Condition,
         )
 
-    def get_plugin_condition_classes(self) -> Tuple[Type[Condition], ...]:
+    def get_all_plugin_condition_classes(self) -> Tuple[Type[Condition], ...]:
         """
         Returns the available Condition classes declared by all the plugins as a list.
         :return:
         """
         return self._generic_get_all_plugin_classes("get_condition_classes", Condition)
+
+    def get_classified_condition_classes(self) -> Dict[str, Tuple[Type[Condition], ...]]:
+        """
+        Return the classified Input classes.
+        :return:
+        """
+        return self._generic_get_classified_plugin_classes("get_condition_classes", Condition)
 
     # ------------
     # --------
@@ -428,6 +409,13 @@ class PluginManager:
         """
         return self._generic_get_all_plugin_classes("get_action_classes", Action)
 
+    def get_classified_action_classes(self) -> Dict[str, Tuple[Type[Action], ...]]:
+        """
+        Return the classified Input classes.
+        :return:
+        """
+        return self._generic_get_classified_plugin_classes("get_action_classes", Action)
+
     # --------
     # -----------
     # - BEHAVIORS
@@ -448,5 +436,12 @@ class PluginManager:
         :return:
         """
         return self._generic_get_all_plugin_classes("get_behavior_classes", Behaviour)
+
+    def get_classified_behavior_classes(self) -> Dict[str, Tuple[Type[Behaviour], ...]]:
+        """
+        Return the classified Input classes.
+        :return:
+        """
+        return self._generic_get_classified_plugin_classes("get_behavior_classes", Behaviour)
 
     # -----------
