@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from typing import Optional, Sequence, Union, Set, Type, List, SupportsInt
-
 import asyncpraw  # type: ignore
 
 from ..io_configs import RedditIOBase
@@ -14,7 +12,8 @@ class RedditBotIO(RedditIOBase):
     """
 
     # Should pass regex base checks
-    # From the praw docs - https://asyncpraw.readthedocs.io/en/stable/getting_started/authentication.html
+    # From the praw docs -
+    # https://asyncpraw.readthedocs.io/en/stable/getting_started/authentication.html
     bot_credentials: RedditBotCredentials = RedditBotCredentials(
         client_id="SI8pN3DSbt0zor",
         client_secret="xaxkj7HNh8kwg8e5t4m6KvSrbTI",

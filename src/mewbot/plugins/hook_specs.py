@@ -4,9 +4,13 @@
 pluggy plugins need two things
  - a spec for the implementation
  - a decorator to mark an object in your project as an implementation
-This module provides these.
+This module provides these for a number of mewbot use cases.
+(Such as
+ - regular information which plugins might offer - such as components
+ - development information which plugins might offer
 It also provides some guidance - in the spec docstrings - as to how to write
 extensions.
+
 """
 
 from typing import Tuple, Type, Dict
@@ -25,9 +29,10 @@ from mewbot.api.v1 import (
     OutputEvent,
 )
 
-# The specification for a hook namespace
+# The specification for a hook namespace to provide mewbot components
 mewbot_ext_hook_spec = pluggy.HookspecMarker("mewbot")
-# The marker which corresponds to that implementation
+# The marker which corresponds to that implementation - import to use
+# (see examples in plugins folder)
 mewbot_ext_hook_impl = pluggy.HookimplMarker("mewbot")
 
 
@@ -127,3 +132,34 @@ class MewbotPluginSpec:
 
 
 # Eventually it should be possible to populate the implementation directly using a registry
+
+# Spec to provide means of providing dev information to mewbot
+mewbot_dev_hook_spec = pluggy.HookspecMarker("mewbot_dev")
+# The marker which corresponds to that implementation
+mewbot_dev_hook_impl = pluggy.HookimplMarker("mewbot_dev")
+
+
+class MewbotDevPluginSpec:
+    """
+    There is various information that a plugin might want to provide to mewbot to assist with
+    development.
+    Such as
+     - where its source code is (for linting purposes)
+     - where its tests are (so that they can be run as part of the test suite)
+    """
+
+    @mewbot_dev_hook_spec  # type: ignore
+    def declare_src_locs(self) -> Tuple[str, ...]:
+        """
+        Allows the plugin to declare where its src folders are - so they can be linted.
+        Should return a tuple of paths to be linted.
+        :return:
+        """
+
+    @mewbot_dev_hook_spec  # type: ignore
+    def declare_test_locs(self) -> Tuple[str, ...]:
+        """
+        Allows the plugin to declare where its tests are - so they can be included in the main
+        test run.
+        :return:
+        """

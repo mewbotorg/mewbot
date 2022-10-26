@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-from typing import Optional, Sequence, Union, Set, Type, List, SupportsInt
-
-import asyncpraw  # type: ignore
+from typing import List
 
 import logging
+
+import asyncpraw  # type: ignore
 
 from ..io_configs import RedditIOBase
 from .credentials import RedditPasswordCredentials
@@ -17,8 +17,6 @@ class RedditPasswordIO(RedditIOBase):
     the RedditBotIO config - where a browser will be opened and you will be prompted to
     authenticate into reddit.
     """
-
-    # Todo: It'd be a good idea to error if we try and set an attribute which does not exist
 
     # Credentials to store all the info needed to log into reddit
     hybrid_credentials: RedditPasswordCredentials = RedditPasswordCredentials(
@@ -140,7 +138,5 @@ class RedditPasswordIO(RedditIOBase):
             user_agent=self.hybrid_credentials.user_agent,
         )
         self._logger.info(reddit.auth.url(["identity"], "...", "permanent"))
-
-        # Todo: Check logged in to confirm the flow has been successful before start
 
         self.praw_reddit = reddit

@@ -4,7 +4,6 @@
 A series of conditions which are true (or not true) on various days of the week.
 """
 
-# Todo: A general means, in the YAML, to negate conditions
 
 from typing import Set, Type
 

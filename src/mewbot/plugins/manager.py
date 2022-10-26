@@ -33,13 +33,15 @@ class PluginManager:
     can be loaded into mewbot.
     """
 
+    # pylint: disable=too-many-public-methods
+
     _logger: logging.Logger
 
     _pluggy_pm: pluggy.PluginManager
 
     def __init__(self) -> None:
 
-        self._logger = logging.getLogger(__name__ + "DiscordInput")
+        self._logger = logging.getLogger(__name__ + ":PluginManager")
 
         self.setup_pluggy_plugin_manager()
 
@@ -223,7 +225,10 @@ class PluginManager:
                         continue
                 tmp_dict.update({plugin_category: rtn_list})
 
-        return {k: tuple(tmp_dict[k]) for k in tmp_dict}
+        rtn_dict: Dict[str, Tuple[Type[T], ...]] = {}
+        for cls_clasf in tmp_dict:
+            rtn_dict[cls_clasf] = tuple(rtn_dict[cls_clasf])
+        return rtn_dict
 
     # Order of the overloads seems to be important
     @overload

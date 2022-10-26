@@ -4,7 +4,7 @@
 Contains all the input events which could be produced by a reddit client.
 """
 
-from typing import Optional, Sequence, Union, Set, Type, List, SupportsInt
+from typing import Optional
 
 import dataclasses
 
@@ -40,7 +40,8 @@ class SubRedditSubmissionInputEvent(RedditInputEvent):
     submission_title: str  # Title of the post in the subreddit
     submission_id: str  # id number for the string
     submission_content: str  # String contents
-    submission_image: Optional[str]  # The image associated with the post
+    submission_image: Optional[str]  # A URL to the image associated with the post
+    # (if there is one)
 
     author_str: str  # Author string for the post - should serve as an id
 
@@ -124,7 +125,7 @@ class SubRedditCommentCreationInputEvent(SubRedditCommentInputEvent):
     An  event involving a comment has occurred in a monitored subreddit.
     There are two types of InputEvent that can be generated from a comment
     - A change occurs involving a top level comment - one at the root of a subreddit
-    - A comment is added/edited/deleted/removed to the comment forest of an existing top level comment.
+    - A comment is added/edited/deleted/removed to the comment forest of an existing submission.
     """
 
     creation_timestamp: str  # When the post was created
@@ -331,7 +332,6 @@ class RedditUserRemovedCommentOnSubredditSubmissionInputEvent(
 # ------------------------------------------
 #
 # - USER MAKES A SUBMISSION - TO THEIR PROFILE
-# Todo: Or anothers profile?
 
 
 @dataclasses.dataclass

@@ -1,4 +1,4 @@
-from typing import Optional, Sequence, Union, Set, Type, List, SupportsInt
+#!/usr/bin/env python3
 
 import asyncpraw  # type: ignore
 

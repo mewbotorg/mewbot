@@ -103,7 +103,7 @@ class TestMewbotPluginManager:
 
         classified_triggers = test_manager.get_classified_trigger_classes()
 
-        assert [k for k in classified_triggers.keys()] == ["discord_dice_roller"], str(
+        assert list(classified_triggers.keys()) == ["discord_dice_roller"], str(
             classified_triggers.keys()
         )
 

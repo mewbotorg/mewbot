@@ -342,6 +342,11 @@ See https://www.reddit.com/r/redditdev/comments/cgsnpz/how_can_i_use_the_reddit_
 ACTUALLY - Plugins should provide the name of the plugin and the types of input for that plugin that it offers.
 This is the way.
 
+Todo: Not currently sure how it appears if a user makes a submission to another user's profile - might want a seperate event for it?
+Todo: RSS comments can be edited. Would be good to implement edit detection there as well 
+Todo: It'd be a good idea to error if we try and set an attribute which does not exist when creating a component from YAML
+
+
 
 ### Needed features
 
@@ -350,3 +355,6 @@ This is the way.
 3) An official plugin list - with a warning if you try and load something which is not on the list.
 4) Or it just doesn't - but you can override it
 5) The ability to include docs in with the main program as well
+6) Cannot currently detect when submissions are pinned and unpinned - might need a poll for it
+7) Currently the version of the subreddit monitor pointed at a user's profile yield the wrong type of events
+8) A general means, in the YAML, to negate conditions
