@@ -16,7 +16,7 @@ class DiscordDiceRollerBehavior(Behaviour):
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super(DiscordDiceRollerBehavior, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Adding the trigger and action to the Behavior
         self.add(DiscordDiceRollCommandTrigger())

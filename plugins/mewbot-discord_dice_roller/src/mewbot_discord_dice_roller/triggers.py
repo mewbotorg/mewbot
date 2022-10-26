@@ -4,13 +4,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Set, Type
+from typing import Set, Type
 
-import logging
-
-from mewbot.api.v1 import Trigger, Action
-from mewbot.core import InputEvent, OutputEvent, OutputQueue
-from mewbot.io.discord import DiscordMessageCreationEvent, DiscordOutputEvent
+from mewbot.api.v1 import Trigger
+from mewbot.core import InputEvent
+from mewbot.io.discord import DiscordMessageCreationEvent
 
 
 class DiscordDiceRollCommandTrigger(Trigger):
