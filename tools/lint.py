@@ -2,21 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Generator, Set, List, Any
+from typing import Generator, Set
 
 import os
 import subprocess
 
-import pluggy  # type: ignore
+from tools.common import Annotation, ToolChain, gather_dev_paths
 
-from tools.common import Annotation, ToolChain
-
-PLUGIN_DEV_SPEC: Any = None
-try:
-    from mewbot.plugins.hook_specs import MewbotDevPluginSpec as PLUGIN_DEV_SPEC
-except ModuleNotFoundError:
-    # We cannot load
-    PLUGIN_DEV_SPEC = None
 
 LEVELS: Set[str] = {"notice", "warning", "error"}
 
@@ -143,38 +135,11 @@ def lint_black_diffs(
         buffer += diff_line + "\n"
 
 
-def gather_extra_linting_paths() -> List[str]:
-    """
-    Gather the paths which the plugins have declared should be added to linting.
-    :return:
-    """
-    pluggy_manager = pluggy.PluginManager("mewbot_dev")
-
-    # This is the bit which might be a problem - if mewbot itself is not installed
-    if PLUGIN_DEV_SPEC is None:
-        return []
-
-    pluggy_manager.add_hookspecs(PLUGIN_DEV_SPEC())
-    pluggy_manager.load_setuptools_entrypoints("mewbotv1")
-
-    # Losd the declared src code paths
-    results = getattr(pluggy_manager.hook, "declare_src_locs")()  # Linter hack
-    src_paths: List[str] = []
-    for result_tuple in results:
-        for path in result_tuple:
-            if isinstance(path, str):
-                src_paths.append(path)
-            else:
-                print(f"{path} not  a valid path")
-
-    return src_paths
-
-
 if __name__ == "__main__":
     is_ci = "GITHUB_ACTIONS" in os.environ
 
     base_paths = ["src", "examples", "tests", "tools"]
-    extra_paths = gather_extra_linting_paths()
+    extra_paths = gather_dev_paths(target_func="declare_src_locs")
     base_paths.extend(extra_paths)
 
     linter = LintToolchain(*base_paths, in_ci=is_ci)

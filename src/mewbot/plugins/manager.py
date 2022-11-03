@@ -227,7 +227,7 @@ class PluginManager:
 
         rtn_dict: Dict[str, Tuple[Type[T], ...]] = {}
         for cls_clasf in tmp_dict:
-            rtn_dict[cls_clasf] = tuple(rtn_dict[cls_clasf])
+            rtn_dict[cls_clasf] = tuple(tmp_dict[cls_clasf])
         return rtn_dict
 
     # Order of the overloads seems to be important

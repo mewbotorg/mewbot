@@ -6,7 +6,7 @@ from mewbot.demo import Foo
 from mewbot.loader import load_component
 
 
-def main() -> None:
+def main() -> Foo:
     yaml_demo = load_component(
         {
             "kind": "Condition",
@@ -23,6 +23,8 @@ def main() -> None:
     print("Created and channel set        ", local_demo)
     print("Serialised:                    ", local_demo.serialise())
     print("Re-loaded from serialized data:", load_component(local_demo.serialise()))
+
+    return local_demo
 
 
 if __name__ == "__main__":

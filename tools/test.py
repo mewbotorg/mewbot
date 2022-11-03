@@ -7,7 +7,7 @@ from typing import List, Generator
 import argparse
 import os
 
-from tools.common import Annotation, ToolChain
+from tools.common import Annotation, ToolChain, gather_dev_paths
 
 
 class TestToolchain(ToolChain):
@@ -30,18 +30,29 @@ class TestToolchain(ToolChain):
         when coverage is enabled
         https://github.com/nedbat/coveragepy/issues/1303#issuecomment-1014915146
         """
+        # These have to be added later - after all the rest of the args have been declared
+        additional_paths = gather_dev_paths(target_func="declare_test_locs")
+        if additional_paths:
+            additional_paths.append("./tests")
 
-        args = [
-            "pytest",
-            "--new-first",  # Do uncached tests first -- likely to be more relevant.
-            "--durations=0",  # Report all tests that take more than 1s to complete
-            "--durations-min=1",
-            "--junitxml=reports/junit.xml",
-        ]
+        # If additional paths are declared, we need to append them to the args
+
+        args = (
+            [
+                "pytest",
+                "--new-first",  # Do uncached tests first -- likely to be more relevant.
+                "--durations=0",  # Report all tests that take more than 1s to complete
+                "--durations-min=1",
+                "--junitxml=reports/junit.xml",
+            ]
+        )
 
         if not self.coverage:
             args.append("--dist=load")  # Distribute between processes based on load
             args.append("--numprocesses=auto")  # Run processes equal to CPU count
+
+            args.extend(additional_paths)
+
             return args
 
         args.append("--cov")  # Enable coverage tracking for code in the './src'
@@ -56,7 +67,11 @@ class TestToolchain(ToolChain):
             # Output to html, coverage is the folder containing the output
             args.append("--cov-report=html:coverage")
 
+        args.extend(additional_paths)
+
         return args
+
+
 
 
 def parse_options() -> argparse.Namespace:

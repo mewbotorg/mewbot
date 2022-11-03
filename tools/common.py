@@ -2,11 +2,22 @@ from __future__ import annotations
 
 import abc
 import os
-from typing import Generator, List, Set
+
+from typing import Generator, List, Set, Any
 
 import dataclasses
 import subprocess
 import sys
+
+import pluggy  # type: ignore
+
+
+PLUGIN_DEV_SPEC: Any = None
+try:
+    from mewbot.plugins.hook_specs import MewbotDevPluginSpec as PLUGIN_DEV_SPEC
+except ModuleNotFoundError:
+    # We cannot load
+    PLUGIN_DEV_SPEC = None
 
 
 @dataclasses.dataclass
@@ -104,3 +115,37 @@ class ToolChain(abc.ABC):
         print("::endgroup::")
 
         print("Total Issues:", len(issues))
+
+
+def gather_dev_paths(
+    target_func: str = "declare_test_locs", pytest_windows_norm: bool = False
+) -> List[str]:
+    """
+    Plugins can declare extra paths for the various tools.
+    :param target_func: The function to execute from the hooks
+                        Must return an iterable of strings
+    :return:
+    """
+    # Cannot do much if mewbot is not installed
+    if PLUGIN_DEV_SPEC is None:
+        return []
+
+    pluggy_manager = pluggy.PluginManager("mewbot_dev")
+    pluggy_manager.add_hookspecs(PLUGIN_DEV_SPEC())
+    pluggy_manager.load_setuptools_entrypoints("mewbotv1")
+
+    # Load the declared src code paths
+    results = getattr(pluggy_manager.hook, target_func)()  # Linter hack
+    src_paths: List[str] = []
+    for result_tuple in results:
+        for path in result_tuple:
+            if isinstance(path, str):
+                src_paths.append(path)
+            else:
+                print(f"{path} not  a valid path")
+
+    # When it comes to paths, pytest seems to have problems with the standard windows
+    # encoding
+    src_paths: List[str] = [sp.replace("\\", "/") for sp in src_paths]
+
+    return src_paths

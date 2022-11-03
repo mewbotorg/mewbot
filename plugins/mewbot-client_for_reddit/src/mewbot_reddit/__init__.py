@@ -70,3 +70,22 @@ def declare_src_locs() -> Tuple[str, ...]:
             mewbot_reddit_src_folder,
         ]
     )
+
+
+@mewbot_dev_hook_impl  # type: ignore
+def declare_test_locs() -> Tuple[str, ...]:
+    """
+    If we declare the location of this plugin's tests then they can be included in the main
+    test run.
+    :return:
+    """
+    current_file = __file__
+    mewbot_reddit_top_level_folder = str(os.path.split(current_file)[0])
+    mewbot_reddit_src_folder = str(os.path.split(mewbot_reddit_top_level_folder)[0])
+    mewbot_reddit_base_folder = str(os.path.split(mewbot_reddit_src_folder)[0])
+
+    return tuple(
+        [
+            os.path.join(mewbot_reddit_base_folder, "tests"),
+        ]
+    )
