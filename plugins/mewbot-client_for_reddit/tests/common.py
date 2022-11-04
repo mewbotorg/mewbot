@@ -1,6 +1,9 @@
+
 from __future__ import annotations
 
 from typing import Generic, Optional, Type, TypeVar
+
+import os
 
 from abc import ABC
 
@@ -46,3 +49,27 @@ class BaseTestClassWithConfig(ABC, Generic[T_co]):
             self._component = component
 
         return self._component
+
+
+class BasePathTools:
+
+    @staticmethod
+    def get_example_path(example_name: str) -> str:
+        """
+        Returns the absolute path to a named example
+        :param example_name: The name of the example to fetch the path for.
+        :return:
+        """
+        # Is this elegant? No. Can it be improved? It SHOULD be.
+        current_path = os.path.split(__file__)[0]
+        pkg_base_path = os.path.split(current_path)[0]
+
+        examples_folder = os.path.join(pkg_base_path, "examples")
+        assert os.path.exists(examples_folder), f"examples folder {examples_folder} not found"
+
+        example_path = os.path.join(examples_folder, example_name)
+        assert os.path.isfile(
+            example_path
+        ), f"example folder {examples_folder} found, but no example {example_name} found therein"
+
+        return example_path

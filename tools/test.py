@@ -37,15 +37,13 @@ class TestToolchain(ToolChain):
 
         # If additional paths are declared, we need to append them to the args
 
-        args = (
-            [
-                "pytest",
-                "--new-first",  # Do uncached tests first -- likely to be more relevant.
-                "--durations=0",  # Report all tests that take more than 1s to complete
-                "--durations-min=1",
-                "--junitxml=reports/junit.xml",
-            ]
-        )
+        args = [
+            "pytest",
+            "--new-first",  # Do uncached tests first -- likely to be more relevant.
+            "--durations=0",  # Report all tests that take more than 1s to complete
+            "--durations-min=1",
+            "--junitxml=reports/junit.xml",
+        ]
 
         if not self.coverage:
             args.append("--dist=load")  # Distribute between processes based on load
@@ -70,8 +68,6 @@ class TestToolchain(ToolChain):
         args.extend(additional_paths)
 
         return args
-
-
 
 
 def parse_options() -> argparse.Namespace:
