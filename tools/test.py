@@ -33,7 +33,7 @@ class TestToolchain(ToolChain):
         # These have to be added later - after all the rest of the args have been declared
         additional_paths = gather_dev_paths(target_func="declare_test_locs")
         if additional_paths:
-            additional_paths.append("./tests")
+            additional_paths = ["./tests"] + additional_paths
 
         # If additional paths are declared, we need to append them to the args
 
@@ -68,6 +68,8 @@ class TestToolchain(ToolChain):
         args.extend(additional_paths)
 
         return args
+
+
 
 
 def parse_options() -> argparse.Namespace:
