@@ -7,7 +7,7 @@ from typing import Type
 
 import copy
 
-from tests.common import BaseTestClassWithConfig
+from mewbot_tests.common import BaseTestClassWithConfig
 
 from mewbot.io.http import HTTPServlet
 from mewbot.io.socket import SocketIO

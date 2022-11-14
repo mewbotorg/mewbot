@@ -1,19 +1,12 @@
 from __future__ import annotations
 
-from typing import Type
-
-import copy
 import pytest
 import yaml
 
-from tests.common import BaseTestClassWithConfig
-
-from mewbot.loader import configure_bot, load_behaviour, load_component
+from mewbot.loader import configure_bot, load_component
 
 from mewbot.bot import Bot
 from mewbot.config import ConfigBlock
-from mewbot.api.v1 import IOConfig, Behaviour
-from mewbot_reddit.io_configs.reddit_password_io import RedditPasswordIO
 
 from .common import BasePathTools
 

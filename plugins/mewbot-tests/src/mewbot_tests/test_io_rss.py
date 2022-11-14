@@ -3,7 +3,7 @@ from typing import Type
 import asyncio
 import pytest
 
-from tests.common import BaseTestClassWithConfig
+from mewbot_tests.common import BaseTestClassWithConfig
 
 from mewbot.core import InputEvent, InputQueue
 from mewbot.io.rss import RSSIO, RSSInput, RSSInputState

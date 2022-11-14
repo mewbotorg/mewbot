@@ -128,7 +128,7 @@ On the other hand, the command
 python -m pip install --editable ..\mewbot
 ```
 
-and 
+followed by
 
 ```shell
 python -m pip install --editable plugins\mewbot-discord_dice_roller
@@ -136,6 +136,7 @@ python -m pip install --editable plugins\mewbot-discord_dice_roller
 
 seemed to work a lot better.
 For some reason.
+This seems to be the way to canonically install all plugins in a development environment.
 
 As testing the plugin manager requires some plugins to actually be installed, will need to experiment some with how to do that automatically as part of the online tests.
 

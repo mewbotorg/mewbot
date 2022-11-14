@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Type
 
-from tests.common import BaseTestClassWithConfig
+from mewbot_tests.common import BaseTestClassWithConfig
 
 from mewbot.io.discord import DiscordIO
 from mewbot.api.v1 import IOConfig
