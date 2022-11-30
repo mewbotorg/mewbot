@@ -13,7 +13,7 @@ extensions.
 
 """
 
-from typing import Tuple, Type, Dict
+from typing import Tuple, Type, Dict, List
 
 import pluggy  # type: ignore
 
@@ -161,5 +161,39 @@ class MewbotDevPluginSpec:
         """
         Allows the plugin to declare where its tests are - so they can be included in the main
         test run.
+        (Optionally, so they can also be linted)
         :return:
         """
+
+    @mewbot_dev_hook_spec  # type: ignore
+    def declare_example_locs(self) -> Tuple[str, ...]:
+        """
+        Allows a function to declare where it's examples are.
+        So they can be included in the unified examples interface.
+        (Optionally, so they can also be linted)
+        :return:
+        """
+
+
+def gather_dev_paths(target_func: str = "declare_test_locs") -> List[str]:
+    """
+    Plugins can declare extra paths for the various tools.
+    :param target_func: The function to execute from the hooks
+                        Must return an iterable of strings
+    :return:
+    """
+    pluggy_manager = pluggy.PluginManager("mewbot_dev")
+    pluggy_manager.add_hookspecs(MewbotDevPluginSpec())
+    pluggy_manager.load_setuptools_entrypoints("mewbotv1")
+
+    # Load the declared src code paths
+    results = getattr(pluggy_manager.hook, target_func)()  # Linter hack
+    src_paths: List[str] = []
+    for result_tuple in results:
+        for path in result_tuple:
+            if isinstance(path, str):
+                src_paths.append(path)
+            else:
+                print(f"{path} not  a valid path")
+
+    return src_paths

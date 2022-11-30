@@ -11,17 +11,17 @@ import os
 import subprocess
 import sys
 
-import pluggy  # type: ignore
+from mewbot.plugins.hook_specs import mewbot_dev_hook_impl, gather_dev_paths
 
 PLUGIN_DEV_SPEC: Any = None
 try:
     from mewbot.plugins.hook_specs import MewbotDevPluginSpec as PLUGIN_DEV_SPEC
-except ModuleNotFoundError:
+except ModuleNotFoundError as exc:
     # We cannot load
     PLUGIN_DEV_SPEC = None
-    raise ModuleNotFoundError("We cannot import from mewbot - mewbot may not be installed")
-
-from mewbot.plugins.hook_specs import mewbot_dev_hook_impl
+    raise ModuleNotFoundError(
+        "We cannot import from mewbot - mewbot may not be installed"
+    ) from exc
 
 
 @mewbot_dev_hook_impl  # type: ignore
@@ -77,7 +77,7 @@ class ToolChain(abc.ABC):
     def __init__(self, *folders: str, in_ci: bool) -> None:
         """
         Start up this tool chain.
-        :param folders:  
+        :param folders:
         :param in_ci:
         """
         self.folders = set(folders)
@@ -116,8 +116,7 @@ class ToolChain(abc.ABC):
     ) -> subprocess.CompletedProcess[bytes]:
 
         run = subprocess.run(
-            arg_list,
-            #stdin=subprocess.DEVNULL, capture_output=self.is_ci, check=False
+            arg_list, stdin=subprocess.DEVNULL, capture_output=self.is_ci, check=False
         )
 
         if self.is_ci:
@@ -144,40 +143,6 @@ class ToolChain(abc.ABC):
         print("::endgroup::")
 
         print("Total Issues:", len(issues))
-
-
-def gather_dev_paths(
-    target_func: str = "declare_test_locs", pytest_windows_norm: bool = False
-) -> List[str]:
-    """
-    Plugins can declare extra paths for the various tools.
-    :param target_func: The function to execute from the hooks
-                        Must return an iterable of strings
-    :return:
-    """
-    # Cannot do much if mewbot is not installed
-    if PLUGIN_DEV_SPEC is None:
-        return []
-
-    pluggy_manager = pluggy.PluginManager("mewbot_dev")
-    pluggy_manager.add_hookspecs(PLUGIN_DEV_SPEC())
-    pluggy_manager.load_setuptools_entrypoints("mewbotv1")
-
-    # Load the declared src code paths
-    results = getattr(pluggy_manager.hook, target_func)()  # Linter hack
-    src_paths: List[str] = []
-    for result_tuple in results:
-        for path in result_tuple:
-            if isinstance(path, str):
-                src_paths.append(path)
-            else:
-                print(f"{path} not  a valid path")
-
-    # When it comes to paths, pytest seems to have problems with the standard windows
-    # encoding
-    src_paths: List[str] = [sp.replace("\\", "/") for sp in src_paths]
-
-    return src_paths
 
 
 class TestToolchain(ToolChain):

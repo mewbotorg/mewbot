@@ -1,4 +1,3 @@
-
 """
 It makes sense to isolate plugin tests in the same folder as the plugin themselves.
 (After all, the plugins in the plugins folder are mostly here as an example

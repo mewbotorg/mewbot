@@ -5,16 +5,23 @@ from __future__ import annotations
 from typing import Generator, Set
 
 import os
+import pprint
 import subprocess
 
-from tools.common import Annotation, ToolChain, gather_dev_paths
+from mewbot_tests import Annotation, ToolChain
+from mewbot.plugins.hook_specs import gather_dev_paths
 
 
 LEVELS: Set[str] = {"notice", "warning", "error"}
 
 
 class LintToolchain(ToolChain):
-    """Wrapper class for running linting tools, and outputting GitHub annotations"""
+    """
+    Wrapper class for running linting tools, and outputting GitHub annotations.
+    By default all paths declared to be part of mewbot source - either of the main
+    module or any installed plugins - are linted.
+    Tests are not included by default, but this can be changed by passing lint_tests=True
+    """
 
     def run(self) -> Generator[Annotation, None, None]:
         yield from self.lint_black()
@@ -136,11 +143,21 @@ def lint_black_diffs(
 
 
 if __name__ == "__main__":
+
     is_ci = "GITHUB_ACTIONS" in os.environ
 
-    base_paths = ["src", "examples", "tests", "tools"]
-    extra_paths = gather_dev_paths(target_func="declare_src_locs")
-    base_paths.extend(extra_paths)
+    base_paths = ["tools"]
+
+    extra_src_paths = gather_dev_paths(target_func="declare_src_locs")
+    base_paths.extend(extra_src_paths)
+
+    extra_test_paths = gather_dev_paths(target_func="declare_test_locs")
+    base_paths.extend(extra_test_paths)
+
+    extra_example_paths = gather_dev_paths(target_func="declare_example_locs")
+    base_paths.extend(extra_example_paths)
+
+    print(f"Linting paths:\n{pprint.pformat(base_paths)}")
 
     linter = LintToolchain(*base_paths, in_ci=is_ci)
     linter()

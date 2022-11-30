@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 
-from typing import Tuple, Type, Dict
+from typing import Tuple
 
 import os
 
-from mewbot.api.v1 import IOConfig, Input, InputEvent
-from mewbot.plugins.hook_specs import mewbot_ext_hook_impl
 from mewbot.plugins.hook_specs import mewbot_dev_hook_impl
 
 # This is the name which will actually show up in the plugin manager.
@@ -22,14 +20,29 @@ def declare_src_locs() -> Tuple[str, ...]:
     :return:
     """
     current_file = __file__
-    mewbot_reddit_top_level_folder = str(os.path.split(current_file)[0])
-    mewbot_reddit_src_folder = str(os.path.split(mewbot_reddit_top_level_folder)[0])
+    mewbot_top_level_folder = str(os.path.split(current_file)[0])
+    mewbot_src_folder = str(os.path.split(mewbot_top_level_folder)[0])
 
     return tuple(
         [
-            mewbot_reddit_src_folder,
+            mewbot_src_folder,
         ]
     )
 
 
-# mewbot does not contain it's own tests - so declare_test_locs is not defined
+@mewbot_dev_hook_impl  # type: ignore
+def declare_example_locs() -> Tuple[str, ...]:
+    """
+    Declaring the location of the examples contained in the main module.
+    :return:
+    """
+    current_file = __file__
+    mewbot_top_level_folder = str(os.path.split(current_file)[0])
+    mewbot_src_folder = str(os.path.split(mewbot_top_level_folder)[0])
+    mewbot_package_folder = str(os.path.split(mewbot_src_folder)[0])
+
+    return tuple([os.path.join(mewbot_package_folder, "examples")])
+
+
+# mewbot does not contain its own tests - so declare_test_locs is not defined
+# That will happen in the mewbot_tests module

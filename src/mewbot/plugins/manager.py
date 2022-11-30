@@ -225,10 +225,7 @@ class PluginManager:
                         continue
                 tmp_dict.update({plugin_category: rtn_list})
 
-        rtn_dict: Dict[str, Tuple[Type[T], ...]] = {}
-        for cls_clasf in tmp_dict:
-            rtn_dict[cls_clasf] = tuple(tmp_dict[cls_clasf])
-        return rtn_dict
+        return dict((cls_clasf, tuple(cls_vals)) for cls_clasf, cls_vals in tmp_dict.items())
 
     # Order of the overloads seems to be important
     @overload

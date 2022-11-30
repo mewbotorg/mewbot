@@ -6,7 +6,9 @@ import sys
 
 import mewbot.loader
 
+
 if __name__ == "__main__":
+
     if len(sys.argv) != 2:
         print("Usage", sys.argv[0], " [configuration name]")
         sys.exit(1)

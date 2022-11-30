@@ -16,20 +16,26 @@ This provides several advantages
 Should I split the tests for my mewbot projects down in this way?
 
 You can!
-
+But it's often more effort than it's worth.
+mewbot does it because it allows easier testing of the core modules in unusual deployments.
+If this might be something that you want to do?
+It's probably also a good idea to split your tests out into a seperate module as the main program does.
+If not, then there's no real reason to bother.
 
 After some work
 
  - pytest seems to default to assuming every directory one level up should be included for coverage, if not explicit argument is passed to `--cov`
  - If you pass any arguments to `--cov` (in the form `--cov=some_path`) then you need to pass all relevant paths in this way - the implicit inclusion of the parent path from where pytest is being run will not survive.
  - So you need to explicitly add the appropriate locations using `mewbot_dev_hook_impl`
- - You can add the location of tests to the end of the pytest command and it should all work out.
+ - You can add the location of tests to the end of the pytest command and it should all work out (tests are added in the form of a list of paths - no prefix or anything).
+ - This has been tested with all the test distribution mechanisms, and seems to work.
 
 Public interface
 
-
-
-
-
-
-
+As part of the `mewbot_dev_hook_impl` the functions `declare_test_locs` and `declare_src_locs` are provided.
+These allow you to declare a tuple of tests locations and a tuple of src code locations (in case that's relevant to your project).
+These will then be picked up and run by the testing infrastructure.
+In particular
+Linting
+ - By default linting lints all the declare src locations
+ - (Might be an idea to add a `--tests` option to linting - so that the linting can include the tests if desired)

@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# pylint: disable=duplicate-code
+# pylint does not play nice with the requirements of pluggy
+# i.e. it's complaining at the declare_test_locs function
 
 from typing import Tuple, Type, Dict
 
@@ -89,3 +92,17 @@ def declare_test_locs() -> Tuple[str, ...]:
             os.path.join(mewbot_reddit_base_folder, "tests"),
         ]
     )
+
+
+@mewbot_dev_hook_impl  # type: ignore
+def declare_example_locs() -> Tuple[str, ...]:
+    """
+    Declaring the location of the examples contained in the main module.
+    :return:
+    """
+    current_file = __file__
+    mewbot_reddit_top_level_folder = str(os.path.split(current_file)[0])
+    mewbot_reddit_src_folder = str(os.path.split(mewbot_reddit_top_level_folder)[0])
+    mewbot_reddit_package_folder = str(os.path.split(mewbot_reddit_src_folder)[0])
+
+    return tuple([os.path.join(mewbot_reddit_package_folder, "reddit_examples")])

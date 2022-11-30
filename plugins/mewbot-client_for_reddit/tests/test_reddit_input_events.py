@@ -1,14 +1,18 @@
+# pylint: disable=duplicate-code
+# Repetition for emphasis is occasionally desirable
+
 from __future__ import annotations
 
 import pytest
 import yaml
 
+from mewbot_reddit.io_configs.reddit_password_io import RedditPasswordIO
+from mewbot_tests.common import BaseTestClassWithConfig
+
 from mewbot.loader import configure_bot, load_component
 
 from mewbot.bot import Bot
 from mewbot.config import ConfigBlock
-
-from .common import BasePathTools
 
 
 CONFIG_YAML = "examples/trivial_reddit_bot.yaml"
@@ -32,8 +36,7 @@ class TestLoader:
             _ = load_component(this_config)
 
 
-class TestLoaderConfigureBot(BasePathTools):
-
+class TestLoaderConfigureBot(BaseTestClassWithConfig[RedditPasswordIO]):
     def test_config_type(self) -> None:
 
         config_path = self.get_example_path(CONFIG_YAML_NAME)
