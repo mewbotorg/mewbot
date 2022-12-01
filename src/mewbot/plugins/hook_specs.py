@@ -148,6 +148,50 @@ class MewbotDevPluginSpec:
      - where its tests are (so that they can be run as part of the test suite)
     """
 
+    NON_FUNCTION_NAMES = frozenset(
+        [
+            "__class__",
+            "__delattr__",
+            "__dict__",
+            "__dir__",
+            "__doc__",
+            "__eq__",
+            "__format__",
+            "__ge__",
+            "__getattribute__",
+            "__gt__",
+            "__hash__",
+            "__init__",
+            "__init_subclass__",
+            "__le__",
+            "__lt__",
+            "__module__",
+            "__ne__",
+            "__new__",
+            "__reduce__",
+            "__reduce_ex__",
+            "__repr__",
+            "__setattr__",
+            "__sizeof__",
+            "__str__",
+            "__subclasshook__",
+            "__weakref__",
+            "NON_FUNCTION_NAMES",
+            "validate_function_name",
+        ]
+    )
+
+    @classmethod
+    def validate_function_name(cls, function_name: str) -> bool:
+        """
+        Check that a function that we want to call in this namespace actually exists.
+        Returns True if it does - and so can be called - False otherwise.
+        :param function_name:
+        :return:
+        """
+        viable_names = set(dir(cls)) - cls.NON_FUNCTION_NAMES
+        return function_name in viable_names
+
     @mewbot_dev_hook_spec  # type: ignore
     def declare_src_locs(self) -> Tuple[str, ...]:
         """
@@ -185,6 +229,10 @@ def gather_dev_paths(target_func: str = "declare_test_locs") -> List[str]:
     pluggy_manager = pluggy.PluginManager("mewbot_dev")
     pluggy_manager.add_hookspecs(MewbotDevPluginSpec())
     pluggy_manager.load_setuptools_entrypoints("mewbotv1")
+
+    assert MewbotDevPluginSpec.validate_function_name(
+        target_func
+    ), f"Cannot call function {target_func} - does not exist in the spec!"
 
     # Load the declared src code paths
     results = getattr(pluggy_manager.hook, target_func)()  # Linter hack
