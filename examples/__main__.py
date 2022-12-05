@@ -23,7 +23,7 @@ class NoArgsMainRunner:
     """
 
     # Any yaml file names which should not be offered as options to the user
-    YAML_FILTER_LIST: Tuple[str] = ("examples_to_filter_go_here.yaml", )
+    YAML_FILTER_LIST: Tuple[str] = ("examples_to_filter_go_here.yaml",)
 
     num_path_map: Dict[int, str] = dict()
 
