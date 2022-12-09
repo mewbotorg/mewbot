@@ -155,8 +155,8 @@ class PluginManager:
                         rtn_list.append(cand_class)
                     else:
                         self._logger.warning(
-                            "Bad class from plugin - expected IOConfig class - got %s",
-                            cand_class,
+                            "Bad class from plugin - expected %s class - got %s",
+                            target_class, cand_class,
                         )
                         continue
 
@@ -294,6 +294,17 @@ class PluginManager:
         """
         return self._generic_get_classified_plugin_classes("get_io_config_classes", IOConfig)
 
+    def get_io_config(self, io_config_name: str) -> Type[IOConfig]:
+        """
+        Return the named IOConfig
+        :param io_config_name: The name of the IOConfig to return
+        :return:
+        """
+        return self._generic_get_plugin_class(
+            getter_func="get_all_plugin_io_config_classes", target_class_name=io_config_name, target_class=IOConfig
+        )
+
+    #
     # ------------
     # --------
     # - INPUTS
@@ -312,6 +323,16 @@ class PluginManager:
         """
         return self._generic_get_classified_plugin_classes("get_input_classes", Input)
 
+    def get_input(self, input_name: str) -> Type[Input]:
+        """
+        Return the named Input
+        :param input_name: The name of the IOConfig to return
+        :return:
+        """
+        return self._generic_get_plugin_class(
+            getter_func="get_input_classes", target_class_name=input_name, target_class=Input
+        )
+
     # --------
     # ---------
     # - OUTPUTS
@@ -329,6 +350,16 @@ class PluginManager:
         :return:
         """
         return self._generic_get_classified_plugin_classes("get_output_classes", Output)
+
+    def get_output(self, output_name: str) -> Type[Output]:
+        """
+        Return the named Input
+        :param input_name: The name of the IOConfig to return
+        :return:
+        """
+        return self._generic_get_plugin_class(
+            getter_func="get_all_plugin_output_classes", target_class_name=output_name, target_class=Output
+        )
 
     # ---------
     # ----------

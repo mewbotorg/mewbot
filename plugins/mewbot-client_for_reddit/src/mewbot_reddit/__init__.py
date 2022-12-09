@@ -7,13 +7,15 @@ from typing import Tuple, Type, Dict
 
 import os
 
-from mewbot.api.v1 import IOConfig, Input, InputEvent
+from mewbot.api.v1 import IOConfig, Input, InputEvent, Output
 from mewbot.plugins.hook_specs import mewbot_ext_hook_impl
 from mewbot.plugins.hook_specs import mewbot_dev_hook_impl
 
 from .io_configs.reddit_password_io import RedditPasswordIO
 from .io_configs import RedditRedditorInput, USED_INPUT_EVENTS
 from .io_configs.inputs.subreddit import RedditSubredditInput
+from .io_configs import RedditOutput
+
 
 # This is the name which will actually show up in the plugin manager.
 # Note - this also allows you to extend an existing plugin - just set the name
@@ -56,6 +58,16 @@ def get_input_event_classes() -> Dict[str, Tuple[Type[InputEvent], ...]]:
     :return:
     """
     return {__mewbot_plugin_name__: USED_INPUT_EVENTS}
+
+
+@mewbot_ext_hook_impl  # type: ignore
+def get_output_classes() -> Dict[str, Tuple[Type[Output], ...]]:
+    """
+    Returns the Input classes defined by this plugin.
+    In this case, there are two.
+    :return:
+    """
+    return {__mewbot_plugin_name__: tuple([RedditOutput, ])}
 
 
 @mewbot_dev_hook_impl  # type: ignore

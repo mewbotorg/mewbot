@@ -9,6 +9,7 @@ from .credentials import RedditSelfCredentials
 class RedditSelfIO(RedditIOBase):
     """
     Allows mewbot to connect to Reddit using a user's credentials.
+    Self bots may not be fully supported and may not present all facets of the API.
     """
 
     self_credentials: RedditSelfCredentials = RedditSelfCredentials(

@@ -32,6 +32,10 @@ class RedditPasswordIO(RedditIOBase):
 
     _logger: logging.Logger
 
+    @property
+    def display_name(self) -> str:
+        return str(self.__name__)
+
     def __init__(self) -> None:
 
         super().__init__()

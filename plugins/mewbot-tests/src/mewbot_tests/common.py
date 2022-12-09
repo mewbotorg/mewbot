@@ -49,17 +49,21 @@ class BaseTestClassWithConfig(ABC, Generic[T_co]):
         return self._component
 
     @staticmethod
-    def get_example_path(example_name: str) -> str:
+    def get_example_path(example_name: str, file_path: str = "", folder_prefix: str = "") -> str:
         """
         Returns the absolute path to a named example
         :param example_name: The name of the example to fetch the path for.
+        :param file_path: The path to the file the test is running from
+                          (allows you to override and look for examples elsewhere)
+        :param folder_prefix: A prefix for the examples folder (e.g. "reddit_")
         :return:
         """
         # Is this elegant? No. Can it be improved? It SHOULD be.
-        current_path = os.path.split(__file__)[0]
+        # Should be integrated with the plugin system to allow for easier examples request
+        current_path = os.path.split(__file__)[0] if not file_path else os.path.split(file_path)[0]
         pkg_base_path = os.path.split(current_path)[0]
 
-        examples_folder = os.path.join(pkg_base_path, "examples")
+        examples_folder = os.path.join(pkg_base_path, folder_prefix + "examples")
         assert os.path.exists(examples_folder), f"examples folder {examples_folder} not found"
 
         example_path = os.path.join(examples_folder, example_name)
