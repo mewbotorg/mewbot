@@ -8,7 +8,7 @@
 reuse~=1.0
 
 # Python Linting toolchain
-black~=22.8
+black~=22.12
 flake8>=5.0
 pylint>=2.14
 
