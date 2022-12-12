@@ -5,13 +5,18 @@ from __future__ import annotations
 
 from typing import Type
 
+import asyncio
 import copy
+import logging
+import socket
+
+import pytest
 
 from mewbot_tests.common import BaseTestClassWithConfig
 
 from mewbot.io.http import HTTPServlet
-from mewbot.io.socket import SocketIO
-from mewbot.api.v1 import IOConfig
+from mewbot.io.socket import SocketIO, SocketInput
+from mewbot.api.v1 import IOConfig, InputQueue
 
 # pylint: disable=R0903
 #  Disable "too few public methods" for test cases - most test files will be classes used for
@@ -38,3 +43,107 @@ class TestIoHttpsPost(BaseTestClassWithConfig[HTTPServlet]):
         new_port = 0
         temp_component.port = new_port
         assert temp_component.port == new_port
+
+    @pytest.mark.asyncio
+    async def test_component_http_socket_run(self) -> None:
+        """
+        Run the component's input method - should run without throwing an error.
+        """
+        component_http_socket_input = self.component.get_inputs()
+        assert isinstance(component_http_socket_input, list)
+        assert len(component_http_socket_input) == 1
+
+        test_http_io_input = component_http_socket_input[0]
+
+        # Run the input
+        try:
+            await asyncio.wait_for(test_http_io_input.run(), 1)
+        except asyncio.exceptions.TimeoutError:
+            pass
+
+    @pytest.mark.asyncio
+    async def test_direct_socket_input_run_no_queue(self) -> None:
+        """
+        Load and directly run the socket input
+        :return:
+        """
+        test_input = SocketInput(
+            host="localhost", port=56789, logger=logging.getLogger(__name__ + "SocketInput")
+        )
+
+        try:
+            await asyncio.wait_for(test_input.run(), 1)
+        except asyncio.exceptions.TimeoutError:
+            pass
+
+    @pytest.mark.asyncio
+    async def test_direct_socket_input_run(self) -> None:
+        """
+        Load and directly run the socket input - after binding in a queue.
+        :return:
+        """
+        test_input = SocketInput(
+            host="localhost", port=56789, logger=logging.getLogger(__name__ + "SocketInput")
+        )
+
+        test_input_queue = InputQueue()
+        test_input.bind(test_input_queue)
+
+        try:
+            await asyncio.wait_for(test_input.run(), 1)
+        except asyncio.exceptions.TimeoutError:
+            pass
+
+    @pytest.mark.asyncio
+    async def test_direct_socket_input_start_server_with_handle_client(self) -> None:
+        """
+        Start a server with handle_client from the input
+        :return:
+        """
+        test_input = SocketInput(
+            host="localhost", port=56789, logger=logging.getLogger(__name__ + "SocketInput")
+        )
+
+        test_input_queue = InputQueue()
+        test_input.bind(test_input_queue)
+
+        try:
+            await asyncio.wait_for(
+                asyncio.start_server(test_input.handle_client, test_input._host, test_input._port), 1
+            )
+        except asyncio.exceptions.TimeoutError:
+            pass
+
+    # @pytest.mark.asyncio
+    # async def test_direct_socket_input_start_server_handle_client_directly_called(self) -> None:
+    #     """
+    #     Directly call handle client.
+    #     :return:
+    #     """
+    #     test_input = SocketInput(
+    #         host="localhost", port=56789, logger=logging.getLogger(__name__ + "SocketInput")
+    #     )
+    #
+    #     test_input_queue = InputQueue()
+    #     test_input.bind(test_input_queue)
+    #
+    #     input_stream = asyncio.StreamReader()
+    #     output_stream = asyncio.StreamWriter()
+    #
+
+    async def ping_socket(self, wait: float = 0.5):
+        """
+        Wait a period of time and then write some data to the component's port.
+        :return:
+        """
+        await asyncio.sleep(wait)
+
+        s = socket.socket()
+        s.connect((self.component.host, self.component.port))
+
+        s.send("Test data".encode())
+
+
+
+
+

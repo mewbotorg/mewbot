@@ -193,8 +193,19 @@ class DesktopNotificationOutputEngine:
         """
         self._enabled = False
 
+    def enable(self) -> None:
+        """
+        Disable the notification system.
+        :return:
+        """
+        self._enabled = True
+
     @property
     def enabled(self) -> bool:
+        """
+        Is the notification engine current enabled?
+        :return:
+        """
         return self._enabled
 
     def _do_windows_setup(self) -> None:
