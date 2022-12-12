@@ -14,6 +14,7 @@ from mewbot.core import (
     Component,
     ComponentKind,
     IOConfigInterface,
+    ManagerInterface,
     BehaviourInterface,
     TriggerInterface,
     ConditionInterface,
@@ -43,6 +44,7 @@ def configure_bot(name: str, stream: TextIO) -> Bot:
     number = 0
 
     for document in yaml.load_all(stream, Loader=yaml.CSafeLoader):
+
         number += 1
 
         if not _REQUIRED_KEYS.issubset(document.keys()):
@@ -52,14 +54,23 @@ def configure_bot(name: str, stream: TextIO) -> Bot:
 
         if document["kind"] == ComponentKind.Behaviour:
             bot.add_behaviour(load_behaviour(document))
+
         if document["kind"] == ComponentKind.DataSource:
             ...
+
         if document["kind"] == ComponentKind.IOConfig:
             component = load_component(document)
             assert isinstance(component, IOConfigInterface), assert_message(
                 component, IOConfigInterface
             )
             bot.add_io_config(component)
+
+        if document["kind"] == ComponentKind.Manager:
+            component = load_component(document)
+            assert isinstance(component, ManagerInterface), assert_message(
+                component, ManagerInterface
+            )
+            bot.set_manager(component)
 
     return bot
 
@@ -133,6 +144,7 @@ def load_component(config: ConfigBlock) -> Component:
             TriggerInterface,
             ConditionInterface,
             ActionInterface,
+            ManagerInterface,
         ),
     )
 

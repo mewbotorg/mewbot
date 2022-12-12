@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Type
 
 import copy
+import io
+
 import pytest
 import yaml
 
@@ -34,6 +36,46 @@ class TestLoader:
         this_config["kind"] = "NULL"
         with pytest.raises(ValueError):  # @UndefinedVariable
             _ = load_component(this_config)
+
+    @staticmethod
+    def test_load_manager_block() -> None:
+        """
+        Attempts to directly load a manager bot.
+        :return:
+        """
+        test_manager_block = """
+---
+
+kind: Manager
+implementation: mewbot.manager.BasicManager
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa04
+properties: {}
+
+        """
+        test_stream = io.StringIO(test_manager_block)
+
+        configure_bot(name="do not run this", stream=test_stream)
+
+    @staticmethod
+    def test_load_manager_bad_config_block() -> None:
+        """
+        Try and load a manager from a config block missing some key bits.
+        :return:
+        """
+        test_manager_block = """
+---
+
+kind: Manager
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa04
+properties: {}
+                """
+        test_stream = io.StringIO(test_manager_block)
+
+        # Not all needed keys are present - so should error
+        try:
+            configure_bot(name="do not run this", stream=test_stream)
+        except ValueError:
+            pass
 
 
 class TestLoaderConfigureBot:
