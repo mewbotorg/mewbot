@@ -95,6 +95,7 @@ class Input:
         self.queue = queue
 
     @staticmethod
+    @abc.abstractmethod
     def produces_inputs() -> Set[Type[InputEvent]]:
         """
         Defines the set of input events this Input class can produce.
@@ -108,12 +109,14 @@ class Input:
 
 class Output:
     @staticmethod
+    @abc.abstractmethod
     def consumes_outputs() -> Set[Type[OutputEvent]]:
         """
         Defines the set of output events that this Output class can consume
         :return:
         """
 
+    @abc.abstractmethod
     async def output(self, event: OutputEvent) -> bool:
         """
         Does the work of transmitting the event to the world.

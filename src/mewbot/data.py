@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Union, Generic, Sequence, TypeVar
 
+import abc
 import dataclasses
 import datetime
 import enum
@@ -11,7 +12,7 @@ import enum
 DataType = TypeVar("DataType")  # pylint: disable=invalid-name
 
 
-class DataSource(Generic[DataType]):
+class DataSource(Generic[DataType], abc.ABC):
     """A source of data for use in behaviours.
     A data source can contain any number of items with a common primitive type.
 
@@ -20,6 +21,7 @@ class DataSource(Generic[DataType]):
     thereof.
     """
 
+    @abc.abstractmethod
     def get(self) -> DataType:
         """Returns an item in this Source. The source can choose if this is the
         first item, a random item, or the next in the iteration of this source (or
@@ -28,6 +30,7 @@ class DataSource(Generic[DataType]):
         store for this source, or a DataSourceEmpty exception if there is no data
         to return."""
 
+    @abc.abstractmethod
     def __len__(self) -> int:
         """Returns the number of items in this DataStore.
 
@@ -36,6 +39,7 @@ class DataSource(Generic[DataType]):
         (for sources that work like dictionary) or the maximum slice value
         (for sources that work like a sequence)."""
 
+    @abc.abstractmethod
     def __getitem__(self, key: Union[int, str]) -> DataType:
         """Allows access to a value in this DataStore via a key.
         If key is of an inappropriate type, TypeError may be raised;
@@ -44,9 +48,11 @@ class DataSource(Generic[DataType]):
         For mapping types, if key is missing (not in the container),
         KeyError should be raised."""
 
+    @abc.abstractmethod
     def keys(self) -> Sequence[str]:
         """All the keys for a dictionary accessed source."""
 
+    @abc.abstractmethod
     def random(self) -> DataType:
         """Gets a random item from this source."""
 
