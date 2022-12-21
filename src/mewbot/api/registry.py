@@ -131,9 +131,3 @@ class ComponentRegistry(abc.ABCMeta):
             return val
 
         raise ValueError(f"No API version for {component}")
-
-    @classmethod
-    def registered_classes(
-        cls, implements: ComponentKind, version: Optional[str]
-    ) -> Iterable[Type[Component]]:
-        pass
