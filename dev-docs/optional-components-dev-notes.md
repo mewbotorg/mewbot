@@ -139,16 +139,3 @@ For some reason.
 This seems to be the way to canonically install all plugins in a development environment.
 
 As testing the plugin manager requires some plugins to actually be installed, will need to experiment some with how to do that automatically as part of the online tests.
-
-
-
-
-
-
-
-
-
-
-
-
-

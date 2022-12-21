@@ -37,6 +37,18 @@ jobs:
       - name: Install dependencies
         run:  pip install -r requirements-dev.txt
 
+      - name: Install mewbot-client_for_reddit plugin
+        run: pip install --editable plugins\mewbot-client_for_reddit
+
+      - name: Install mewbot-conditions plugin
+        run: pip install --editable plugins\mewbot-conditions
+
+      - name: Install mewbot-discord_dice_roller
+        run: pip install --editable plugins\mewbot-discord_dice_roller
+
+      - name: Install mewbot-tests plugin
+        run: pip install --editable plugins\mewbot-tests
+
       - name: Run Linters
         run: python3 -m tools.lint
         env:
