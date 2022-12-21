@@ -38,7 +38,10 @@ jobs:
         run:  pip install -r requirements-dev.txt
 
       - name: Install mewbot-tests
-        run: python3 -m pip install --editable plugins/mewbot-tests
+        run: python3 -m pip install --editable "plugins/mewbot-tests"
+
+      - name: Install mewbot-conditions
+        run: python3 -m pip install --editable "plugins/mewbot-conditions"
 
       - name: Run Linters
         run: python3 -m tools.lint
