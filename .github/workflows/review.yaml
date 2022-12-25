@@ -38,7 +38,7 @@ jobs:
         run:  pip install -r requirements-dev.txt
 
       - name: Install mewbot itself
-        run: python3 -m pip install --editable ./src/mewbot
+        run: python3 -m pip install --editable ./
 
       - name: Install mewbot-tests
         run: python3 -m pip install --editable ./plugins/mewbot-tests
