@@ -34,8 +34,11 @@ jobs:
             requirements.txt
             requirements-dev.txt
 
-      - name: Install dependencies
+      - name: Install mewbot dependencies
         run:  pip install -r requirements-dev.txt
+
+      - name: Install mewbot itself
+        run: python3 -m pip install --editable ./src/mewbot
 
       - name: Install mewbot-tests
         run: python3 -m pip install --editable ./plugins/mewbot-tests
