@@ -69,7 +69,7 @@ class TestIoHttpsPost(BaseTestClassWithConfig[HTTPServlet]):
         :return:
         """
         test_input = SocketInput(
-            host="localhost", port=56789, logger=logging.getLogger(__name__ + "SocketInput")
+            host="localhost", port=56780, logger=logging.getLogger(__name__ + "SocketInput")
         )
 
         try:
@@ -84,7 +84,7 @@ class TestIoHttpsPost(BaseTestClassWithConfig[HTTPServlet]):
         :return:
         """
         test_input = SocketInput(
-            host="localhost", port=56789, logger=logging.getLogger(__name__ + "SocketInput")
+            host="localhost", port=56781, logger=logging.getLogger(__name__ + "SocketInput")
         )
 
         test_input_queue = InputQueue()
@@ -105,7 +105,7 @@ class TestIoHttpsPost(BaseTestClassWithConfig[HTTPServlet]):
         # pylint: disable=W0212
 
         test_input = SocketInput(
-            host="localhost", port=56789, logger=logging.getLogger(__name__ + "SocketInput")
+            host="localhost", port=56782, logger=logging.getLogger(__name__ + "SocketInput")
         )
 
         test_input_queue = InputQueue()
@@ -128,7 +128,7 @@ class TestIoHttpsPost(BaseTestClassWithConfig[HTTPServlet]):
     #     :return:
     #     """
     #     test_input = SocketInput(
-    #         host="localhost", port=56789, logger=logging.getLogger(__name__ + "SocketInput")
+    #         host="localhost", port=56783, logger=logging.getLogger(__name__ + "SocketInput")
     #     )
     #
     #     test_input_queue = InputQueue()
