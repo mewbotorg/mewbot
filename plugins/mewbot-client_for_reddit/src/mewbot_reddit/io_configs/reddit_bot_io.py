@@ -87,7 +87,6 @@ class RedditBotIO(RedditIOBase):
             redirect_uri=self.bot_credentials.redirect_uri,
             user_agent=self.bot_credentials.user_agent,
         )
-        print(reddit.auth.url(["identity"], "...", "permanent"))
 
         self.praw_reddit = reddit
 

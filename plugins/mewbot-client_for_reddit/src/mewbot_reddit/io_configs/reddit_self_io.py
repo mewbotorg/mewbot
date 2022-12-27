@@ -85,7 +85,8 @@ class RedditSelfIO(RedditIOBase):
             redirect_uri=self.self_credentials.redirect_uri,
             user_agent=self.self_credentials.user_agent,
         )
-        print(reddit.auth.url(["identity"], "...", "permanent"))
+
+        self.praw_reddit = reddit
 
     def get_outputs(self) -> Sequence[Output]:
         """

@@ -145,7 +145,6 @@ class RedditPasswordIO(RedditIOBase):
             redirect_uri=self.hybrid_credentials.redirect_uri,
             user_agent=self.hybrid_credentials.user_agent,
         )
-        self._logger.info(reddit.auth.url(["identity"], "...", "permanent"))
 
         self.praw_reddit = reddit
 
