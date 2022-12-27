@@ -5,9 +5,8 @@ The plugin manager is responsible for discovering mewbot plugins and loading the
 system.
 """
 
-from mewbot.api.v1 import Behaviour, Action, Condition, Trigger, IOConfig, Output
+from mewbot.api.v1 import Output
 from mewbot.plugins.manager import PluginManager
-
 
 
 class TestMewbotPluginManagerOutputMethods:

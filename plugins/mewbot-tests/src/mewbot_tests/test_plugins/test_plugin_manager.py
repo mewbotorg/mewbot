@@ -5,9 +5,9 @@ The plugin manager is responsible for discovering mewbot plugins and loading the
 system.
 """
 
-from typing import Dict, Type, Tuple
+from typing import Dict, Type, Tuple, Any
 
-from mewbot.api.v1 import Action, Condition, Trigger
+from mewbot.api.v1 import Action, Trigger
 from mewbot.plugins.manager import PluginManager
 from mewbot.plugins.hook_specs import mewbot_ext_hook_impl
 
@@ -55,6 +55,7 @@ class TestMewbotPluginManager:
         Test the PluginManager's get_plugin_trigger_classes method.
         :return:
         """
+
         @mewbot_ext_hook_impl  # type: ignore
         def get_trigger_classes() -> Dict[str, Tuple[Type[Tuple[str, ...]], ...]]:
             """
@@ -63,7 +64,9 @@ class TestMewbotPluginManager:
             """
             return {
                 "bd_trigger": tuple(
-                    [tuple, ]
+                    [
+                        tuple,
+                    ]
                 )
             }
 
@@ -84,7 +87,6 @@ class TestMewbotPluginManager:
             classified_triggers.keys()
         )
 
-
     @staticmethod
     def test_get_plugin_condition_classes() -> None:
         """
@@ -99,8 +101,6 @@ class TestMewbotPluginManager:
         # There shouldn't be any Condition classes - for now
         plugin_condition_classes = test_manager.get_all_plugin_condition_classes()
         assert isinstance(plugin_condition_classes, tuple)
-
-
 
     @staticmethod
     def test_get_available_plugin_classes() -> None:
@@ -132,8 +132,9 @@ class TestMewbotPluginManager:
         with the names of the available plugins of that type.
         :return:
         """
+
         @mewbot_ext_hook_impl  # type: ignore
-        def get_io_config_classes() -> Dict[str, Tuple[Type[Tuple], ...]]:
+        def get_io_config_classes() -> Dict[str, Tuple[Type[Tuple[Any, ...]], ...]]:
             """
             Return the IOConfigs defined by this plugin module.
             Note - IOConfig needs to be extended with YAML signature info - though this can also
@@ -143,7 +144,7 @@ class TestMewbotPluginManager:
             return {
                 "bad_plugin": tuple(
                     [
-                        Tuple,
+                        tuple,
                     ]
                 )
             }

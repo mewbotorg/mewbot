@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
+from typing import Sequence
+
 import asyncpraw  # type: ignore
+
+from mewbot.api.v1 import Output
 
 from ..io_configs import RedditIOBase
 from .credentials import RedditBotCredentials
@@ -86,3 +90,10 @@ class RedditBotIO(RedditIOBase):
         print(reddit.auth.url(["identity"], "...", "permanent"))
 
         self.praw_reddit = reddit
+
+    def get_outputs(self) -> Sequence[Output]:
+        """
+        At the moment, this class does not support outputs.
+        :return:
+        """
+        return []

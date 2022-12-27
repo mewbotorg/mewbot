@@ -9,7 +9,6 @@ from mewbot.api.v1 import Condition
 from mewbot.plugins.manager import PluginManager
 
 
-
 class TestMewbotPluginManagerConditionMethods:
     """
     Tests the mewbot plugin manager.
@@ -46,5 +45,3 @@ class TestMewbotPluginManagerConditionMethods:
         assert isinstance(classified_con_classes, dict)
 
         assert "extended_conditions" in classified_con_classes.keys()
-
-

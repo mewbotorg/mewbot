@@ -5,7 +5,7 @@ The plugin manager is responsible for discovering mewbot plugins and loading the
 system.
 """
 
-from mewbot.api.v1 import Behaviour, Action, Condition, Trigger, IOConfig
+from mewbot.api.v1 import Behaviour
 from mewbot.plugins.manager import PluginManager
 
 
@@ -13,6 +13,7 @@ class TestMewbotPluginManagerBehaviorMethods:
     """
     Tests the mewbot plugin manager.
     """
+
     @staticmethod
     def test_get_plugin_behavior_classes() -> None:
         """

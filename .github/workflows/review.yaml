@@ -46,6 +46,12 @@ jobs:
       - name: Install mewbot-conditions
         run: python3 -m pip install --editable ./plugins/mewbot-conditions
 
+      - name: Install mewbot-client_for_reddit
+        run: python3 -m pip install --editable ./plugins/mewbot-client_for_reddit
+
+      - name: Install mewbot-discord_dice_roller
+        run: python3 -m pip install --editable ./plugins/mewbot-discord_dice_roller
+
       - name: Run Linters
         run: python3 -m tools.lint
         env:

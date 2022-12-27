@@ -67,7 +67,13 @@ def get_output_classes() -> Dict[str, Tuple[Type[Output], ...]]:
     In this case, there are two.
     :return:
     """
-    return {__mewbot_plugin_name__: tuple([RedditOutput, ])}
+    return {
+        __mewbot_plugin_name__: tuple(
+            [
+                RedditOutput,
+            ]
+        )
+    }
 
 
 @mewbot_dev_hook_impl  # type: ignore

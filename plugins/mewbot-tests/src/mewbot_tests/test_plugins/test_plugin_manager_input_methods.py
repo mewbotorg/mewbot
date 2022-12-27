@@ -5,7 +5,6 @@ The plugin manager is responsible for discovering mewbot plugins and loading the
 system.
 """
 
-from mewbot.api.v1 import Behaviour, Action, Condition, Trigger, IOConfig
 from mewbot.plugins.manager import PluginManager
 
 
@@ -13,6 +12,7 @@ class TestMewbotPluginManagerInputMethods:
     """
     Tests the mewbot plugin manager.
     """
+
     @staticmethod
     def test_get_plugin_input_classes() -> None:
         """
@@ -42,5 +42,3 @@ class TestMewbotPluginManagerInputMethods:
 
         assert "reddit" in classified_inputs.keys()
         assert isinstance(classified_inputs["reddit"], tuple)
-
-

@@ -13,6 +13,7 @@ class TestMewbotPluginManagerIOConfigMethods:
     """
     Tests the mewbot plugin manager - io config methods.
     """
+
     # ----------------------------------------------
     #
     # - IO CONFIGS

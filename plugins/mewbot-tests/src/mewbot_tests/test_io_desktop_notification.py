@@ -6,17 +6,18 @@ from __future__ import annotations
 from typing import Type
 
 import asyncio
-import copy
-import logging
-import socket
 
 import pytest
 
 from mewbot_tests.common import BaseTestClassWithConfig
 
-from mewbot.io.desktop_notification import DesktopNotificationIO, DesktopNotificationOutputEngine, DesktopNotificationOutput, DesktopNotificationOutputEvent
-from mewbot.io.socket import SocketIO, SocketInput
-from mewbot.api.v1 import IOConfig, InputQueue, OutputEvent
+from mewbot.io.desktop_notification import (
+    DesktopNotificationIO,
+    DesktopNotificationOutputEngine,
+    DesktopNotificationOutput,
+    DesktopNotificationOutputEvent,
+)
+from mewbot.api.v1 import OutputEvent
 
 # pylint: disable=R0903
 #  Disable "too few public methods" for test cases - most test files will be classes used for
@@ -33,7 +34,7 @@ class TestIoHttpsPost(BaseTestClassWithConfig[DesktopNotificationIO]):
         assert not self.component.get_inputs()
         assert self.component.get_outputs()
 
-    def test_desktop_notification_output__init__(self):
+    def test_desktop_notification_output__init__(self) -> None:
         """
         Tests that we can start the DesktopNotificationOutput.
         :return:
@@ -49,7 +50,7 @@ class TestIoHttpsPost(BaseTestClassWithConfig[DesktopNotificationIO]):
         assert len(outputs) == 1
 
     @pytest.mark.asyncio
-    async def test_desktop_notification_output_outputs(self):
+    async def test_desktop_notification_output_outputs(self) -> None:
         """
         Tests running a DesktopNotificationOutput.
         :return:
@@ -57,8 +58,7 @@ class TestIoHttpsPost(BaseTestClassWithConfig[DesktopNotificationIO]):
         test_output = DesktopNotificationOutput()
 
         test_event = DesktopNotificationOutputEvent(
-            title="This is another test. Ignore it",
-            text="This might be getting annoying"
+            title="This is another test. Ignore it", text="This might be getting annoying"
         )
 
         # Run the input
@@ -66,7 +66,6 @@ class TestIoHttpsPost(BaseTestClassWithConfig[DesktopNotificationIO]):
             await asyncio.wait_for(test_output.output(test_event), 1)
         except asyncio.exceptions.TimeoutError:
             pass
-
 
     def test_desktop_notification_output_engine__init__(self) -> None:
         """
@@ -103,7 +102,7 @@ class TestIoHttpsPost(BaseTestClassWithConfig[DesktopNotificationIO]):
 
         assert test_engine.enabled is False
         try:
-            test_engine.enabled = True
+            setattr(test_engine, "enabled", True)  # Fool mypy into not complaining
         except AttributeError:
             pass
 

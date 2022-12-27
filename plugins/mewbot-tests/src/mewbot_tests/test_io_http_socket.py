@@ -16,7 +16,8 @@ from mewbot_tests.common import BaseTestClassWithConfig
 
 from mewbot.io.http import HTTPServlet
 from mewbot.io.socket import SocketIO, SocketInput
-from mewbot.api.v1 import IOConfig, InputQueue
+from mewbot.api.v1 import IOConfig
+from mewbot.core import InputQueue
 
 # pylint: disable=R0903
 #  Disable "too few public methods" for test cases - most test files will be classes used for
@@ -100,6 +101,9 @@ class TestIoHttpsPost(BaseTestClassWithConfig[HTTPServlet]):
         Start a server with handle_client from the input
         :return:
         """
+        # Need access to protected members to enable full testing
+        # pylint: disable=W0212
+
         test_input = SocketInput(
             host="localhost", port=56789, logger=logging.getLogger(__name__ + "SocketInput")
         )
@@ -109,7 +113,10 @@ class TestIoHttpsPost(BaseTestClassWithConfig[HTTPServlet]):
 
         try:
             await asyncio.wait_for(
-                asyncio.start_server(test_input.handle_client, test_input._host, test_input._port), 1
+                asyncio.start_server(
+                    test_input.handle_client, test_input._host, test_input._port
+                ),
+                1,
             )
         except asyncio.exceptions.TimeoutError:
             pass
@@ -131,19 +138,14 @@ class TestIoHttpsPost(BaseTestClassWithConfig[HTTPServlet]):
     #     output_stream = asyncio.StreamWriter()
     #
 
-    async def ping_socket(self, wait: float = 0.5):
+    async def ping_socket(self, wait: float = 0.5) -> None:
         """
         Wait a period of time and then write some data to the component's port.
         :return:
         """
         await asyncio.sleep(wait)
 
-        s = socket.socket()
-        s.connect((self.component.host, self.component.port))
+        target_socket = socket.socket()
+        target_socket.connect((self.component.host, self.component.port))
 
-        s.send("Test data".encode())
-
-
-
-
-
+        target_socket.send("Test data".encode())

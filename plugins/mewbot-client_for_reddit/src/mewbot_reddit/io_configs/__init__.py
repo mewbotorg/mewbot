@@ -215,10 +215,7 @@ class RedditIOBase(IOConfig):
         Return the reddit outputs - in this case
         :return:
         """
-        if not self._output:
-            self._output = RedditOutput()
-
-        return [self._output]
+        raise NotImplementedError("This needs to be overriden to function")
 
     def complete_authorization_flow(self) -> None:
         """
@@ -648,3 +645,13 @@ class RedditOutput(Output):
     @staticmethod
     def consumes_outputs() -> Set[Type[OutputEvent]]:
         return set()
+
+    async def output(self, event: OutputEvent) -> bool:
+        """
+        Does the work of transmitting the event to the world.
+        :param event:
+        :return:
+        """
+        raise NotImplementedError(
+            f"Output not current supported {event} will not be transmitted!"
+        )

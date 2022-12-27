@@ -25,7 +25,7 @@ class NoArgsMainRunner:
     # Any yaml file names which should not be offered as options to the user
     YAML_FILTER_LIST: Tuple[str] = ("examples_to_filter_go_here.yaml",)
 
-    num_path_map: Dict[int, str] = dict()
+    num_path_map: Dict[int, str] = {}
 
     target_bot: str = ""
 
@@ -76,19 +76,21 @@ class NoArgsMainRunner:
                 print(f"{indent}{os.path.basename(root)}/")
                 subindent = " " * 4 * (level + 1)
 
-                for fn in files:
+                for file_name in files:
                     # Only want to present YAML files to the user
-                    if os.path.splitext(fn)[1] != ".yaml":
+                    if os.path.splitext(file_name)[1] != ".yaml":
                         continue
 
                     # Do not present an entry in the filter list
-                    if fn in self.YAML_FILTER_LIST:
+                    if file_name in self.YAML_FILTER_LIST:
                         continue
 
                     # Assign the path to a number
-                    self.num_path_map[example_count] = os.path.abspath(os.path.join(root, fn))
+                    self.num_path_map[example_count] = os.path.abspath(
+                        os.path.join(root, file_name)
+                    )
 
-                    print(f"{str(example_count).rjust(3, ' ')}.{subindent}{fn}")
+                    print(f"{str(example_count).rjust(3, ' ')}.{subindent}{file_name}")
 
                     example_count += 1
 

@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
-from typing import List
+from typing import List, Sequence
 
 import logging
 
 import asyncpraw  # type: ignore
+
+from mewbot.api.v1 import Output
 
 from ..io_configs import RedditIOBase
 from .credentials import RedditPasswordCredentials
@@ -17,6 +19,8 @@ class RedditPasswordIO(RedditIOBase):
     the RedditBotIO config - where a browser will be opened and you will be prompted to
     authenticate into reddit.
     """
+
+    __name__: str = "RedditPasswordIO"
 
     # Credentials to store all the info needed to log into reddit
     hybrid_credentials: RedditPasswordCredentials = RedditPasswordCredentials(
@@ -144,3 +148,10 @@ class RedditPasswordIO(RedditIOBase):
         self._logger.info(reddit.auth.url(["identity"], "...", "permanent"))
 
         self.praw_reddit = reddit
+
+    def get_outputs(self) -> Sequence[Output]:
+        """
+        Return the reddit outputs - in this case
+        :return:
+        """
+        return []

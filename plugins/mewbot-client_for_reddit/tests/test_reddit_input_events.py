@@ -39,7 +39,9 @@ class TestLoader:
 class TestLoaderConfigureBot(BaseTestClassWithConfig[RedditPasswordIO]):
     def test_config_type(self) -> None:
 
-        config_path = self.get_example_path(CONFIG_YAML_NAME, file_path=__file__, folder_prefix="reddit_")
+        config_path = self.get_example_path(
+            CONFIG_YAML_NAME, file_path=__file__, folder_prefix="reddit_"
+        )
 
         with open(config_path, "r", encoding="utf-8") as config_file:
             config = list(yaml.load_all(config_file, Loader=yaml.CSafeLoader))
@@ -51,7 +53,9 @@ class TestLoaderConfigureBot(BaseTestClassWithConfig[RedditPasswordIO]):
 
     def test_working(self) -> None:
 
-        config_path = self.get_example_path(CONFIG_YAML_NAME, file_path=__file__, folder_prefix="reddit_")
+        config_path = self.get_example_path(
+            CONFIG_YAML_NAME, file_path=__file__, folder_prefix="reddit_"
+        )
 
         with open(config_path, "r", encoding="utf-8") as config_file:
             bot = configure_bot("bot", config_file)

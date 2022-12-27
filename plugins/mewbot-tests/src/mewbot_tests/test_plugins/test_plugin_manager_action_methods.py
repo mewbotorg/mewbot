@@ -5,17 +5,14 @@ The plugin manager is responsible for discovering mewbot plugins and loading the
 system.
 """
 
-from typing import Dict, Type, Tuple
-
-from mewbot.api.v1 import Action, Condition, Trigger
 from mewbot.plugins.manager import PluginManager
-from mewbot.plugins.hook_specs import mewbot_ext_hook_impl
 
 
 class TestMewbotPluginManagerActionMethods:
     """
     Tests the mewbot plugin manager for action methods.
     """
+
     @staticmethod
     def test_get_plugin_action_classes() -> None:
         """

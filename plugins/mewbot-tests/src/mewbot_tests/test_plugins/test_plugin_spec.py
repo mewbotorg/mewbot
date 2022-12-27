@@ -8,15 +8,20 @@ import os
 
 from typing import Tuple
 
-from mewbot.plugins.hook_specs import MewbotDevPluginSpec, gather_dev_paths, mewbot_dev_hook_impl
+from mewbot.plugins.hook_specs import (
+    MewbotDevPluginSpec,
+    gather_dev_paths,
+    mewbot_dev_hook_impl,
+)
 
 
 class TestHookSpec:
     """
     Tests validation and check methods of the plugin spec.
     """
+
     @staticmethod
-    def test_MewbotDevPluginSpec_validate_function_name() -> None:
+    def test_mewbot_dev_plugin_spec_validate_function_name() -> None:
         """
         Checks the validate_function_name method runs without throwing an error.
         :return:

@@ -156,7 +156,8 @@ class PluginManager:
                     else:
                         self._logger.warning(
                             "Bad class from plugin - expected %s class - got %s",
-                            target_class, cand_class,
+                            target_class,
+                            cand_class,
                         )
                         continue
 
@@ -301,7 +302,9 @@ class PluginManager:
         :return:
         """
         return self._generic_get_plugin_class(
-            getter_func="get_all_plugin_io_config_classes", target_class_name=io_config_name, target_class=IOConfig
+            getter_func="get_all_plugin_io_config_classes",
+            target_class_name=io_config_name,
+            target_class=IOConfig,
         )
 
     #
@@ -358,7 +361,9 @@ class PluginManager:
         :return:
         """
         return self._generic_get_plugin_class(
-            getter_func="get_all_plugin_output_classes", target_class_name=output_name, target_class=Output
+            getter_func="get_all_plugin_output_classes",
+            target_class_name=output_name,
+            target_class=Output,
         )
 
     # ---------
