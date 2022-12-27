@@ -40,16 +40,28 @@ jobs:
       - name: Install mewbot itself
         run: python3 -m pip install --editable ./
 
-      - name: Install mewbot-tests
+      - name: Install mewbot-tests dependencies
+        run:  pip install -r ./plugins/mewbot-tests/requirements-dev.txt
+
+      - name: Install mewbot-tests itself
         run: python3 -m pip install --editable ./plugins/mewbot-tests
 
-      - name: Install mewbot-conditions
+      - name: Install mewbot-conditions dependencies
+        run:  pip install -r ./plugins/mewbot-conditions/requirements-dev.txt
+
+      - name: Install mewbot-conditions itself
         run: python3 -m pip install --editable ./plugins/mewbot-conditions
 
-      - name: Install mewbot-client_for_reddit
+      - name: Install mewbot-client_for_reddit dependencies
+        run:  pip install -r ./plugins/mewbot-client_for_reddit/requirements-dev.txt
+
+      - name: Install mewbot-client_for_reddit itself
         run: python3 -m pip install --editable ./plugins/mewbot-client_for_reddit
 
-      - name: Install mewbot-discord_dice_roller
+      - name: Install mewbot-discord_dice_roller dependencies
+        run:  pip install -r ./plugins/mewbot-discord_dice_roller/requirements-dev.txt
+
+      - name: Install mewbot-discord_dice_roller itself
         run: python3 -m pip install --editable ./plugins/mewbot-discord_dice_roller
 
       - name: Run Linters
