@@ -1,4 +1,4 @@
-#!/use/bin/env python3
+#!/usr/bin/env python3
 
 """
 Manages plugins known to the system.
@@ -115,7 +115,7 @@ class PluginManager:
         :param target_class:
         :return:
         """
-        return self._generic_get_all_plugin_classes(target_func, target_class)
+        ...
 
     @overload
     def _generic_get_all_plugin_classes(
@@ -133,7 +133,7 @@ class PluginManager:
         :param target_class:
         :return:
         """
-        return self._generic_get_all_plugin_classes(target_func, target_class)
+        pass
 
     def _generic_get_all_plugin_classes(
         self, target_func: str, target_class: Type[T]
