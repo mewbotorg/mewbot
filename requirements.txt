@@ -13,4 +13,4 @@ py-cord~=2.3.2
 win10toast~=0.9; sys_platform == "win32"
 
 # RSS reader
-feedparser~=6.0.8
+feedparser~=6.0.10
