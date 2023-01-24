@@ -1,27 +1,29 @@
+from __future__ import annotations
+
+from typing import List
+
 import os
 import pathlib
+import subprocess
 import sys
-
-import pip
-
-
-def install(path: pathlib.Path) -> None:
-    pip.main(["install", "--editable", str(path) + "/"])
 
 
 def main() -> bool:
     dot = pathlib.Path()
+    targets: List[str] = []
 
     if not (dot/"setup.py").exists():
         print("Unable to find setup.py in current folder")
         print("This script expects to be run from the root of the mewbot repo")
         return False
 
-    install(dot)
+    targets.append(str(dot))
 
     for path, _, files in os.walk(dot/"plugins"):
         if "setup.py" in files:
-            install(path)
+            targets.append(path)
+
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', *targets])
 
 
 if __name__ == "__main__":
