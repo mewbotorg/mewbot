@@ -10,6 +10,8 @@ with open("README.md", "r", encoding="utf-8") as rmf:
 with open("LICENSE.md", "r", encoding="utf-8") as lf:
     true_licence = lf.read()
 
+with open("requirements.txt", "r", encoding="utf-8") as rf:
+    requirements = list(x for x in rf.read().splitlines(False) if x and not x.startswith("#"))
 
 setuptools.setup(
     name="mewbot-tests",

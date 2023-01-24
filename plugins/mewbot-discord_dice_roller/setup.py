@@ -10,6 +10,9 @@ with open("README.md", "r", encoding="utf-8") as rmf:
 with open("LICENSE.md", "r", encoding="utf-8") as lf:
     true_licence = lf.read()
 
+with open("requirements.txt", "r", encoding="utf-8") as rf:
+    requirements = list(x for x in rf.read().splitlines(False) if x and not x.startswith("#"))
+
 # There are a number of bits of special sauce in this call
 # - You can fill it out manually - for your project
 # - You can copy this and make the appropriate changes
@@ -22,7 +25,7 @@ setuptools.setup(
     # If it's not "mewbot-" then the pattern the plugin manager uses to load plugins will fail
     version="0.0.1",
     author="Alex Cameron",
-    install_requires="mewbot",
+    install_requires=requirements,
     author_email="mewbot@quicksilver.london",
     description="Example discord dice roller for mewbot",
     long_description=long_description,

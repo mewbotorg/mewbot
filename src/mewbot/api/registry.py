@@ -10,7 +10,12 @@ from typing import List, Type, Any, Dict, Optional, Callable, Iterable, Tuple
 import abc
 import uuid
 
+import importlib_metadata
+
 from mewbot.core import ComponentKind, Component
+
+
+API_DISTRIBUTIONS = ["mewbotv1"]
 
 
 # noinspection PyMethodParameters
@@ -131,3 +136,20 @@ class ComponentRegistry(abc.ABCMeta):
             return val
 
         raise ValueError(f"No API version for {component}")
+
+    @staticmethod
+    def load_and_register_modules(name: Optional[str] = None) -> Iterable[Any]:
+        """ Load modules from querying the specified setuptools ``group``.
+
+        :param str name: if given, loads only plugins with the given ``name``.
+        :return: return the number of loaded plugins by this call.
+        """
+        for distribution in importlib_metadata.distributions():
+            for entry_point in distribution.entry_points:
+                if entry_point.group not in API_DISTRIBUTIONS:
+                    continue
+
+                if name and entry_point.name != name:
+                    continue
+
+                yield entry_point.load()
