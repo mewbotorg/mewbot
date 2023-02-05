@@ -26,6 +26,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     package_dir={"": "src"},
-    packages=setuptools.find_packages(where="src"),
+    packages=setuptools.find_packages(where="src", exclude=('mewbot.tools', 'examples')),
     python_requires=">=3.9",  # Might be relaxed later
 )

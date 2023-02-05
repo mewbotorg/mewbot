@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
+PYTHON=${PYTHON:-python3}
+readonly PYTHON
+
+PYTHONPATH="./src:./test"
+export PYTHONPATH

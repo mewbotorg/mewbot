@@ -7,7 +7,7 @@ from typing import Generator, Set
 import os
 import subprocess
 
-from tools.common import Annotation, ToolChain
+from mewbot.tools import Annotation, ToolChain
 
 
 LEVELS: Set[str] = {"notice", "warning", "error"}
@@ -138,5 +138,5 @@ def lint_black_diffs(
 if __name__ == "__main__":
     is_ci = "GITHUB_ACTIONS" in os.environ
 
-    linter = LintToolchain("src", "examples", "tests", "tools", in_ci=is_ci)
+    linter = LintToolchain("src", "tests", in_ci=is_ci)
     linter()

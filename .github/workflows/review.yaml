@@ -38,9 +38,7 @@ jobs:
         run:  pip install -r requirements-dev.txt
 
       - name: Run Linters
-        run: python3 -m tools.lint
-        env:
-          PYTHONPATH: "./src:."
+        run: ./tools/lint
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
@@ -75,9 +73,7 @@ jobs:
         run:  pip install -r requirements-dev.txt
 
       - name: Run Tests
-        run: python3 -m tools.test --cov
-        env:
-          PYTHONPATH: "./src:."
+        run: ./tools/test
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
