@@ -58,3 +58,9 @@ class TestComponent:
     def test_componentkind_interface_map_template() -> None:
         with pytest.raises(ValueError):  # @UndefinedVariable
             _ = ComponentKind.interface(ComponentKind(ComponentKind.Template))
+
+    @staticmethod
+    def test_componentkind_values_list() -> None:
+        values = ComponentKind.values()
+        assert isinstance(values, list)
+        assert "Behaviour" in values
