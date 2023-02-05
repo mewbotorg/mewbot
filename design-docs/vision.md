@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Vision
 
 The purpose of mew bot is to create an open-source infrastructure for building

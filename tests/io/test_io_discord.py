@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
 # Loads a file in, sees if it works
 
 from __future__ import annotations

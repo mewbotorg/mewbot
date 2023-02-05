@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Contributing
 
 Contributions to this project are welcome, whether minor updates to documentation or entirely new features.

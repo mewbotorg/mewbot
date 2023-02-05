@@ -1,7 +1,7 @@
 <!--
-SPDX-FileCopyrightText: 2021 Benedict Harcourt <ben.harcourt@harcourtprogramming.co.uk>
+SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
 
-SPDX-License-Identifier: BSD-2-Clause
+SPDX-License-Identifier: CC-BY-4.0
 -->
 
 # MewBot
