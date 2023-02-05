@@ -11,7 +11,7 @@ from tests.common import BaseTestClassWithConfig
 from mewbot.loader import configure_bot, load_behaviour, load_component
 
 from mewbot.bot import Bot
-from mewbot.config import ConfigBlock
+from mewbot.core import ConfigBlock
 from mewbot.io.http import HTTPServlet
 from mewbot.api.v1 import IOConfig, Behaviour
 

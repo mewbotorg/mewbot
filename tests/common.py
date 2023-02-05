@@ -7,9 +7,7 @@ from abc import ABC
 import yaml
 
 from mewbot.loader import load_component
-from mewbot.core import Component
-from mewbot.config import ConfigBlock
-
+from mewbot.core import Component, ConfigBlock
 
 T_co = TypeVar("T_co", bound=Component, covariant=True)
 
