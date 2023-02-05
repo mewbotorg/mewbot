@@ -2,7 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Protocol, Sequence, Set, Type, Union, runtime_checkable
+from typing import (
+    Any,
+    Dict,
+    List,
+    Protocol,
+    Sequence,
+    Set,
+    Type,
+    Union,
+    TypedDict,
+    runtime_checkable,
+)
 
 import asyncio
 import enum
@@ -157,6 +168,23 @@ class ComponentKind(str, enum.Enum):
         raise ValueError(f"Invalid value {value}")
 
 
+class ConfigBlock(TypedDict):
+    """Common YAML Block for all components"""
+
+    kind: str
+    implementation: str
+    uuid: str
+    properties: Dict[str, Any]
+
+
+class BehaviourConfigBlock(ConfigBlock):
+    """YAML block for a behaviour, which includes the subcomponents"""
+
+    triggers: List[ConfigBlock]
+    conditions: List[ConfigBlock]
+    actions: List[ConfigBlock]
+
+
 __all__ = [
     "ComponentKind",
     "Component",
@@ -171,4 +199,6 @@ __all__ = [
     "OutputEvent",
     "InputQueue",
     "OutputQueue",
+    "ConfigBlock",
+    "BehaviourConfigBlock",
 ]
