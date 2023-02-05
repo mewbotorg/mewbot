@@ -39,13 +39,13 @@ class ComponentRegistry(abc.ABCMeta):
 
     _api_versions: Dict[ComponentKind, Dict[str, Type[Component]]] = {}
 
-    def __new__(cls, name: str, bases: Any, namespace: Any, **k: Any) -> Type[Any]:
-        created_type: Type[Any] = super().__new__(cls, name, bases, namespace, **k)
+    def __new__(mcs, name: str, bases: Any, namespace: Any, **k: Any) -> Type[Any]:
+        created_type: Type[Any] = super().__new__(mcs, name, bases, namespace, **k)
 
-        if created_type.__module__ == cls.__module__:
+        if created_type.__module__ == mcs.__module__:
             return created_type
 
-        api_bases = list(cls._detect_api_versions(created_type))
+        api_bases = list(mcs._detect_api_versions(created_type))
 
         if len(api_bases) > 1:
             raise TypeError(
@@ -87,10 +87,10 @@ class ComponentRegistry(abc.ABCMeta):
 
     @classmethod
     def register_api_version(
-        cls, kind: ComponentKind, version: str
+        mcs, kind: ComponentKind, version: str
     ) -> Callable[[Type[Component]], Type[Component]]:
         def do_register(api: Type[Component]) -> Type[Component]:
-            if api not in cls.registered:
+            if api not in mcs.registered:
                 raise TypeError("Can not register an API version from a non-registered class")
 
             if not isinstance(kind, ComponentKind):
@@ -101,7 +101,7 @@ class ComponentRegistry(abc.ABCMeta):
             if not issubclass(api, ComponentKind.interface(kind)):
                 raise TypeError(f"{api} does not meet the contract of a {kind.value}")
 
-            kind_apis = cls._api_versions.setdefault(kind, {})
+            kind_apis = mcs._api_versions.setdefault(kind, {})
 
             if version in kind_apis:
                 raise ValueError(
@@ -116,15 +116,15 @@ class ComponentRegistry(abc.ABCMeta):
         return do_register
 
     @classmethod
-    def _detect_api_versions(cls, impl: Type[Any]) -> Iterable[Tuple[ComponentKind, str]]:
-        for kind, apis in cls._api_versions.items():
+    def _detect_api_versions(mcs, impl: Type[Any]) -> Iterable[Tuple[ComponentKind, str]]:
+        for kind, apis in mcs._api_versions.items():
             for version, api in apis.items():
                 if issubclass(impl, api):
                     yield kind, version
 
     @classmethod
-    def api_version(cls, component: Component) -> Tuple[ComponentKind, str]:
-        for val in cls._detect_api_versions(type(component)):
+    def api_version(mcs, component: Component) -> Tuple[ComponentKind, str]:
+        for val in mcs._detect_api_versions(type(component)):
             return val
 
         raise ValueError(f"No API version for {component}")

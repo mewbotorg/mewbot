@@ -55,7 +55,6 @@ class DiscordMessageEditInputEvent(DiscordInputEvent):
 
 @dataclasses.dataclass
 class DiscordMessageDeleteInputEvent(DiscordInputEvent):
-
     text_before: str
     message: discord.Message
 
@@ -166,7 +165,6 @@ class DiscordInput(Input):
 
 
 class InternalMewbotDiscordClient(discord.Client):
-
     _logger: logging.Logger
     _startup_queue_depth: int
 
@@ -205,7 +203,6 @@ class InternalMewbotDiscordClient(discord.Client):
 
         # Shortcut for iterating over all guilds, then all channels
         for channel in self.get_all_channels():
-
             # Ignoring everything which is not a text channel - nothing to do with past voice
             if not isinstance(channel, discord.channel.TextChannel):
                 continue
@@ -219,7 +216,6 @@ class InternalMewbotDiscordClient(discord.Client):
         )
 
         for message in past_messages[: self._startup_queue_depth]:
-
             if not isinstance(message, discord.Message):
                 self._logger.info("Expected a message and got a %s", type(message))
 

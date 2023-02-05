@@ -37,7 +37,6 @@ class TestLoader:
 
 
 class TestLoaderConfigureBot:
-
     # Test this working
     @staticmethod
     def test_config_type() -> None:

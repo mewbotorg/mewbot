@@ -81,7 +81,6 @@ class RSSInputEvent(InputEvent):
 
 @dataclasses.dataclass
 class RSSOutputEvent(OutputEvent):
-
     # pylint: disable=too-many-instance-attributes
     # Want to fully represent the core RSS standard
 
@@ -98,7 +97,6 @@ class RSSOutputEvent(OutputEvent):
 
 
 class RSSIO(IOConfig):
-
     _input: Optional[RSSInput] = None
     _output: None
 
@@ -156,7 +154,6 @@ class RSSIO(IOConfig):
 
 @dataclasses.dataclass
 class RSSInputState:
-
     _sites: List[str]  # A list of sites to poll for RSS update events
     _sites_iter: Iterable[str]
     _sites_started: Set[str]  # sites which have undergone startup
@@ -361,7 +358,6 @@ class RSSInput(Input):
             )
 
         for target_site in self.state.sites_iter:
-
             if target_site not in self.state.sites_started:
                 future = self.startup_site_feed(target_site)
             else:
@@ -379,7 +375,6 @@ class RSSInput(Input):
         # Need to add timeout and use etags to cut down on badnwidth use
         async with aiohttp.ClientSession(loop=self.loop) as session:
             async with session.get(url) as resp:
-
                 resp_text = await resp.read()
                 resp_headers = resp.headers
 
@@ -407,7 +402,6 @@ class RSSInput(Input):
 
         # Read the requested number of entries and put them on the wire
         for _ in range(0, self.startup_queue_depth):
-
             entry_internal_id = self._get_entry_uid(entry=site_entries[_], site_url=site_url)
             if self.state.check_for_event(site_url=site_url, site_uid=entry_internal_id):
                 self._logger.warning(
@@ -430,7 +424,6 @@ class RSSInput(Input):
         self.state.note_site_started(site_url)
 
     async def poll_site_feed(self, site_url: str) -> None:
-
         self._logger.info("Reading from site %s", site_url)
 
         # Read the site feed
@@ -440,7 +433,6 @@ class RSSInput(Input):
         # Iterate backwards until we run into an entry which has already been sent
         transmitted_count = 0
         for entry in site_entries:
-
             entry_uid = self._get_entry_uid(entry, site_url)
 
             if self.state.check_for_event(site_url=site_url, site_uid=entry_uid):

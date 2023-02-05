@@ -29,7 +29,6 @@ class DiscordDeleteEventTrigger(Trigger):
         }
 
     def matches(self, event: InputEvent) -> bool:
-
         if isinstance(event, DiscordMessageDeleteInputEvent):
             return True
 

@@ -14,7 +14,6 @@ from mewbot.api.v1 import Input, InputEvent, IOConfig, Output
 
 @dataclasses.dataclass
 class SocketInputEvent(InputEvent):
-
     data: bytes
 
 

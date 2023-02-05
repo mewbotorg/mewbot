@@ -32,7 +32,6 @@ class DesktopNotificationOutputEvent(OutputEvent):
 
 
 class DesktopNotificationIO(IOConfig):
-
     _input: None
     _output: Optional[DesktopNotificationOutput] = None
 
@@ -43,7 +42,6 @@ class DesktopNotificationIO(IOConfig):
         self._logger.info("DesktopNotificationIO received kwargs - %s", kwargs)
 
     def get_inputs(self) -> Sequence[Input]:
-
         return []
 
     def get_outputs(self) -> Sequence[Output]:
@@ -54,7 +52,6 @@ class DesktopNotificationIO(IOConfig):
 
 
 class DesktopNotificationOutput(Output):
-
     _engine: DesktopNotificationOutputEngine
     _logger: logging.Logger
 
@@ -103,7 +100,6 @@ class DesktopNotificationOutputEngine:
     _enabled: bool
 
     def __init__(self) -> None:
-
         self._logger = logging.getLogger(__name__ + "DesktopNotificationOutputEngine")
         self._logger.info("DesktopNotificationOutputEngine starting")
 
@@ -126,7 +122,6 @@ class DesktopNotificationOutputEngine:
             self._do_windows_setup()
 
         elif "linux" in self._platform_str:
-
             if self._platform_str == "linux2":
                 self._logger.warning(
                     "You seem to be running python below 3.3, "
