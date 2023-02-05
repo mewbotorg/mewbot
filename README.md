@@ -44,10 +44,13 @@ enforce the code style and linting requirements of this project.
 #### Setting up project for local development
 
 The recommended way to set this project up is using python 3.9 (or higher) with
-a venv setup.
-The setup is mostly standard, but we do have to add `./src` to the `PYTHONPATH`
-so that python correctly detects all the source files.
-The following example will get you started in bash-like shells.
+a standard `venv` setup.
+The project uses a "src-dir" layout, so you will need to set up `PYTHONPATH`
+with at least the `src/` directory for Python to locate the modules.
+For convenience in POSIX-like systems, an importable script `./tools/path`
+is provided that will return the appropriate path.
+
+The following example will get you started in POSIX-like shells (sh, bash, zsh, etc.).
 
 ```shell
 # Get the source code
@@ -56,7 +59,7 @@ cd mewbot
 
 # Set up the virtual environment
 python3 -m venv venv
-printf 'PYTHON_PATH=./src:$PYTHON_PATH\n' >>venv/bin/activate
+printf '. ./tools/path\n' >>venv/bin/activate
 
 # Activate the virtual environment
 source venv/bin/activate
@@ -70,11 +73,13 @@ python3 -m examples examples/trivial_socket.yaml
 
 #### Running the tests and linters
 
-You can run the linters via the convenience script `python3 -m tools.lint`.
+You can run the linters via the convenience script `./tools/lint` or with
+`python -m mewbot.tools.lint`
 This runs the auto-formatter `black`, two opinionated linting tools in `flake8`
 and `pylint`, and the `mypy` type checker in strict mode.
 
-You can run the test framework using the convenience script `python3 -m tools.test`.
+You can run the test framework using the convenience script `./tools/test`
+or with `python -m mewbot.tools.test`.
 Locally this will default to running all tests in parallel for fast testing.
 You can add the flag `--cov` to enable coverage, which will output coverage information
 both to the terminal and store details of code coverage as webpages in `coverage/`.
