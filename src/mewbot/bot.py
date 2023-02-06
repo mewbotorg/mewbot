@@ -98,7 +98,6 @@ class BotRunner:
         inputs: Set[InputInterface],
         outputs: Dict[Type[OutputEvent], Set[OutputInterface]],
     ) -> None:
-
         self.logger = logging.getLogger(__name__ + "BotRunner")
 
         self.input_event_queue = InputQueue()

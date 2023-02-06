@@ -29,7 +29,6 @@ class DiscordEditTrigger(Trigger):
         }
 
     def matches(self, event: InputEvent) -> bool:
-
         if isinstance(event, DiscordMessageEditInputEvent):
             return True
 

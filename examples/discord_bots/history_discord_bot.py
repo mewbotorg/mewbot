@@ -39,7 +39,6 @@ class DiscordAllCommandTrigger(Trigger):
         self._command = str(command)
 
     def matches(self, event: InputEvent) -> bool:
-
         if not isinstance(event, DiscordInputEvent):
             return False
 
