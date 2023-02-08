@@ -25,8 +25,9 @@ from mewbot.core import (
     TriggerInterface,
     ConditionInterface,
     ActionInterface,
+    ConfigBlock,
+    BehaviourConfigBlock,
 )
-from mewbot.config import BehaviourConfigBlock, ConfigBlock
 
 
 class Component(metaclass=ComponentRegistry):

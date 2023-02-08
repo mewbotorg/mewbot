@@ -9,7 +9,6 @@ import sys
 import yaml
 
 from mewbot.bot import Bot
-from mewbot.config import ConfigBlock, BehaviourConfigBlock
 from mewbot.core import (
     Component,
     ComponentKind,
@@ -18,6 +17,8 @@ from mewbot.core import (
     TriggerInterface,
     ConditionInterface,
     ActionInterface,
+    ConfigBlock,
+    BehaviourConfigBlock,
 )
 
 
