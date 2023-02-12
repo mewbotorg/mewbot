@@ -7,7 +7,7 @@ from typing import List, Generator
 import argparse
 import os
 
-from tools.common import Annotation, ToolChain
+from mewbot.tools import Annotation, ToolChain
 
 
 class TestToolchain(ToolChain):
@@ -19,7 +19,7 @@ class TestToolchain(ToolChain):
         result = self.run_tool("PyTest (Testing Framework)", *args)
 
         if result.returncode < 0:
-            yield Annotation("error", "tools/test.py", 1, 1, "Tests Failed", "")
+            yield Annotation("error", "test-harness", 1, 1, "Tests Failed", "")
 
     def build_pytest_args(self) -> List[str]:
         """Builds out the `pytest` command
@@ -44,7 +44,7 @@ class TestToolchain(ToolChain):
             args.append("--numprocesses=auto")  # Run processes equal to CPU count
             return args
 
-        args.append("--cov")  # Enable coverage tracking for code in the './src'
+        args.append("--cov=src")  # Enable coverage tracking for code in the './src'
         args.append("--cov-report=xml:reports/coverage.xml")  # Record coverage summary in XML
 
         if self.is_ci:
