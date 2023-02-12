@@ -53,6 +53,17 @@ If you want to start on a piece of work:
 If another user has the assignment, reach out to them and see if you can help;
 coordination is the key to success in open source development.
 
+## Licensing Policy
+
+We ask that code created for the Mewbot project is transferred to the projects'
+ownership; this is noted as the copyright being held by
+> Mewbot Developers <mewbot@quicksilver.london>
+
+BSD-2-Clause licenses are used for code, Creative Commons v4 for prose (documentation
+and examples). For completeness with the [SPDX](https://spdx.dev/) spec, files which
+have no meaningfully ownable content (generated lock files, gitignore files, etc.),
+as per [the reuse.software recommendation](https://reuse.software/faq/#uncopyrightable).
+
 ## Code Style
 
 Coding tackles the thorny problem of trying to express logical, computational concepts in a
