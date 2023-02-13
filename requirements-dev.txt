@@ -24,4 +24,4 @@ pytest-xdist>=2.5.0
 pytest-github-actions-annotate-failures>=0.1.7
 
 # Packaing toolchain
-setuptools~=67.1
+setuptools~=67.2
