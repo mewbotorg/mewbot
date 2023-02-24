@@ -11,7 +11,7 @@ from typing import Type
 
 import copy
 
-from tests.common import BaseTestClassWithConfig
+from mewbot.test import BaseTestClassWithConfig
 
 from mewbot.io.http import HTTPServlet
 from mewbot.io.socket import SocketIO

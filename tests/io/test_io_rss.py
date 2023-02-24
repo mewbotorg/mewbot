@@ -7,7 +7,7 @@ from typing import Type
 import asyncio
 import pytest
 
-from tests.common import BaseTestClassWithConfig
+from mewbot.test import BaseTestClassWithConfig
 
 from mewbot.core import InputEvent, InputQueue
 from mewbot.io.rss import RSSIO, RSSInput, RSSInputState
@@ -105,6 +105,7 @@ class TestRSSIO(BaseTestClassWithConfig[RSSIO]):
         # Attempt t set the polling interval directly - should fail
         # It's a property calculated from the sites declared and the polling_every property
         try:
+            # noinspection PyPropertyAccess
             rss_input.polling_interval = 5.0  # type: ignore
         except AttributeError:
             pass
