@@ -9,16 +9,17 @@ __pycache__/
 .mypy_cache/
 
 # IDE and development environment
-/venv/
-/.idea/
+venv/
+.idea/
 .tox
 .project
 .pydevproject
 
 # Build enivornment
-src/mewbot.egg-info
-/build/
-/dist/
+# - Including all the environments in plugins
+*.egg-info/
+build/
+dist/
 
 # Secrets and local configuration
 examples/TrivialDiscordBot/secrets.json

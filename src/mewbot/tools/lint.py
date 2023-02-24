@@ -51,7 +51,7 @@ class LintToolchain(ToolChain):
                 pass
 
     def lint_mypy(self) -> Generator[Annotation, None, None]:
-        args = ["mypy", "--strict"]
+        args = ["mypy", "--strict", "--exclude", "setup"]
 
         if not self.is_ci:
             args.append("--pretty")
