@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 name: Auto-Review
+run-name: "Automated code review for \"${{ github.head_ref }}\""
 
 on:
   push:
@@ -18,6 +19,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  # Which version of the reports Sonar receives.
+  DEFAULT_OS: ubuntu-latest
   DEFAULT_PYTHON: 3.9
 
 jobs:
@@ -53,11 +56,12 @@ jobs:
 
   test:
     name: Test Python code
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        version: ["3.9", "3.10"]
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        version: ["3.9", "3.10", "3.11"]
       fail-fast: false
 
     steps:
@@ -77,14 +81,26 @@ jobs:
         run:  pip install -r requirements-dev.txt
 
       - name: Run Tests
+        shell: bash
         run: ./tools/test --cov
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         if: always()
         with:
-          name: test-results-${{ matrix.version }}
+          name: test-results-${{ matrix.os }}-${{ matrix.version }}
           path: reports
+
+  tests-passed:
+    name: Tests Passed
+    runs-on: ubuntu-latest
+
+    needs:
+      - test
+
+    steps:
+      - name: Mark all test runs as successful
+        run: /bin/true
 
   sonarcloud:
     name: SonarCloud
@@ -112,7 +128,7 @@ jobs:
         uses: actions/download-artifact@v3
         if: always()
         with:
-          name: test-results-${{ env.DEFAULT_PYTHON }}
+          name: test-results-${{ env.DEFAULT_OS }}-${{ env.DEFAULT_PYTHON }}
           path: reports
 
       - name: SonarCloud Scan

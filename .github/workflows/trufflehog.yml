@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 name: Trufflehog
+run-name: "Checking for secrets in \"${{ github.ref }}\""
 
 on: push
 
