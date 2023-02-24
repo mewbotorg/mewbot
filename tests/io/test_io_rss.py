@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
 from typing import Type
 
 import asyncio

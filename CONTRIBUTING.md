@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # Contributing
 
 Contributions to this project are welcome, whether minor updates to documentation or entirely new features.
@@ -46,6 +52,17 @@ If you want to start on a piece of work:
   assign it to yourself; and get started.
 If another user has the assignment, reach out to them and see if you can help;
 coordination is the key to success in open source development.
+
+## Licensing Policy
+
+We ask that code created for the Mewbot project is transferred to the projects'
+ownership; this is noted as the copyright being held by
+> Mewbot Developers <mewbot@quicksilver.london>
+
+BSD-2-Clause licenses are used for code, Creative Commons v4 for prose (documentation
+and examples). For completeness with the [SPDX](https://spdx.dev/) spec, files which
+have no meaningfully ownable content (generated lock files, gitignore files, etc.),
+as per [the reuse.software recommendation](https://reuse.software/faq/#uncopyrightable).
 
 ## Code Style
 

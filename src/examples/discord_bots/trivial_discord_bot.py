@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
 # pylint: disable=duplicate-code
 # this is an example - duplication for emphasis is desirable
 # A minimum viable discord bot - which just responds with a set message to every input

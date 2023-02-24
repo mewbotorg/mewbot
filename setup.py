@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+# SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
 import setuptools  # type: ignore
 
 with open("README.md", "r", encoding="utf-8") as rmf:
@@ -11,8 +15,8 @@ with open("LICENSE.md", "r", encoding="utf-8") as lf:
 setuptools.setup(
     name="mewbot",
     version="0.0.1",
-    author="Benedict Harcourt & Alex Cameron",
-    author_email="mewbot@tea-cats.co.uk & mewbot@quicksilver.london",
+    author="Mewbot Developers (https://github.com/mewler)",
+    author_email="mewbot@quicksilver.london",
     description="Lightweight, YAML-driven, text based, generic irc Bot framework",
     long_description=long_description,
     long_description_content_type="text/markdown",

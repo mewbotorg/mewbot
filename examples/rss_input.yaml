@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: CC-BY-4.0
+
 kind: IOConfig
 implementation: mewbot.io.rss.RSSIO
 uuid: aaaaaaaa-aaaa-4aaa-0000-aaaaaaaaaa00

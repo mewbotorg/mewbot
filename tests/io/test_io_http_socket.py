@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
 # Unified test of http and socket parts of mewbot.io
 # Loads a file in, sees if it works, and then probes the socket and http class.
 
