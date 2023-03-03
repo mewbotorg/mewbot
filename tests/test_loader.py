@@ -10,7 +10,7 @@ import copy
 import pytest
 import yaml
 
-from mewbot.test import BaseTestClassWithConfig
+from tests.common import BaseTestClassWithConfig
 
 from mewbot.loader import configure_bot, load_behaviour, load_component
 

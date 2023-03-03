@@ -14,7 +14,12 @@ from typing import List, Type, Any, Dict, Optional, Callable, Iterable, Tuple
 import abc
 import uuid
 
+import importlib_metadata
+
 from mewbot.core import ComponentKind, Component
+
+
+API_DISTRIBUTIONS = ["mewbotv1"]
 
 
 # noinspection PyMethodParameters
@@ -85,6 +90,8 @@ class ComponentRegistry(abc.ABCMeta):
         for prop in to_delete:
             properties.pop(prop)
 
+        # TypeError here may be because the wrong number of properties are specified in the yaml
+        # block which defines the class you are trying to initialise
         obj.__init__(*args, **properties)
 
         return obj
@@ -99,7 +106,8 @@ class ComponentRegistry(abc.ABCMeta):
 
             if not isinstance(kind, ComponentKind):
                 raise TypeError(
-                    f"Component kind '{kind}' not valid (must be one of {ComponentKind.values()})"
+                    f"Component kind '{kind}' not valid "
+                    f"(must be one of {ComponentKind.values()})"
                 )
 
             if not issubclass(api, ComponentKind.interface(kind)):
@@ -132,3 +140,21 @@ class ComponentRegistry(abc.ABCMeta):
             return val
 
         raise ValueError(f"No API version for {component}")
+
+    @staticmethod
+    def load_and_register_modules(name: Optional[str] = None) -> Iterable[Any]:
+        """
+        Load modules from setuptools that declare a `mewbotv1` entrypoint.
+
+        :param str name: if given, loads only plugins with the given `name`.
+        :return: the loaded objects.
+        """
+        for distribution in importlib_metadata.distributions():  # type: ignore
+            for entry_point in distribution.entry_points:
+                if entry_point.group not in API_DISTRIBUTIONS:
+                    continue
+
+                if name and entry_point.name != name:
+                    continue
+
+                yield entry_point.load()

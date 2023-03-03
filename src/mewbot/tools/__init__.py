@@ -8,18 +8,22 @@
 
 from __future__ import annotations
 
-import abc
-import os
 from typing import Generator, List, Set
 
+import abc
 import dataclasses
+import os
 import subprocess
 import sys
+
+from .paths import gather_paths
 
 
 @dataclasses.dataclass
 class Annotation:
-    """Schema for a GitHub action annotation, representing an error"""
+    """
+    Schema for a GitHub action annotation, representing an error.
+    """
 
     level: str
     file: str
@@ -43,13 +47,20 @@ class Annotation:
 
 
 class ToolChain(abc.ABC):
-    """Wrapper class for running linting tools, and outputting GitHub annotations"""
+    """
+    Wrapper class for running linting tools, and outputting GitHub annotations
+    """
 
     folders: Set[str]
     is_ci: bool
     success: bool
 
     def __init__(self, *folders: str, in_ci: bool) -> None:
+        """
+        Start up this tool chain.
+        :param folders:
+        :param in_ci:
+        """
         self.folders = set(folders)
         self.is_ci = in_ci
         self.success = True
@@ -112,3 +123,6 @@ class ToolChain(abc.ABC):
         print("::endgroup::")
 
         print("Total Issues:", len(issues))
+
+
+__all__ = ["Annotation", "ToolChain", "gather_paths"]

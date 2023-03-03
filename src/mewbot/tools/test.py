@@ -6,12 +6,12 @@
 
 from __future__ import annotations
 
-from typing import List, Generator
+from typing import Generator, List
 
 import argparse
 import os
 
-from mewbot.tools import Annotation, ToolChain
+from mewbot.tools import ToolChain, Annotation, gather_paths
 
 
 class TestToolchain(ToolChain):
@@ -23,21 +23,23 @@ class TestToolchain(ToolChain):
         result = self.run_tool("PyTest (Testing Framework)", *args)
 
         if result.returncode < 0:
-            yield Annotation("error", "test-harness", 1, 1, "Tests Failed", "")
+            yield Annotation("error", "tools/test.py", 1, 1, "Tests Failed", "")
 
     def build_pytest_args(self) -> List[str]:
         """Builds out the `pytest` command
 
         This varies based on what output types are requested (human vs code
         readable), and whether coverage is enabled.
-        Due to issues with pytest-cov handling, parallelisation is disabled
+        Due to issues with pytest-cov handling, parallelization is disabled
         when coverage is enabled
         https://github.com/nedbat/coveragepy/issues/1303#issuecomment-1014915146
         """
 
+        # If additional paths are declared, we need to append them to the args
+
         args = [
             "pytest",
-            "--new-first",  # Do uncached tests first -- likely to be more relevant.
+            "--new-first",  # Do un-cached tests first -- likely to be more relevant.
             "--durations=0",  # Report all tests that take more than 1s to complete
             "--durations-min=1",
             "--junitxml=reports/junit.xml",
@@ -46,9 +48,21 @@ class TestToolchain(ToolChain):
         if not self.coverage:
             args.append("--dist=load")  # Distribute between processes based on load
             args.append("--numprocesses=auto")  # Run processes equal to CPU count
+
+            # These have to be added later - after all the rest of the args have been declared
+            additional_paths = gather_paths("tests")
+
+            args.extend(additional_paths)
+
             return args
 
-        args.append("--cov=src")  # Enable coverage tracking for code in the './src'
+        additional_cov_paths = gather_paths("src")
+
+        # args.append("--cov")  # Enable coverage tracking for code in the './src'
+        # Need to specify coverage manually for all the relevant folder
+        for target_path in additional_cov_paths:
+            args.append(f"--cov={target_path}")
+
         args.append("--cov-report=xml:reports/coverage.xml")  # Record coverage summary in XML
 
         if self.is_ci:
@@ -60,10 +74,13 @@ class TestToolchain(ToolChain):
             # Output to html, coverage is the folder containing the output
             args.append("--cov-report=html:coverage")
 
+        additional_test_paths = gather_paths("tests")
+        args.extend(additional_test_paths)
+
         return args
 
 
-def parse_options() -> argparse.Namespace:
+def parse_test_options() -> argparse.Namespace:
     default = "GITHUB_ACTIONS" in os.environ
 
     parser = argparse.ArgumentParser(description="Run tests for mewbot")
@@ -74,8 +91,8 @@ def parse_options() -> argparse.Namespace:
 
 
 if __name__ == "__main__":
-    options = parse_options()
+    options = parse_test_options()
 
-    testing = TestToolchain("tests", in_ci=options.is_ci)
+    testing = TestToolchain(in_ci=options.is_ci)
     testing.coverage = options.coverage
     testing()

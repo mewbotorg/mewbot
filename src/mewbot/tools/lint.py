@@ -11,14 +11,19 @@ from typing import Generator, Set
 import os
 import subprocess
 
-from mewbot.tools import Annotation, ToolChain
+from mewbot.tools import Annotation, ToolChain, gather_paths
 
 
 LEVELS: Set[str] = {"notice", "warning", "error"}
 
 
 class LintToolchain(ToolChain):
-    """Wrapper class for running linting tools, and outputting GitHub annotations"""
+    """
+    Wrapper class for running linting tools, and outputting GitHub annotations.
+    By default, all paths declared to be part of mewbot source - either of the main
+    module or any installed plugins - are linted.
+    Tests are not included by default, but this can be changed by passing lint_tests=True
+    """
 
     def run(self) -> Generator[Annotation, None, None]:
         yield from self.lint_black()
@@ -142,5 +147,7 @@ def lint_black_diffs(
 if __name__ == "__main__":
     is_ci = "GITHUB_ACTIONS" in os.environ
 
-    linter = LintToolchain("src", "tests", in_ci=is_ci)
+    paths = gather_paths("src", "tests")
+
+    linter = LintToolchain(*paths, in_ci=is_ci)
     linter()

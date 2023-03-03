@@ -7,5 +7,5 @@
 PYTHON=${PYTHON:-python3}
 readonly PYTHON
 
-PYTHONPATH="$("$PYTHON" src/mewbot/tools/path.py)"
+PYTHONPATH="$("$PYTHON" src/mewbot/tools/paths.py)"
 export PYTHONPATH
