@@ -13,8 +13,7 @@ import logging
 
 import discord
 
-from mewbot.api.v1 import IOConfig, Input, Output, InputEvent, OutputEvent
-from mewbot.core import InputQueue
+from mewbot.api.v1 import IOConfig, Input, Output, InputEvent, OutputEvent, InputQueue
 
 
 @dataclasses.dataclass

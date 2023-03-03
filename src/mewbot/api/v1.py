@@ -273,4 +273,6 @@ __all__ = [
     "Action",
     "InputEvent",
     "OutputEvent",
+    "InputQueue",
+    "OutputQueue",
 ]

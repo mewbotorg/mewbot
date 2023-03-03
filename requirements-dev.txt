@@ -3,6 +3,12 @@
 # SPDX-License-Identifier: CC0-1.0
 
 -r requirements.txt
+-r requirements-api.txt
+-r requirements-io.txt
+-r requirements-test.txt
+
+# Installation toolchain
+setuptools~=67.4
 
 # Copyright linting toolchain
 reuse~=1.1
@@ -11,17 +17,8 @@ reuse~=1.1
 black>=23.1.0
 flake8>=6.0.0
 pylint>=2.16.0
+pytest-github-actions-annotate-failures>=0.1.7
 
 # Type checking toolchain
 mypy>=0.991
 types-PyYAML~=6.0
-
-# Testing toolchain
-pytest>=7.1.1
-pytest-asyncio~=0.20.3
-pytest-cov>=3.0.0
-pytest-xdist>=2.5.0
-pytest-github-actions-annotate-failures>=0.1.7
-
-# Packaing toolchain
-setuptools~=67.1

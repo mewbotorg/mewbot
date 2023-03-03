@@ -29,9 +29,7 @@ from itertools import cycle
 import aiohttp
 import feedparser  # type: ignore
 
-from mewbot.core import InputEvent, OutputEvent
-
-from mewbot.api.v1 import IOConfig, Input, Output
+from mewbot.api.v1 import IOConfig, Input, Output, InputEvent, OutputEvent
 
 # rss input operates on a polling loop
 # feed read attempts are spread out over the interval
