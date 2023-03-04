@@ -13,6 +13,9 @@ setuptools~=67.4
 # Copyright linting toolchain
 reuse~=1.1
 
+# Documentation toolchain
+pydeps~=1.11.0
+
 # Python Linting toolchain
 black>=23.1.0
 flake8>=6.0.0
