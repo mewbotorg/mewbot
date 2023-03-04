@@ -9,7 +9,7 @@ Run tests using pytest, optionally with coverage information.
 
 The output of these tools will be emitted as GitHub annotations (in CI)
 or default human output (otherwise).
-By default, all test declared to be part of mewbot test suite are run.
+By default, all test declared to be part of mewbot test suite (either core or plugins) are run.
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ class TestToolchain(ToolChain):
 
     The output of these tools will be emitted as GitHub annotations (in CI)
     or default human output (otherwise).
-    By default, all test declared to be part of mewbot test suite are run.
+    By default, all test declared to be part of mewbot test suite (either core or plugins) are run.
     """
 
     coverage: bool = False

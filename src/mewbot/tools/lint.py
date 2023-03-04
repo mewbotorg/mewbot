@@ -9,7 +9,8 @@ Wrapper class for running linting tools.
 
 The output of these tools will be emitted as GitHub annotations (in CI)
 or default human output (otherwise).
-By default, all paths declared to be part of mewbot source or test are linted.
+By default, all paths declared to be part of mewbot source - either of the main
+module or any installed plugins - are linted.
 """
 
 from __future__ import annotations
@@ -32,7 +33,8 @@ class LintToolchain(ToolChain):
 
     The output of these tools will be emitted as GitHub annotations (in CI)
     or default human output (otherwise).
-    By default, all paths declared to be part of mewbot source or test are linted.
+    By default, all paths declared to be part of mewbot source - either of the main
+    module or any installed plugins - are linted.
     """
 
     def run(self) -> Iterable[Annotation]:

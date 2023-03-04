@@ -1,0 +1,2 @@
+# Discord Module
+py-cord~=2.4.0

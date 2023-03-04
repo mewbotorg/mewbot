@@ -1,7 +1,9 @@
+#!/bin/sh
+
 # SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
-"""
-mewbot module top level.
-"""
+. "${0%/*}/path"
+
+exec "$PYTHON" -m mewbot.tools.install_deps "$@"
