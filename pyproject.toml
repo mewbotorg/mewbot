@@ -15,6 +15,13 @@ unsafe-load-any-extension = "no"
 
 jobs=1
 
+[tool.pydocstyle]
+
+convention="pep257"
+add-ignore=["D200", "D202", "D401"]
+add-select=["D204", "D213", "D416", "D417"]
+ignore-self-only-init=true
+
 [tool.pylint."MESSAGES CONTROL"]
 
 disable=[
