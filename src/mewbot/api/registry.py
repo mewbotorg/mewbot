@@ -4,8 +4,16 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
-"""Tooling for recording the creation of implementation classes, allowing
-for lists """
+"""
+Automation for registering components and plugins with a MewBot runner.
+
+Plugins are loaded using the metadata from python packages.
+Any package that exposes a `mewbot-v1` entrypoint will be assumed to contain
+components that can be used.
+
+This module also contains the ABCMeta subclass 'Registry'. All classes that use
+this as their metaclass will be recorded, forming an index of all loaded components.
+"""
 
 from __future__ import annotations
 
@@ -14,12 +22,20 @@ from typing import List, Type, Any, Dict, Optional, Callable, Iterable, Tuple
 import abc
 import uuid
 
+import importlib_metadata
+
 from mewbot.core import ComponentKind, Component
+
+
+API_DISTRIBUTIONS = ["mewbot-v1"]
 
 
 # noinspection PyMethodParameters
 class ComponentRegistry(abc.ABCMeta):
-    """ComponentRegistry is a AbstractBaseClasses MetaClass which instruments
+    """
+    Metaclass for Registering Component Classes.
+
+    ComponentRegistry is a AbstractBaseClasses MetaClass which instruments
     class definition to automatically record and classify classes implementing
     MewBot's interfaces, and then modifies instance creation to assign properties.
 
@@ -44,13 +60,15 @@ class ComponentRegistry(abc.ABCMeta):
     _api_versions: Dict[ComponentKind, Dict[str, Type[Component]]] = {}
 
     def __new__(mcs, name: str, bases: Any, namespace: Any, **k: Any) -> Type[Any]:
+        """
+        Hook for creating a class in this ancestry.
+
+        We confirm that is only implements one API, and then register it for later use
+        """
+
         created_type: Type[Any] = super().__new__(mcs, name, bases, namespace, **k)
 
-        if created_type.__module__ == mcs.__module__:
-            return created_type
-
         api_bases = list(mcs._detect_api_versions(created_type))
-
         if len(api_bases) > 1:
             raise TypeError(
                 f"Class {created_type.__module__}.{created_type.__name__} inherits from two APIs"
@@ -62,8 +80,16 @@ class ComponentRegistry(abc.ABCMeta):
     def __call__(  # type: ignore
         cls: Type[Component], *args: Any, uid: Optional[str] = None, **properties: Any
     ) -> Any:
+        """
+        Meta-constructor for components.
+
+        When an instance of one of the registered class is created, it is assigned
+        a UUID, and any parameters which match properties are initialised.
+        Any remaining properties are then passed to the underlying constructor.
+        """
+
         if cls not in ComponentRegistry.registered:
-            raise TypeError("Attempting to create a non registrable class")
+            raise TypeError("Attempting to create a non registered class")
 
         obj: Any = cls.__new__(cls)  # pylint: disable=no-value-for-parameter
         obj.uuid = uid if uid else uuid.uuid4().hex
@@ -85,6 +111,10 @@ class ComponentRegistry(abc.ABCMeta):
         for prop in to_delete:
             properties.pop(prop)
 
+        # If the remaining args and properties do not match the __init__ function
+        # of the class, this call will TypeError.
+        # For classes created with mewbot.loader, this indicates the wrong number of properties
+        # are specified in the yaml block.
         obj.__init__(*args, **properties)
 
         return obj
@@ -93,13 +123,27 @@ class ComponentRegistry(abc.ABCMeta):
     def register_api_version(
         mcs, kind: ComponentKind, version: str
     ) -> Callable[[Type[Component]], Type[Component]]:
+        """
+        Decorator that registers an (abstract) class as an API implementation.
+
+        The decorated class must be in the registry (generally by using the registry
+        as the metaclass), implement the protocol for the give ComponentKind, and
+        have a unique API version.
+        """
+
         def do_register(api: Type[Component]) -> Type[Component]:
             if api not in mcs.registered:
                 raise TypeError("Can not register an API version from a non-registered class")
 
             if not isinstance(kind, ComponentKind):
                 raise TypeError(
-                    f"Component kind '{kind}' not valid (must be one of {ComponentKind.values()})"
+                    f"Component kind '{kind}' not valid "
+                    f"(must be one of {ComponentKind.values()})"
+                )
+
+            if not version:
+                raise ValueError(
+                    f"Can not register an API class '{api}' without an API version"
                 )
 
             if not issubclass(api, ComponentKind.interface(kind)):
@@ -121,14 +165,48 @@ class ComponentRegistry(abc.ABCMeta):
 
     @classmethod
     def _detect_api_versions(mcs, impl: Type[Any]) -> Iterable[Tuple[ComponentKind, str]]:
+        """Finds all API versions that match a given implementation."""
+
         for kind, apis in mcs._api_versions.items():
             for version, api in apis.items():
                 if issubclass(impl, api):
                     yield kind, version
 
     @classmethod
-    def api_version(mcs, component: Component) -> Tuple[ComponentKind, str]:
-        for val in mcs._detect_api_versions(type(component)):
+    def api_version(mcs, component: Component | Type[Component]) -> Tuple[ComponentKind, str]:
+        """
+        Gets the Component Kind (e.g. 'Behaviour') and API version (e.g. 'v1') from a component.
+
+        This function will only return the first matched type, as per the Registry's
+        'one base type' constraint.
+        """
+
+        if not isinstance(component, type):
+            component = type(component)
+
+        for val in mcs._detect_api_versions(component):
             return val
 
         raise ValueError(f"No API version for {component}")
+
+    @staticmethod
+    def load_and_register_modules(name: Optional[str] = None) -> Iterable[Any]:
+        """
+        Load modules from setuptools that declare an entrypoint with a supported API.
+
+        This looks at the entrypoints of all modules which are locatable with
+        importlib,
+
+        :param str name: if given, loads only plugins with the given `name`.
+        :return: the loaded objects.
+        """
+        for distribution in importlib_metadata.distributions():  # type: ignore
+            for entry_point in distribution.entry_points:
+                if entry_point.group not in API_DISTRIBUTIONS:
+                    continue
+
+                # No coverage from here, as not guarantee modules will be installed to load.
+                if name and entry_point.name != name:  # pragma: no cover
+                    continue
+
+                yield entry_point.load()  # pragma: no cover
