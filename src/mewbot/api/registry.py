@@ -17,7 +17,7 @@ this as their metaclass will be recorded, forming an index of all loaded compone
 
 from __future__ import annotations
 
-from typing import List, Type, Any, Dict, Optional, Callable, Iterable, Tuple
+from typing import Any, Callable, Iterable
 
 import abc
 import uuid
@@ -40,7 +40,7 @@ class ComponentRegistry(abc.ABCMeta):
     MewBot's interfaces, and then modifies instance creation to assign properties.
 
     A base class, or API version, is registered using the
-    ComponentRegistry.register_api_version decorator, which maps a Interface
+    ComponentRegistry.register_api_version decorator, which maps an Interface
     and API version to that base class. Any class which extends that base class
     will be registered, and can then be seen in the registered class list for
     that interface.
@@ -54,19 +54,19 @@ class ComponentRegistry(abc.ABCMeta):
     Any remaining properties are then passed to the underlying constructor.
     """
 
-    registered: List[Type[Any]] = []
+    registered: list[type[Any]] = []
     uuid: str  # This property is unused but fixes some linting issues in __call__
 
-    _api_versions: Dict[ComponentKind, Dict[str, Type[Component]]] = {}
+    _api_versions: dict[ComponentKind, dict[str, type[Component]]] = {}
 
-    def __new__(mcs, name: str, bases: Any, namespace: Any, **k: Any) -> Type[Any]:
+    def __new__(mcs, name: str, bases: Any, namespace: Any, **k: Any) -> type[Any]:
         """
         Hook for creating a class in this ancestry.
 
         We confirm that is only implements one API, and then register it for later use
         """
 
-        created_type: Type[Any] = super().__new__(mcs, name, bases, namespace, **k)
+        created_type: type[Any] = super().__new__(mcs, name, bases, namespace, **k)
 
         api_bases = list(mcs._detect_api_versions(created_type))
         if len(api_bases) > 1:
@@ -78,7 +78,7 @@ class ComponentRegistry(abc.ABCMeta):
         return created_type
 
     def __call__(  # type: ignore
-        cls: Type[Component], *args: Any, uid: Optional[str] = None, **properties: Any
+        cls: type[Component], *args: Any, uid: str | None = None, **properties: Any
     ) -> Any:
         """
         Meta-constructor for components.
@@ -122,7 +122,7 @@ class ComponentRegistry(abc.ABCMeta):
     @classmethod
     def register_api_version(
         mcs, kind: ComponentKind, version: str
-    ) -> Callable[[Type[Component]], Type[Component]]:
+    ) -> Callable[[type[Component]], type[Component]]:
         """
         Decorator that registers an (abstract) class as an API implementation.
 
@@ -131,7 +131,7 @@ class ComponentRegistry(abc.ABCMeta):
         have a unique API version.
         """
 
-        def do_register(api: Type[Component]) -> Type[Component]:
+        def do_register(api: type[Component]) -> type[Component]:
             if api not in mcs.registered:
                 raise TypeError("Can not register an API version from a non-registered class")
 
@@ -164,8 +164,8 @@ class ComponentRegistry(abc.ABCMeta):
         return do_register
 
     @classmethod
-    def _detect_api_versions(mcs, impl: Type[Any]) -> Iterable[Tuple[ComponentKind, str]]:
-        """Finds all API versions that match a given implementation."""
+    def _detect_api_versions(mcs, impl: type) -> Iterable[tuple[ComponentKind, str]]:
+        """Finds the API version that is provided by a given implementation class."""
 
         for kind, apis in mcs._api_versions.items():
             for version, api in apis.items():
@@ -173,7 +173,7 @@ class ComponentRegistry(abc.ABCMeta):
                     yield kind, version
 
     @classmethod
-    def api_version(mcs, component: Component | Type[Component]) -> Tuple[ComponentKind, str]:
+    def api_version(mcs, component: Component | type[Component]) -> tuple[ComponentKind, str]:
         """
         Gets the Component Kind (e.g. 'Behaviour') and API version (e.g. 'v1') from a component.
 
@@ -184,13 +184,15 @@ class ComponentRegistry(abc.ABCMeta):
         if not isinstance(component, type):
             component = type(component)
 
-        for val in mcs._detect_api_versions(component):
-            return val
+        apis = list(mcs._detect_api_versions(component))
 
-        raise ValueError(f"No API version for {component}")
+        if len(apis) != 1:
+            raise ValueError(f"No API version for {component}")
+
+        return apis[0]
 
     @staticmethod
-    def load_and_register_modules(name: Optional[str] = None) -> Iterable[Any]:
+    def load_and_register_modules(name: str | None = None) -> Iterable[Any]:
         """
         Load modules from setuptools that declare an entrypoint with a supported API.
 
