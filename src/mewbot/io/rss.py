@@ -118,6 +118,10 @@ class RSSIO(IOConfig):
 
     @property
     def polling_every(self) -> int:
+        """
+        Number of seconds between each time a site in the polling list is polled.
+        :return:
+        """
         return self._polling_every
 
     @polling_every.setter
@@ -126,6 +130,11 @@ class RSSIO(IOConfig):
 
     @property
     def sites(self) -> List[str]:
+        """
+        Get a list of the sites which are currently being polled.
+        Note - changing the return of this function DOES NOT change which sites are being polled.
+        :return:
+        """
         return self._sites
 
     @sites.setter
@@ -177,6 +186,12 @@ class RSSInputState:
 
     @property
     def sites(self) -> List[str]:
+        """
+        Sites which are currently being polled.
+        Note - changing the return of this _will not_ change the sites currently being polled.
+        Please explicitly change the attribute for that.
+        :return:
+        """
         return self._sites
 
     @sites.setter
@@ -188,14 +203,29 @@ class RSSInputState:
 
     @property
     def sites_iter(self) -> Iterable[str]:
+        """
+        Iterable of the sites currently being polled.
+        Note - mutating this _will not_ change the sites currently being polled.
+        :return:
+        """
         return self._sites_iter
 
     @property
     def sites_started(self) -> Set[str]:
+        """
+        Sites which have been started (i.e. the initial number of entries read and sent).
+        Note - changing the return of this _will_ change what sites are registered as having been
+        started.
+        :return:
+        """
         return self._sites_started
 
     @property
     def sent_entries_size(self) -> int:
+        """
+        The number of entries which have been put on the wire.
+        :return:
+        """
         return len(self._sent_entries)
 
     def note_site_started(self, site_started: str) -> None:
@@ -288,6 +318,11 @@ class RSSInput(Input):
 
     @property
     def sites(self) -> List[str]:
+        """
+        List of sites currently being polled by this runner.
+        Note - changing the return object for this _will_ change what sites are being polled.
+        :return:
+        """
         return self.state.sites
 
     @sites.setter
@@ -305,6 +340,11 @@ class RSSInput(Input):
 
     @property
     def polling_every(self) -> int:
+        """
+        Interval between polling each of the sites in the sites list.
+        (Thus every site will be polled once each _this_ number of seconds).
+        :return:
+        """
         return self._polling_every
 
     @polling_every.setter
@@ -313,6 +353,10 @@ class RSSInput(Input):
 
     @property
     def loop(self) -> asyncio.events.AbstractEventLoop:
+        """
+        Return the main event loop for this process.
+        :return:
+        """
         if self._loop is not None:
             return self._loop
         self._loop = asyncio.get_running_loop()
@@ -426,6 +470,11 @@ class RSSInput(Input):
         self.state.note_site_started(site_url)
 
     async def poll_site_feed(self, site_url: str) -> None:
+        """
+        Preform a poll of an individual site's feed.
+        :param site_url:
+        :return:
+        """
         self._logger.info("Reading from site %s", site_url)
 
         # Read the site feed
@@ -558,7 +607,7 @@ class RSSInputEventFactory:
         problem_list: List[str],
     ) -> str:
         """
-        Extract a field from an rss entry.
+        Extract a field from an RSS entry.
         """
         try:
             entry_attr = getattr(entry, attr_name)
@@ -570,6 +619,13 @@ class RSSInputEventFactory:
 
     @staticmethod
     def extract_enclosure(entry: feedparser.util.FeedParserDict) -> str:
+        """
+        Presented as an optional method because this is an optional attribute.
+        As such, there is no logging if this method fails. It will just return the
+        :var ENCLOSURE_NOT_SET_STR:.
+        :param entry:
+        :return:
+        """
         try:
             entry_enclosure = entry.enclosure
         except AttributeError:
@@ -582,7 +638,12 @@ class RSSInputEventFactory:
         self, entry: feedparser.util.FeedParserDict, site_url: str, problem_list: List[str]
     ) -> str:
         """
-        We always need some form of guid - so using a method with a fallback
+        We always need some form of guid - so using a method with a fallback which will always
+        generate _something_ - hopefully - unique to the entry.
+        :param entry:
+        :param site_url:
+        :param problem_list:
+        :return:
         """
 
         # guid - there are no rules for this syntax
@@ -608,6 +669,17 @@ class RSSInputEventFactory:
     def extract_pubdate(
         self, entry: feedparser.util.FeedParserDict, site_url: str, problem_list: List[str]
     ) -> str:
+        """
+        Extract the pubdate from an RSS entry.
+        Presented as a separate method to allow higher level logging ("warning", not "info") if
+        this fails.
+        (This should _never_ fail - if it does, one of the sites being polled is producing
+        malformed RSS).
+        :param entry:
+        :param site_url:
+        :param problem_list:
+        :return:
+        """
         # pubDate - if this is not being set, something is badly wrong
         try:
             entry_pubdate = entry.pubDate

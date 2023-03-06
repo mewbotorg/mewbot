@@ -93,7 +93,26 @@ class ComponentRegistry(abc.ABCMeta):
     def register_api_version(
         mcs, kind: ComponentKind, version: str
     ) -> Callable[[Type[Component]], Type[Component]]:
+        """
+        Returns a helper function to register a decorated mewbot component.
+        This helper function, at a minimum
+        1) Checks the decorated component
+         - has been registered (by subclassing a known mewbot component or another way)
+         - is a known kind of component as registered with the :class ComponentKind:
+         - meets the api contract of whatever component it's claiming to be
+        2) If these parameters are met, allows the class to be entered on the registry.
+        This has the effect of mapping an Interface and API version to that base class.
+        :param kind: Enumeration of all the meta-types of Component.
+        :param version: Version of the api the component claims to adhere to
+        :return:
+        """
+
         def do_register(api: Type[Component]) -> Type[Component]:
+            """
+            See the doc string of the function which returns this function.
+            :param api:
+            :return:
+            """
             if api not in mcs.registered:
                 raise TypeError("Can not register an API version from a non-registered class")
 
@@ -128,6 +147,11 @@ class ComponentRegistry(abc.ABCMeta):
 
     @classmethod
     def api_version(mcs, component: Component) -> Tuple[ComponentKind, str]:
+        """
+        Returns the current, registered, api version of the given component.
+        :param component: mewbot component, with an api
+        :return (ComponentKind, api_version):
+        """
         for val in mcs._detect_api_versions(type(component)):
             return val
 

@@ -35,6 +35,11 @@ class SocketIO(IOConfig):
 
     @property
     def host(self) -> str:
+        """
+        Returns the host this IOConfig will listen on.
+        The port this IOConfig will listen is given by :meth port:.
+        :return:
+        """
         return self._host
 
     @host.setter
@@ -43,6 +48,10 @@ class SocketIO(IOConfig):
 
     @property
     def port(self) -> int:
+        """
+        Returns the port this IOConfig will listen on.
+        :return:
+        """
         return self._port
 
     @port.setter
@@ -106,6 +115,15 @@ class SocketInput(Input):
     async def handle_client(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     ) -> None:
+        """
+        Accept a connection from a client.
+        Read the incoming data.
+        Put it on the wire.
+        Write a confirmation message noting receipt to the original host.
+        :param reader:
+        :param writer:
+        :return:
+        """
         self._logger.info("Accepting connection from %s", reader)
 
         while not reader.at_eof():

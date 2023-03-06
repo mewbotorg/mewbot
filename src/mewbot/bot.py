@@ -41,6 +41,11 @@ class Bot:
         self._datastores = {}
 
     def run(self) -> None:
+        """
+        Start the Bot.
+        This involves the creation of a :class BotRunner: instance, which will then be run.
+        :return:
+        """
         runner = BotRunner(
             self._marshal_behaviours(),
             self._marshal_inputs(),
@@ -49,12 +54,32 @@ class Bot:
         runner.run()
 
     def add_io_config(self, ioc: IOConfigInterface) -> None:
+        """
+        Add a :class IOConfig: to the Bot.
+        This method should only be used _before_ the Bot is running.
+        Calls to this method when the Bot is running may produce undefined behavior.
+        :param ioc:
+        :return:
+        """
         self._io_configs.append(ioc)
 
     def add_behaviour(self, behaviour: BehaviourInterface) -> None:
+        """
+        Add a :class Behaviour: to the Bot.
+        This should be only used _before_ the bot is running.
+        Calls to this method when the Bot is running may produce undefined behavior.
+        :param behaviour:
+        :return:
+        """
         self._behaviours.append(behaviour)
 
     def get_data_source(self, name: str) -> Optional[DataSource[Any]]:
+        """
+        Retrieve a :class DataSource: - by name - from the Bot's internal stores.
+        Returns None if no :class DataSource: with that name is found.
+        :param name:
+        :return:
+        """
         return self._datastores.get(name)
 
     def _marshal_behaviours(self) -> Dict[Type[InputEvent], Set[BehaviourInterface]]:
@@ -112,6 +137,15 @@ class BotRunner:
         self.behaviours = behaviours
 
     def run(self, _loop: Optional[asyncio.AbstractEventLoop] = None) -> None:
+        """
+        Run the bot.
+        This will include, but may not be limited to
+         - starting all input tasks - which listen for inputs using the various IOConfigs defined
+           in the yaml blocks which compose this bot
+         - adding the input handlers to enable this loop to gracefully shut down
+        :param _loop:
+        :return:
+        """
         if self._running:
             raise RuntimeError("Bot is already running")
 
@@ -121,6 +155,11 @@ class BotRunner:
         self._running = True
 
         def stop(info: Optional[Any] = None) -> None:
+            """
+            Responsible for shutting down the loop and signalling that this bot has stopped.
+            :param info:
+            :return:
+            """
             self.logger.warning("Stop called: %s", info)
             if self._running and loop.is_running():
                 self.logger.info("Stopping loop run")
@@ -160,6 +199,13 @@ class BotRunner:
             None,
         ],
     ) -> None:
+        """
+        Add signal handlers to allow the loop to be gracefully stopped.
+        (If this is possible - currently only possible on posix environments).
+        :param loop:
+        :param stop:
+        :return:
+        """
         try:
             loop.add_signal_handler(signal.SIGINT, stop)
         except NotImplementedError:
@@ -172,6 +218,12 @@ class BotRunner:
             pass
 
     def setup_tasks(self, loop: asyncio.AbstractEventLoop) -> List[asyncio.Task[None]]:
+        """
+        Prepare all tasks to allow the bot to start.
+        Tasks include, but may not be limited to, inputs, behaviors (and, through them) outputs.
+        :param loop:
+        :return:
+        """
         input_tasks: List[asyncio.Task[None]] = []
 
         # Startup the outputs - which are contained in the behaviors
@@ -188,6 +240,12 @@ class BotRunner:
         return input_tasks
 
     async def process_input_queue(self) -> None:
+        """
+        Pulls events off the input queue.
+        Matches events to the behaviors which can process them.
+        Awaits the behaviour.process call to allow the behaviour time to respond to the event.
+        :return:
+        """
         while self._running:
             try:
                 event = await asyncio.wait_for(self.input_event_queue.get(), 5)
@@ -200,6 +258,12 @@ class BotRunner:
                         await behaviour.process(event)
 
     async def process_output_queue(self) -> None:
+        """
+        Consumes events off the output queue.
+        Matches these events to the outputs which can handle events of that type.
+        Calls the outputs' output method to transmit the contents of that message to the world.
+        :return:
+        """
         while self._running:
             try:
                 event = await asyncio.wait_for(self.output_event_queue.get(), 5)

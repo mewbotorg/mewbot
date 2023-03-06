@@ -81,6 +81,10 @@ class DiscordIO(IOConfig):
 
     @property
     def token(self) -> str:
+        """
+        The token this IOCofig is using to log into Discord.
+        :return:
+        """
         return self._token
 
     @token.setter
@@ -89,6 +93,13 @@ class DiscordIO(IOConfig):
 
     @property
     def startup_queue_depth(self) -> int:
+        """
+        On startup, this many messages will be retrieved and put on the wire.
+        Messages will be retrieved from all channels this IOConfig is aware of.
+        Note - this represents the TOTAL number of messages retrieved, not the PER CHANNEL number.
+        There is currently no way to setting a per channel number.
+        :return:
+        """
         return self._startup_queue_depth
 
     @startup_queue_depth.setter

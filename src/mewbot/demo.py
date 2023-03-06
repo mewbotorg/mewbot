@@ -10,6 +10,10 @@ from mewbot.api.v1 import Condition, Trigger, Action, InputEvent, OutputEvent
 
 
 class Foo(Condition):
+    """
+    Example, trivial, condition.
+    """
+
     @staticmethod
     def consumes_inputs() -> Set[Type[InputEvent]]:
         return set()
@@ -18,6 +22,10 @@ class Foo(Condition):
 
     @property
     def channel(self) -> str:
+        """
+        string representation of the channel this Condition acts on.
+        :return:
+        """
         return self._channel
 
     @channel.setter
