@@ -29,6 +29,13 @@ logging.basicConfig(level=logging.INFO)
 
 
 class Bot:
+    """
+    Fundamental object of mewbot.
+    Everything else is tooling to construct and run (at least one) Bot.
+    Contains all IOConfigs, Behaviours, DataSources e.t.c defined by the yaml specification for
+    this bot.
+    """
+
     name: str  # The bot's name
     _io_configs: List[IOConfigInterface]  # Connections to bot makes to other services
     _behaviours: List[BehaviourInterface]  # All the things the bot does
@@ -112,6 +119,13 @@ class Bot:
 
 
 class BotRunner:
+    """
+    Responsible for running this programs interaction with the world.
+    The :class Bot: exists to marshall all information concerning its setup.
+    It then initialises this class - which runs all the subcomponents of the bot.
+    This class is responsible for all interactions of this program with the outside world.
+    """
+
     input_event_queue: InputQueue
     output_event_queue: OutputQueue
 

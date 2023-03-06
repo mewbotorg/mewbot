@@ -29,6 +29,10 @@ from mewbot.io.socket import SocketIO, SocketInput
 
 @dataclasses.dataclass  # Needed for pycharm linting
 class IncomingWebhookEvent(InputEvent):
+    """
+    Data has been sent to a port on a host mewbot is monitoring.
+    """
+
     text: str
 
 

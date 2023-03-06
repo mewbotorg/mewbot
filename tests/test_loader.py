@@ -24,6 +24,10 @@ CONFIG_YAML = "examples/trivial_http_post.yaml"
 
 
 class TestLoader:
+    """
+    Tests the load_component method fails when passed bad ConfigBlocks
+    """
+
     @staticmethod
     def test_empty_config() -> None:
         """
@@ -51,7 +55,10 @@ class TestLoader:
 
 
 class TestLoaderConfigureBot:
-    # Test this working
+    """
+    Tests basic loading a bot from a valid yaml configuration file.
+    """
+
     @staticmethod
     def test_config_type() -> None:
         """
@@ -67,7 +74,6 @@ class TestLoaderConfigureBot:
             obj for obj in config if obj["implementation"] == "mewbot.api.v1.Behaviour"
         )
 
-    # Test this working
     @staticmethod
     def test_working() -> None:
         """
@@ -153,8 +159,11 @@ class TestLoaderHttpsPost(BaseTestClassWithConfig[HTTPServlet]):
             _ = load_component(this_config)
 
 
-# Test for mewbot.loader.load_behaviour
 class TestLoaderBehaviourHttpPost(BaseTestClassWithConfig[Behaviour]):
+    """
+    Tests loading a Behaviour from the HttpPost example bot.
+    """
+
     config_file: str = CONFIG_YAML
     implementation: Type[Behaviour] = Behaviour
 

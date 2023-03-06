@@ -21,7 +21,10 @@ from mewbot.core import (
 
 
 class TestComponent:
-    # Test a set of what interface passing succeeds and fails
+    """
+    Test a set of what interface passing succeeds and fails.
+    """
+
     @staticmethod
     def test_componentkind_interface_map_behaviour() -> None:
         """

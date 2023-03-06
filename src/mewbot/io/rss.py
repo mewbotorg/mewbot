@@ -83,6 +83,11 @@ class RSSInputEvent(InputEvent):
 
 @dataclasses.dataclass
 class RSSOutputEvent(OutputEvent):
+    """
+    NOT CURRENTLY SUPPORTED
+    Put an event on the internal RSS feed maintained by the IOConfig.
+    """
+
     # pylint: disable=too-many-instance-attributes
     # Want to fully represent the core RSS standard
 
@@ -99,6 +104,10 @@ class RSSOutputEvent(OutputEvent):
 
 
 class RSSIO(IOConfig):
+    """
+    IOConfig to read from RSS feeds.
+    """
+
     _input: Optional[RSSInput] = None
     _output: None
 
@@ -165,6 +174,13 @@ class RSSIO(IOConfig):
 
 @dataclasses.dataclass
 class RSSInputState:
+    """
+    State of the sites being monitored
+     - which sites are currently being polled
+     - which sites have been started (historic entries retrieved and put on the wire)
+     - which entries have been put on the wire in total
+    """
+
     _sites: List[str]  # A list of sites to poll for RSS update events
     _sites_iter: Iterable[str]
     _sites_started: Set[str]  # sites which have undergone startup

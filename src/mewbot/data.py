@@ -62,6 +62,12 @@ class DataSource(Generic[DataType], abc.ABC):
 
 
 class DataModerationState(enum.IntEnum):
+    """
+    In the case that data for a source must undergo moderation
+     - has that moderation occurred?
+     - if it has, what is the outcome?
+    """
+
     APPROVED = 1
     PENDING = 0
     REJECTED = -1
@@ -69,6 +75,10 @@ class DataModerationState(enum.IntEnum):
 
 @dataclasses.dataclass
 class DataRecord(Generic[DataType]):
+    """
+    Represents an individual entry in a :class DataSource: - an individual piece of data.
+    """
+
     value: DataType
     created: datetime.datetime
     status: DataModerationState
@@ -76,4 +86,6 @@ class DataRecord(Generic[DataType]):
 
 
 class DataStore(Generic[DataType], DataSource[DataRecord[DataType]]):
-    pass
+    """
+    A wrapped DataSource which can be queried.
+    """

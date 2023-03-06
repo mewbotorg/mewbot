@@ -19,6 +19,14 @@ T_co = TypeVar("T_co", bound=Component, covariant=True)
 
 
 class BaseTestClassWithConfig(ABC, Generic[T_co]):
+    """
+    Base for a class of tests designed to test components in isolation.
+     - loads a configuration from a config file
+     - isolates a particular component from within that config file
+     - (determined by overriding implementation with the class type you want to examine)
+     - presents that component, along with the yaml which defines it, for testing
+    """
+
     config_file: str
     implementation: Type[T_co]
     _config: Optional[ConfigBlock] = None

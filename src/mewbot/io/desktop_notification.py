@@ -36,6 +36,11 @@ class DesktopNotificationOutputEvent(OutputEvent):
 
 
 class DesktopNotificationIO(IOConfig):
+    """
+    IOConfig which provides an output which will produce a desktop notification on supported
+    systems.
+    """
+
     _input: None
     _output: Optional[DesktopNotificationOutput] = None
 
@@ -56,6 +61,10 @@ class DesktopNotificationIO(IOConfig):
 
 
 class DesktopNotificationOutput(Output):
+    """
+    Output which will produce desktop notifications on supported systems.
+    """
+
     _engine: DesktopNotificationOutputEngine
     _logger: logging.Logger
 

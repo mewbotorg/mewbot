@@ -18,10 +18,18 @@ from mewbot.api.v1 import Input, InputEvent, IOConfig, Output
 
 @dataclasses.dataclass
 class SocketInputEvent(InputEvent):
+    """
+    Event generated when data is sent to a monitored socket.
+    """
+
     data: bytes
 
 
 class SocketIO(IOConfig):
+    """
+    IOConfig which supports receiving data sent to a socket.
+    """
+
     _host: str = "localhost"
     _port: int = 0
 

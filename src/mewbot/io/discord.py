@@ -18,7 +18,9 @@ from mewbot.api.v1 import IOConfig, Input, Output, InputEvent, OutputEvent, Inpu
 
 @dataclasses.dataclass
 class DiscordInputEvent(InputEvent):
-    pass
+    """
+    Base class for an event occurring on a monitored discord server.
+    """
 
 
 @dataclasses.dataclass
@@ -58,6 +60,11 @@ class DiscordMessageEditInputEvent(DiscordInputEvent):
 
 @dataclasses.dataclass
 class DiscordMessageDeleteInputEvent(DiscordInputEvent):
+    """
+    Class which represents a deletion of an existing message being detected in any of the channels
+    that the bot is connected to.
+    """
+
     text_before: str
     message: discord.Message
 
@@ -74,6 +81,10 @@ class DiscordOutputEvent(OutputEvent):
 
 
 class DiscordIO(IOConfig):
+    """
+    IOConfig for reading and writing to Discord.
+    """
+
     _input: Optional[DiscordInput] = None
     _output: Optional[DiscordOutput] = None
     _token: str = ""
@@ -179,6 +190,11 @@ class DiscordInput(Input):
 
 
 class InternalMewbotDiscordClient(discord.Client):
+    """
+    discord.Client with overrode methods to actually interact with mewbot.
+    (In particular, methods have been overridden to write events to the InputQueue when they occur)
+    """
+
     _logger: logging.Logger
     _startup_queue_depth: int
 
@@ -305,6 +321,10 @@ class InternalMewbotDiscordClient(discord.Client):
 
 
 class DiscordOutput(Output):
+    """
+    Output class to write events to connected Discord servers.
+    """
+
     @staticmethod
     def consumes_outputs() -> Set[Type[OutputEvent]]:
         """
