@@ -2,6 +2,12 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Provides tests for mewbot core operations.
+In particular, that the interfaces for the various components match expectations.
+"""
+
+
 from __future__ import annotations
 
 import pytest
@@ -14,6 +20,8 @@ from mewbot.core import (
     ActionInterface,
     IOConfigInterface,
 )
+
+
 
 # pragma pylint: disable=R0903
 #  Disable "too few public methods" for test cases - most test files will be classes used for
