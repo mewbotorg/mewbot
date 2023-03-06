@@ -192,23 +192,45 @@ class ComponentRegistry(abc.ABCMeta):
         return apis[0]
 
     @staticmethod
-    def load_and_register_modules(name: str | None = None) -> Iterable[Any]:
+    def load_and_register_modules() -> Iterable[Any]:
         """
         Load modules from setuptools that declare an entrypoint with a supported API.
 
         This looks at the entrypoints of all modules which are locatable with
-        importlib,
+        importlib, and looks at their defined entry points. If a module matches
+        a known entry point type, it is imported. Classes that are in the registry's
+        ancestry will be automatically added to the registry for easy code discovery.
 
-        :param str name: if given, loads only plugins with the given `name`.
-        :return: the loaded objects.
+        :return: the loaded modules.
         """
+
+        distribution: importlib_metadata.Distribution
+
         for distribution in importlib_metadata.distributions():  # type: ignore
             for entry_point in distribution.entry_points:
                 if entry_point.group not in API_DISTRIBUTIONS:
                     continue
 
-                # No coverage from here, as not guarantee modules will be installed to load.
-                if name and entry_point.name != name:  # pragma: no cover
-                    continue
-
                 yield entry_point.load()  # pragma: no cover
+
+    @staticmethod
+    def require_package(name: str) -> Any:
+        """
+        Loads a named package (distribution) which presents a MewBot entrypoint.
+
+        This function is intended to help debug plugin loading by requiring that
+        the load operations succeeds, and throwing some form of exception otherwise.
+
+        :return: the loaded module.
+        """
+
+        distribution: importlib_metadata.Distribution
+        distribution = importlib_metadata.distribution(name)  # type: ignore
+
+        for entry_point in distribution.entry_points:
+            if entry_point.group in API_DISTRIBUTIONS:
+                return entry_point.load()  # pragma: no cover
+
+        raise ModuleNotFoundError(
+            f"Distribution {name} does not implement any known API ({API_DISTRIBUTIONS})"
+        )

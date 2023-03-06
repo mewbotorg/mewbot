@@ -192,3 +192,13 @@ class TestRegistry:
         modules = list(ComponentRegistry.load_and_register_modules())
 
         assert isinstance(modules, list)
+
+    @staticmethod
+    def test_require_package_not_installed() -> None:
+        with pytest.raises(ModuleNotFoundError, match="No package metadata was found for fdfdsfsd"):
+            ComponentRegistry.require_package("fdfdsfsd")
+
+    @staticmethod
+    def test_require_package_no_entrypoint() -> None:
+        with pytest.raises(ModuleNotFoundError, match="Distribution pytest does not implement any known API .*"):
+            ComponentRegistry.require_package("pytest")
