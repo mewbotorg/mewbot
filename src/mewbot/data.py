@@ -4,6 +4,12 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Provides core classes for DataSources and the DataStores that power them.
+This allows mewbot bots to store persistent data and draw from other data sources when it comes
+time to construct responses to InputEvents.
+"""
+
 from __future__ import annotations
 
 from typing import Union, Generic, Sequence, TypeVar
@@ -87,5 +93,5 @@ class DataRecord(Generic[DataType]):
 
 class DataStore(Generic[DataType], DataSource[DataRecord[DataType]]):
     """
-    A wrapped DataSource which can be queried.
+    A wrapped DataSource(s) which can be queried.
     """

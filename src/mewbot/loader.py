@@ -4,6 +4,11 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Provides functions to load mewbot components from yaml.
+All functions whic transform definitional yaml into components for use should go here.
+"""
+
 from __future__ import annotations
 
 from typing import Any, TextIO, Type

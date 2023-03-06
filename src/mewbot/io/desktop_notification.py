@@ -4,6 +4,11 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Provides an IOConfig which provides the capability to produce desktop notifications on (most)
+systems from mewbot OutputEvents.
+"""
+
 from __future__ import annotations
 
 from typing import Optional, Set, Sequence, Type, Any

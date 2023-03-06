@@ -7,6 +7,12 @@
 # pylint: disable=duplicate-code
 # this is an example - duplication for emphasis is desirable
 
+"""
+Provides pyton support functions for the discord_to_desktop_notification.yaml example bot.
+Trivial example of a bot to trigger a desktop notification whenever a message with certain contents
+is detected in any of the channels which this bot has access to.
+"""
+
 from __future__ import annotations
 
 from typing import Any, Dict, Set, Type

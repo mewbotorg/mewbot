@@ -8,6 +8,14 @@
 # this is an example - duplication for emphasis is desirable
 # A minimum viable discord bot - which just responds with a set message to every input
 
+"""
+Provides python support functions for the trivial_discord_bot.yaml bot example.
+This is trivial bot which listens to all channels it has access to.
+In the even that it detects a message matching a string given in the yaml it will respond with a
+string also given in the yaml.
+"""
+
+
 from __future__ import annotations
 
 from typing import Any, Dict, Set, Type

@@ -22,7 +22,6 @@ from mewbot.core import (
 )
 
 
-
 # pragma pylint: disable=R0903
 #  Disable "too few public methods" for test cases - most test files will be classes used for
 #  grouping and then individual tests alongside these

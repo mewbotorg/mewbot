@@ -4,6 +4,11 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Provides an IOConfig which can poll RSS feeds and produce InputEvents from them.
+Currently, can only read from a list of RSS feeds which it regularly polls.
+"""
+
 from __future__ import annotations
 
 from typing import (

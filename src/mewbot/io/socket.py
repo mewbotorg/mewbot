@@ -4,6 +4,11 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Provides an IOConfig which listens on a host-socket combination for traffic.
+If data is recieved, will acknowledge and generate an InputEvent containing it.
+"""
+
 from __future__ import annotations
 
 from typing import Optional, Sequence, Set, Type

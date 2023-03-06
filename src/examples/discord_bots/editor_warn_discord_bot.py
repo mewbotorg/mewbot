@@ -8,6 +8,14 @@
 # this is an example - duplication for emphasis is desirable
 # Aims to expose the full capabilities of this discord bot framework
 
+"""
+Provides python support functions for the editor_warn_discord_bot.yaml example bot.
+Bot which warns the user when there has been a message edit event in any of the channels which
+this bot has access to.
+If message is in the discord cache, then the message contents before they were edited will be
+provided, along with the current contents of the message.
+"""
+
 from __future__ import annotations
 
 from typing import Any, Dict, Set, Type

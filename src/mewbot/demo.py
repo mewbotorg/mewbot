@@ -2,6 +2,11 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Primitive example elements which demonstrate some of the most basic mewbot objects.
+This common elements are often used in various of the examples.
+"""
+
 from __future__ import annotations
 
 from typing import Set, Type, Dict, Any

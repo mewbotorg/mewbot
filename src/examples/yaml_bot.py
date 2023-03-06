@@ -4,6 +4,10 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Basic example of how to load a mewbot component from yaml.
+"""
+
 from __future__ import annotations
 
 from mewbot.demo import Foo

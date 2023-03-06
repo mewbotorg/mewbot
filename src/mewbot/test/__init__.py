@@ -4,6 +4,10 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Provides support classes and objects for mewbot tests.
+"""
+
 from __future__ import annotations
 
 from typing import Generic, Optional, Type, TypeVar

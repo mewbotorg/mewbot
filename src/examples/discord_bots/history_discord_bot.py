@@ -8,6 +8,14 @@
 # this is an example - duplication for emphasis is desirable
 # Aims to expose the full capabilities of this discord bot framework
 
+"""
+Provides supporting pyton functions for the history_discord_bot.yaml example.
+Which demonstrates that the DiscordIO config can retrieve a set number of discord events from
+the past when the bot starts up.
+Note - would be nice to set a number per channel as well as a global number.
+"""
+
+
 from __future__ import annotations
 
 from typing import Any, Dict, Set, Type

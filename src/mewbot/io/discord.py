@@ -4,6 +4,10 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Provides an IOConfig for listening to and responding to discord message channels.
+"""
+
 from __future__ import annotations
 
 from typing import Optional, Set, Sequence, Type, List

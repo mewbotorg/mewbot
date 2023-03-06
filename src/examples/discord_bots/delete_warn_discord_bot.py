@@ -8,6 +8,15 @@
 # this is an example - duplication for emphasis is desirable
 # Aims to expose the full capabilities of this discord bot framework
 
+"""
+Provides python support functions for the delete_warn_discord_bot.yaml example.
+Bot which warns the user when there has been a message deletion event in any of the channels which
+this bot has access to.
+If message is in the discord cache, then the message contents that where deleted will also be
+provided.
+"""
+
+
 from __future__ import annotations
 
 from typing import Any, Dict, Set, Type

@@ -2,6 +2,10 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Tests the modules which load mewbot components from yaml configurations.
+"""
+
 from __future__ import annotations
 
 from typing import Type

@@ -9,6 +9,11 @@
 
 # https://www.theguardian.com/world/rss
 
+"""
+Utility methods to support the rss_input example
+An IOConfig for driving behavior based off RSS feeds.
+"""
+
 from typing import Any, Dict, Set, Type
 
 from mewbot.api.v1 import Action
