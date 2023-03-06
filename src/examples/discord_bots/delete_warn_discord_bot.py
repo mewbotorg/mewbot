@@ -65,6 +65,11 @@ class DiscordDeleteResponseAction(Action):
 
     @property
     def message(self) -> str:
+        """
+        Message for this warning should be provided as a static string.
+        Note - not sure this is currently used!
+        :return:
+        """
         return self._message
 
     @message.setter

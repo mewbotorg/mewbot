@@ -32,6 +32,14 @@ class DiscordTextCommandTrigger(Trigger):
 
     @property
     def command(self) -> str:
+        """
+        The command str to trigger the desktop notification with.
+        The command this function will respond to can be customized in yaml.
+        Any message with contents which matches this will trigger a desktop notification.
+        E.g. if the command was "ping" anyone entering a message with only the contents "ping"
+        in a monitored discord channel would trigger a desktop notification.
+        :return:
+        """
         return self._command
 
     @command.setter
@@ -68,6 +76,12 @@ class DiscordMessageToNotificationAction(Action):
 
     @property
     def message(self) -> str:
+        """
+        Message to be included in the desktop notification.
+        (Usually these have two parts - the message body and the title - this will set the message
+        body).
+        :return:
+        """
         return self._message
 
     @message.setter

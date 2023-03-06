@@ -32,6 +32,10 @@ class DiscordTextCommandTrigger(Trigger):
 
     @property
     def command(self) -> str:
+        """
+        If a message body matched this command string, the trigger will fire.
+        :return:
+        """
         return self._command
 
     @command.setter
@@ -68,6 +72,11 @@ class DiscordCommandTextResponse(Action):
 
     @property
     def message(self) -> str:
+        """
+        When a discord message in a monitored channel is detected which matches the command string,
+        this message will be sent in response to it.
+        :return:
+        """
         return self._message
 
     @message.setter

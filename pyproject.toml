@@ -27,7 +27,6 @@ ignore-self-only-init=true
 disable=[
     "missing-module-docstring",
     "missing-class-docstring",
-    "missing-function-docstring",
 ]
 
 [tool.coverage.run]

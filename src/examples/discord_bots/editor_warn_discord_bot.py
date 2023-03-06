@@ -65,6 +65,10 @@ class DiscordEditResponse(Action):
 
     @property
     def message(self) -> str:
+        """
+        Not currently in use - should be removed.
+        :return:
+        """
         return self._message
 
     @message.setter

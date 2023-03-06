@@ -26,7 +26,7 @@ class BaseTestClassWithConfig(ABC, Generic[T_co]):
 
     @property
     def config(self) -> ConfigBlock:
-        """Returns the YAML-defined config the"""
+        """Returns the YAML-defined config for the given implementation"""
 
         if not self._config:
             impl = self.implementation.__module__ + "." + self.implementation.__name__

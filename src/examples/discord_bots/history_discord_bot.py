@@ -37,6 +37,10 @@ class DiscordAllCommandTrigger(Trigger):
 
     @property
     def command(self) -> str:
+        """
+        Not currently in use - should be removed.
+        :return:
+        """
         return self._command
 
     @command.setter
@@ -73,6 +77,10 @@ class DiscordPrintAction(Action):
 
     @property
     def message(self) -> str:
+        """
+        Not actually in use - should be removed.
+        :return:
+        """
         return self._message
 
     @message.setter
