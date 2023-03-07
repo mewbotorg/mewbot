@@ -39,9 +39,7 @@ class DiscordUserJoinInputEvent(DiscordInputEvent):
 @dataclasses.dataclass
 class DiscordMessageCreationEvent(DiscordInputEvent):
     """
-    Class which represents a new message being detected on any of the channels that the bot is
-    connected to.
-    Ideally should contain enough messages/objects to actually respond to a message.
+    A discord message has been created in a channel on a server the bot monitors.
     """
 
     text: str
@@ -51,8 +49,7 @@ class DiscordMessageCreationEvent(DiscordInputEvent):
 @dataclasses.dataclass
 class DiscordMessageEditInputEvent(DiscordInputEvent):
     """
-    Class which represents an edit to an existing message being detected on any of the channels
-    that the bot is connected to.
+    A discord message has been edited in a channel on a server the bot monitors.
     """
 
     text_before: str
@@ -65,8 +62,7 @@ class DiscordMessageEditInputEvent(DiscordInputEvent):
 @dataclasses.dataclass
 class DiscordMessageDeleteInputEvent(DiscordInputEvent):
     """
-    Class which represents a deletion of an existing message being detected in any of the channels
-    that the bot is connected to.
+    A discord message has been deleted in a channel on a server the bot monitors.
     """
 
     text_before: str
@@ -98,7 +94,6 @@ class DiscordIO(IOConfig):
     def token(self) -> str:
         """
         The token this IOCofig is using to log into Discord.
-        :return:
         """
         return self._token
 
@@ -110,6 +105,7 @@ class DiscordIO(IOConfig):
     def startup_queue_depth(self) -> int:
         """
         On startup, this many messages will be retrieved and put on the wire.
+
         Messages will be retrieved from all channels this IOConfig is aware of.
         Note - this represents the TOTAL number of messages retrieved, not the PER CHANNEL number.
         There is currently no way to setting a per channel number.
@@ -125,12 +121,18 @@ class DiscordIO(IOConfig):
         self._startup_queue_depth = startup_queue_depth
 
     def get_inputs(self) -> Sequence[Input]:
+        """
+        Return the DiscordInput for this DiscordIO.
+        """
         if not self._input:
             self._input = DiscordInput(self._token, self._startup_queue_depth)
 
         return [self._input]
 
     def get_outputs(self) -> Sequence[Output]:
+        """
+        Return the DiscordOutput for this DiscordIO.
+        """
         if not self._output:
             self._output = DiscordOutput()
 
@@ -149,6 +151,8 @@ class DiscordInput(Input):
 
     def __init__(self, token: str, startup_queue_depth: int = 0) -> None:
         """
+        Initialize the Discord Input.
+
         :param token: The token need to authenticate this bot to the discord server
         :param startup_queue_depth:
             During startup, the number of DiscordTextInputEvents to put on the wire
@@ -170,12 +174,20 @@ class DiscordInput(Input):
         self._client.queue = self.queue
 
     def bind(self, queue: InputQueue) -> None:
+        """
+        Bind the queues into this Input class.
+
+        :param queue:
+        :return:
+        """
         self.queue = queue
         self._client.queue = queue
 
     @staticmethod
     def produces_inputs() -> Set[Type[InputEvent]]:
-        """Defines the set of input events this Input class can produce."""
+        """
+        Defines the set of input events this Input class can produce.
+        """
         return {
             DiscordUserJoinInputEvent,
             DiscordMessageCreationEvent,
@@ -185,7 +197,8 @@ class DiscordInput(Input):
 
     async def run(self) -> None:
         """
-        Fires up an aiohttp app to run the service.
+        Fires up a discord client to run this service.
+
         Token needs to be set by this point.
         """
         self._logger.info("About to connect to Discord")
@@ -195,7 +208,8 @@ class DiscordInput(Input):
 
 class InternalMewbotDiscordClient(discord.Client):
     """
-    discord.Client with overrode methods to actually interact with mewbot.
+    Discord.Client with overrode methods to actually interact with mewbot.
+
     (In particular, methods have been overridden to write events to the InputQueue when they occur)
     """
 
@@ -207,7 +221,6 @@ class InternalMewbotDiscordClient(discord.Client):
     async def on_ready(self) -> None:
         """
         Called once at the start, after the bot has connected to discord.
-        :return:
         """
         self._logger.info("%s has connected to Discord!", self.user)
 
@@ -215,7 +228,7 @@ class InternalMewbotDiscordClient(discord.Client):
 
     async def retrieve_old_message(self) -> None:
         """
-        If a startup_queue_depth is set, then
+        If a startup_queue_depth is set, then retrieve that number of entries and transmit them.
         """
         if not self._startup_queue_depth:
             return
@@ -260,6 +273,7 @@ class InternalMewbotDiscordClient(discord.Client):
     async def on_message(self, message: discord.Message) -> None:
         """
         Check for acceptance on all commands - execute the first one that matches.
+
         :param message:
         :return:
         """
@@ -288,6 +302,7 @@ class InternalMewbotDiscordClient(discord.Client):
     async def on_message_edit(self, before: discord.Message, after: discord.Message) -> None:
         """
         Triggered when a message is edited on any of the channels which the bot is monitoring.
+
         :param before: The message before the edit
         :param after: The message after the edit
         """
@@ -308,6 +323,7 @@ class InternalMewbotDiscordClient(discord.Client):
     async def on_message_delete(self, message: discord.Message) -> None:
         """
         Triggered when a message is deleted on any of the channels which the bot is monitoring.
+
         :param message: The message before the delete event occurred.
         """
         self._logger.info(
@@ -332,14 +348,14 @@ class DiscordOutput(Output):
     @staticmethod
     def consumes_outputs() -> Set[Type[OutputEvent]]:
         """
-        Defines the set of output events that this Output class can consume
-        :return:
+        Defines the set of output events that this Output class can consume.
         """
         return {DiscordOutputEvent}
 
     async def output(self, event: OutputEvent) -> bool:
         """
         Does the work of transmitting the event to the world.
+
         :param event:
         :return:
         """

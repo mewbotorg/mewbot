@@ -4,8 +4,9 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
-"""Tooling for recording the creation of implementation classes, allowing
-for lists """
+"""
+Tooling for recording the creation of implementation classes, allowing for lists.
+"""
 
 from __future__ import annotations
 
@@ -19,7 +20,10 @@ from mewbot.core import ComponentKind, Component
 
 # noinspection PyMethodParameters
 class ComponentRegistry(abc.ABCMeta):
-    """ComponentRegistry is a AbstractBaseClasses MetaClass which instruments
+    """
+    Allows system-wide registry of mewbot components use AbstractBaseClasses.
+
+    ComponentRegistry is a AbstractBaseClasses MetaClass which instruments
     class definition to automatically record and classify classes implementing
     MewBot's interfaces, and then modifies instance creation to assign properties.
 
@@ -44,6 +48,14 @@ class ComponentRegistry(abc.ABCMeta):
     _api_versions: Dict[ComponentKind, Dict[str, Type[Component]]] = {}
 
     def __new__(mcs, name: str, bases: Any, namespace: Any, **k: Any) -> Type[Any]:
+        """
+        Create a new instance of the component registry.
+
+        :param name:
+        :param bases:
+        :param namespace:
+        :param k:
+        """
         created_type: Type[Any] = super().__new__(mcs, name, bases, namespace, **k)
 
         if created_type.__module__ == mcs.__module__:
@@ -62,6 +74,14 @@ class ComponentRegistry(abc.ABCMeta):
     def __call__(  # type: ignore
         cls: Type[Component], *args: Any, uid: Optional[str] = None, **properties: Any
     ) -> Any:
+        """
+        Return a class which has been registered in the registry.
+
+        :param args:
+        :param uid:
+        :param properties:
+        :return:
+        """
         if cls not in ComponentRegistry.registered:
             raise TypeError("Attempting to create a non registrable class")
 
@@ -95,6 +115,7 @@ class ComponentRegistry(abc.ABCMeta):
     ) -> Callable[[Type[Component]], Type[Component]]:
         """
         Returns a helper function to register a decorated mewbot component.
+
         This helper function, at a minimum
         1) Checks the decorated component
          - has been registered (by subclassing a known mewbot component or another way)
@@ -110,6 +131,7 @@ class ComponentRegistry(abc.ABCMeta):
         def do_register(api: Type[Component]) -> Type[Component]:
             """
             See the doc string of the function which returns this function.
+
             :param api:
             :return:
             """
@@ -149,6 +171,7 @@ class ComponentRegistry(abc.ABCMeta):
     def api_version(mcs, component: Component) -> Tuple[ComponentKind, str]:
         """
         Returns the current, registered, api version of the given component.
+
         :param component: mewbot component, with an api
         :return (ComponentKind, api_version):
         """

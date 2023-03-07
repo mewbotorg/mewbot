@@ -10,6 +10,7 @@
 
 """
 Provides python support functions for the trivial_discord_bot.yaml bot example.
+
 This is trivial bot which listens to all channels it has access to.
 In the even that it detects a message matching a string given in the yaml it will respond with a
 string also given in the yaml.
@@ -29,20 +30,27 @@ from mewbot.io.discord import DiscordMessageCreationEvent, DiscordOutputEvent
 
 class DiscordTextCommandTrigger(Trigger):
     """
-    Nothing fancy - just fires whenever there is a DiscordTextInputEvent
+    Nothing fancy - just fires whenever there is a DiscordTextInputEvent.
     """
 
     _command: str = ""
 
     @staticmethod
     def consumes_inputs() -> Set[Type[InputEvent]]:
+        """
+        Inputs this Trigger could respond to.
+
+        In particular, it will be passed any Discord Message Creation Events.
+        (Though it may or may not respond to them - that will depend if the message passes the
+        matches criteria).
+        :return:
+        """
         return {DiscordMessageCreationEvent}
 
     @property
     def command(self) -> str:
         """
         If a message body matched this command string, the trigger will fire.
-        :return:
         """
         return self._command
 
@@ -51,6 +59,15 @@ class DiscordTextCommandTrigger(Trigger):
         self._command = str(command)
 
     def matches(self, event: InputEvent) -> bool:
+        """
+        If the event is a Discord Message Creation Event, and the text matches, it will pass.
+
+        Text is set as "command" in the yaml.
+        Method will only pass (return True) if the text of the message exactly matches that in the
+        command field of the yaml.
+        :param event:
+        :return:
+        """
         if not isinstance(event, DiscordMessageCreationEvent):
             return False
 
@@ -72,15 +89,23 @@ class DiscordCommandTextResponse(Action):
 
     @staticmethod
     def consumes_inputs() -> Set[Type[InputEvent]]:
+        """
+        Input Event types this Action will respond to.
+        """
         return {DiscordMessageCreationEvent}
 
     @staticmethod
     def produces_outputs() -> Set[Type[OutputEvent]]:
+        """
+        Output Event types this method can produce.
+        """
         return {DiscordOutputEvent}
 
     @property
     def message(self) -> str:
         """
+        Response str to a message which passes selection.
+
         When a discord message in a monitored channel is detected which matches the command string,
         this message will be sent in response to it.
         :return:

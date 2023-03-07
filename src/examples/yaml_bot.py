@@ -17,6 +17,7 @@ from mewbot.loader import load_component
 def main() -> None:
     """
     Basic demo of loading a component from yaml.
+
     Component is a Condition.
     Information concerning the Condition loaded is printed to stdout after load.
     This also demonstrates the __str__ methods of the loaded component

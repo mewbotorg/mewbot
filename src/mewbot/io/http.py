@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 """
-When defining a new IOConfig, you need to define the components for it
+When defining a new IOConfig, you need to define the components for it.
 
  - The Input Class - here PostInput - which, here, does all the work of actually
                      running the server to support post
@@ -38,8 +38,7 @@ class IncomingWebhookEvent(InputEvent):
 
 class HTTPServlet(SocketIO):
     """
-    Very basic IOConfig with a PostInput input - which you have
-    to add yourself - and that's about it.
+    Very basic IOConfig with a PostInput input and that's about it.
     """
 
     def _create_socket(self) -> HTTPInputListener:
@@ -48,12 +47,19 @@ class HTTPServlet(SocketIO):
 
 class HTTPInputListener(SocketInput):
     """
-    Runs an aiohttp microservice to allow post requests
+    Runs an aiohttp microservice to allow post requests.
     """
 
     _runner: web.AppRunner
 
     def __init__(self, host: str, port: int, logger: logging.Logger) -> None:
+        """
+        Initialize a HTTPInputListener - which listens to a port on a host.
+
+        :param host:
+        :param port:
+        :param logger:
+        """
         super().__init__(host, port, logger)
 
         servlet = web.Application()
@@ -68,13 +74,12 @@ class HTTPInputListener(SocketInput):
     def produces_inputs() -> Set[Type[InputEvent]]:
         """
         Defines the set of input events this Input class can produce.
-        :return:
         """
         return {IncomingWebhookEvent}
 
     async def post_response(self, request: web.Request) -> web.Response:
         """
-        Process a post requests to address/post
+        Process a post requests to address/post.
         """
 
         if not self.queue:
@@ -89,7 +94,7 @@ class HTTPInputListener(SocketInput):
 
     async def run(self) -> None:
         """
-        Fires up an aiohttp app to run the service
+        Fires up an aiohttp app to run the service.
         """
         await self._runner.setup()
 

@@ -10,7 +10,8 @@
 # https://www.theguardian.com/world/rss
 
 """
-Utility methods to support the rss_input example
+Utility methods to support the rss_input example.
+
 An IOConfig for driving behavior based off RSS feeds.
 """
 
@@ -28,13 +29,24 @@ class RSSPrintAction(Action):
 
     @staticmethod
     def consumes_inputs() -> Set[Type[InputEvent]]:
+        """
+        Can consume all inputs.
+        """
         return {InputEvent}
 
     @staticmethod
     def produces_outputs() -> Set[Type[OutputEvent]]:
+        """
+        Produces no outputs.
+        """
         return set()
 
     async def act(self, event: InputEvent, state: Dict[str, Any]) -> None:
+        """
+        Acts on events pulled from the queue.
+
+        Consumes RSSInputEvents and prints some of their properties.
+        """
         if not isinstance(event, RSSInputEvent):
             print(f"Unexpected event {event}")
             return

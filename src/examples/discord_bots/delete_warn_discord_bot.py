@@ -10,8 +10,9 @@
 
 """
 Provides python support functions for the delete_warn_discord_bot.yaml example.
-Bot which warns the user when there has been a message deletion event in any of the channels which
-this bot has access to.
+
+This is a Bot which warns the user when there has been a message deletion event in any of the
+channels which this bot has access to.
 If message is in the discord cache, then the message contents that where deleted will also be
 provided.
 """
@@ -38,11 +39,23 @@ class DiscordDeleteEventTrigger(Trigger):
 
     @staticmethod
     def consumes_inputs() -> Set[Type[InputEvent]]:
+        """
+        Inputs this method responds to.
+
+        This will only pass on message deletion input events.
+        :return:
+        """
         return {
             DiscordMessageDeleteInputEvent,
         }
 
     def matches(self, event: InputEvent) -> bool:
+        """
+        Will only match, and so trigger, on message deletion input events.
+
+        :param event:
+        :return:
+        """
         if isinstance(event, DiscordMessageDeleteInputEvent):
             return True
 
@@ -64,18 +77,25 @@ class DiscordDeleteResponseAction(Action):
 
     @staticmethod
     def consumes_inputs() -> Set[Type[InputEvent]]:
+        """
+        This Action will only act on message deletion events.
+        """
         return {
             DiscordMessageDeleteInputEvent,
         }
 
     @staticmethod
     def produces_outputs() -> Set[Type[OutputEvent]]:
+        """
+        Output Events that this action can produce.
+        """
         return {DiscordOutputEvent}
 
     @property
     def message(self) -> str:
         """
         Message for this warning should be provided as a static string.
+
         Note - not sure this is currently used!
         :return:
         """
