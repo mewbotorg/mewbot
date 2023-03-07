@@ -89,7 +89,7 @@ class ComponentRegistry(abc.ABCMeta):
         a UUID, and any parameters which match properties are initialised.
         Any remaining properties are then passed to the underlying constructor.
         """
-        
+
         if cls not in ComponentRegistry.registered:
             raise TypeError("Attempting to create a non registered class")
 
