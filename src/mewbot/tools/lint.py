@@ -17,7 +17,6 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 import argparse
-import os
 import subprocess
 
 from mewbot.tools import Annotation, ToolChain, gather_paths
@@ -34,6 +33,20 @@ class LintToolchain(ToolChain):
     or default human output (otherwise).
     By default, all paths declared to be part of mewbot source or test are linted.
     """
+
+    @staticmethod
+    def add_cli_arguments(parser: argparse.ArgumentParser) -> None:
+        parser.add_argument(
+            "--no-tests",
+            dest="tests",
+            action="store_false",
+            default=True,
+            help="Exclude tests from linting",
+        )
+
+    @staticmethod
+    def default_paths(args: argparse.Namespace) -> Iterable[str]:
+        return gather_paths("src") if args.tests else gather_paths("src", "tests")
 
     def run(self) -> Iterable[Annotation]:
         """Runs the linting tools in sequence."""
@@ -190,37 +203,6 @@ def lint_black_diffs(
         buffer += diff_line + "\n"
 
 
-def parse_lint_options() -> argparse.Namespace:
-    """Parse command line argument for the linting tools."""
-
-    parser = argparse.ArgumentParser(description="Run code linters for mewbot")
-    parser.add_argument(
-        "--ci",
-        dest="is_ci",
-        action="store_true",
-        default="GITHUB_ACTIONS" in os.environ,
-        help="Run in GitHub actions mode",
-    )
-    parser.add_argument(
-        "--no-tests",
-        dest="tests",
-        action="store_false",
-        default=False,
-        help="Exclude tests from linting",
-    )
-    parser.add_argument(
-        "path", nargs="*", default=[], help="Path of a file or a folder of files."
-    )
-
-    return parser.parse_args()
-
-
 if __name__ == "__main__":
-    options = parse_lint_options()
-
-    paths = options.path
-    if not paths:
-        paths = gather_paths("src", "tests") if options.tests else gather_paths("src")
-
-    linter = LintToolchain(*paths, in_ci=options.is_ci)
+    linter = LintToolchain.create_from_args()
     linter()

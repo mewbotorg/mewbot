@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import abc
+import argparse
 import dataclasses
 import os
 import subprocess
@@ -63,11 +64,62 @@ class ToolChain(abc.ABC):
     representing an issue the tools found.
     """
 
+    @classmethod
+    def create_from_args(cls) -> ToolChain:
+        parser = argparse.ArgumentParser(description=cls.__doc__)
+        parser.add_argument(
+            "--ci",
+            dest="in_ci",
+            action="store_true",
+            help="Run test in GitHub actions mode",
+            default="GITHUB_ACTIONS" in os.environ,
+        )
+
+        path_group = parser.add_mutually_exclusive_group()
+        path_group.add_argument(
+            "--changed",
+            dest="ref",
+            const="HEAD",
+            nargs="?",
+            default=None,
+            help="Only include files changed since this git change",
+        )
+        path_group.add_argument(
+            "path", nargs="*", default=[], help="Path of a file or a folder of files."
+        )
+
+        cls.add_cli_arguments(parser)
+
+        args = parser.parse_args()
+        paths: Iterable[str]
+
+        if args.path:
+            paths = list(args.path)
+        elif args.ref:
+            paths = get_git_changes(args.ref)
+        else:
+            paths = gather_paths(*cls.default_paths(args))
+
+        args_dict = args.__dict__
+        del args_dict["path"]
+        del args_dict["ref"]
+
+        return cls(*paths, **args_dict)
+
+    @staticmethod
+    def default_paths(args: argparse.Namespace) -> Iterable[str]:  # pylint: disable=unused-argument
+        return "src", "tests"
+
+    @staticmethod
+    @abc.abstractmethod
+    def add_cli_arguments(parser: argparse.ArgumentParser) -> None:
+        pass
+
     folders: set[str]
     is_ci: bool
     success: bool
 
-    def __init__(self, *folders: str, in_ci: bool) -> None:
+    def __init__(self, *folders: str, in_ci: bool, **_: str) -> None:
         """
         Sets up a tool chain with the given settings.
 
@@ -181,6 +233,15 @@ class ToolChain(abc.ABC):
         print("::endgroup::")
 
         print("Total Issues:", len(issues))
+
+
+def get_git_changes(ref: str) -> Iterable[str]:
+    print("Gathering changes since", ref)
+
+    if ref == "HEAD":
+        subprocess.check_call(["git", "status", "--porcelain"])
+
+    return gather_paths("src")
 
 
 __all__ = ["Annotation", "ToolChain", "gather_paths"]

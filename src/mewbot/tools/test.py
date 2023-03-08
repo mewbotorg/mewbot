@@ -31,8 +31,33 @@ class TestToolchain(ToolChain):
     By default, all test declared to be part of mewbot test suite are run.
     """
 
-    coverage: bool = False
-    covering: list[str] = []
+    @staticmethod
+    def add_cli_arguments(parser: argparse.ArgumentParser):
+        parser.add_argument(
+            "--cov",
+            dest="coverage",
+            action="store_true",
+            default=False,
+            help="Enable coverage reporting",
+        )
+        parser.add_argument(
+            "--cover",
+            nargs="*",
+            dest="module",
+            help="Apply coverage only to provided modules (implies --cov)",
+        )
+
+    @staticmethod
+    def default_paths(args: argparse.Namespace) -> Iterable[str]:  # pylint: disable=unused-argument
+        return gather_paths("test")
+
+    coverage: bool
+    covering: list[str]
+
+    def __init__(self, *folders: str, in_ci: bool, coverage: bool, module: list[str]) -> None:
+        super().__init__(*folders, in_ci=in_ci)
+        self.coverage = coverage
+        self.covering= module
 
     def run(self) -> Iterable[Annotation]:
         """Run the test suite."""
@@ -118,13 +143,5 @@ def parse_test_options() -> argparse.Namespace:
 
 
 if __name__ == "__main__":
-    options = parse_test_options()
-    paths = options.path or list(gather_paths("tests"))
-
-    testing = TestToolchain(*paths, in_ci=options.is_ci)
-
-    # Set up coverage, if requested
-    testing.coverage = options.coverage or options.covering
-    testing.covering = options.covering or list(gather_paths("src"))
-
-    testing()
+    toolchain = TestToolchain.create_from_args()
+    toolchain()
