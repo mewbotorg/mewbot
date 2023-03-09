@@ -195,10 +195,15 @@ class TestRegistry:
 
     @staticmethod
     def test_require_package_not_installed() -> None:
-        with pytest.raises(ModuleNotFoundError, match="No package metadata was found for fdfdsfsd"):
+        with pytest.raises(
+            ModuleNotFoundError, match="No package metadata was found for fdfdsfsd"
+        ):
             ComponentRegistry.require_package("fdfdsfsd")
 
     @staticmethod
     def test_require_package_no_entrypoint() -> None:
-        with pytest.raises(ModuleNotFoundError, match="Distribution pytest does not implement any known API .*"):
+        with pytest.raises(
+            ModuleNotFoundError,
+            match="Distribution pytest does not implement any known API .*",
+        ):
             ComponentRegistry.require_package("pytest")

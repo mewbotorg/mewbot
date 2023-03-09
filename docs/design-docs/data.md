@@ -73,6 +73,7 @@ in order to maintain compatibility. They must not return records in the
 REJECTED moderation state, and the store may choose to also exclude pending
 items from these functions.
 
+
 ```python
 enum DataModerationState:
 	APPROVED =  1

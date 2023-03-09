@@ -1,0 +1,29 @@
+﻿mewbot.api.registry
+===================
+
+.. automodule:: mewbot.api.registry
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ComponentRegistry
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,689 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Kitteh’s Bot Framework/Infrastructure &#8212; mewbot 0.0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Data Storage" href="data.html" />
+    <link rel="prev" title="&lt;no title&gt;" href="../design-docs-index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <!--
+SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+
+SPDX-License-Identifier: CC-BY-4.0
+--><section id="kitteh-s-bot-framework-infrastructure">
+<h1>Kitteh’s Bot Framework/Infrastructure<a class="headerlink" href="#kitteh-s-bot-framework-infrastructure" title="Permalink to this heading">¶</a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">mewbot</span></code> is a proposed bot infrastructure which will attempt to provide a
+generic framework for writing “bots” — namely automated messaging systems
+running in social spaces such as Twitch chats, Discords, and so forth.</p>
+<p>The codebase will be able to run multiple “bots”, which can be configured
+via an API or Web GUI. The configuration will be stored as JSON/YAML (tbd)
+in a way not dissimilar to Kubernetes configuration.</p>
+<p>Python is the language chosen for development, as it allows for the clever
+registration of classes via metaclasses, and in-built help with presenting
+type information.</p>
+<section id="a-bot-s-context">
+<h3>A Bot’s Context<a class="headerlink" href="#a-bot-s-context" title="Permalink to this heading">¶</a></h3>
+<p>“What is the scope of a bot?” is an interesting question when building a
+generic bot system.</p>
+<p>A Twitch bot makes an excellent example: there are generally at least two
+different twitch accounts involved in a twitch bot:</p>
+<ul class="simple">
+<li><p>The streamer (e.g. <code class="docutils literal notranslate"><span class="pre">BurgerOni</span></code>)</p></li>
+<li><p>The bot (e.g. <code class="docutils literal notranslate"><span class="pre">NightBot</span></code>)</p></li>
+</ul>
+<p>The streamer may have multiple bots, and the bot can be running for
+multiple streamers, all with a different configurations.
+(In fact, NightBot is at time of writing the most common bot on Twitch).</p>
+<p>The combination of a bot account and a space for it to run in is the
+basis of a bot’s context, and where configuration is bound to.
+In this infrastructure, a <code class="docutils literal notranslate"><span class="pre">Bot</span></code> is collection of behaviours (things
+the bot does) that is bound to one or more contexts.</p>
+</section>
+<section id="intentional-design-limitations">
+<h3>Intentional Design Limitations<a class="headerlink" href="#intentional-design-limitations" title="Permalink to this heading">¶</a></h3>
+<section id="languages">
+<h4>Languages<a class="headerlink" href="#languages" title="Permalink to this heading">¶</a></h4>
+<p>English-language only: features where the system is providing text
+information are only designed to work in English, with no support
+for translations provided.</p>
+<p>This will affect defaults / fall backs — error messages, the admin
+UI, logging, and so forth.</p>
+<p>TODO: explicitly call out that the default pronouns will be in english
+and how that works either here on in the text replacements section.</p>
+</section>
+</section>
+</section>
+<section id="primary-components">
+<h2>Primary Components<a class="headerlink" href="#primary-components" title="Permalink to this heading">¶</a></h2>
+<p>TODO: ERD goes here</p>
+<section id="bot">
+<h3>Bot<a class="headerlink" href="#bot" title="Permalink to this heading">¶</a></h3>
+<p>The top level of data structure in the system is the Bot, which represents
+a group of bot contexts that have the same configuration.</p>
+<p>The purpose of this class is to tie together the Input/Output configuration
+(which defines the <a class="reference external" href="#a-bots-context">context of the bot</a>) with the
+behaviours the bot performs.
+To support this there are also the data stores, which store state,
+and the access control settings, which defines what users can edit the
+configuration.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Bot</span><span class="p">:</span>
+  <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>                        <span class="c1"># The bot&#39;s name</span>
+  <span class="n">io</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">IOConfig</span><span class="p">]</span>               <span class="c1"># Connections to bot makes to other services</span>
+  <span class="n">behaviours</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Behaviour</span><span class="p">]</span>      <span class="c1"># All the things the bot does</span>
+  <span class="n">datastores</span><span class="p">:</span> <span class="n">Map</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">DataStore</span><span class="p">]</span>  <span class="c1"># Datastores for this bot</span>
+
+
+<span class="k">class</span> <span class="nc">Behaviour</span><span class="p">:</span>
+  <span class="n">triggers</span><span class="p">:</span>   <span class="n">List</span><span class="p">[</span><span class="n">Trigger</span><span class="p">]</span>     <span class="c1"># This of things that can trigger this behaviour</span>
+  <span class="n">conditions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Condition</span><span class="p">]</span>   <span class="c1"># conditions on the action being called when it is matched (e.g. &quot;is subscribed&quot;)</span>
+  <span class="n">actions</span><span class="p">:</span>    <span class="n">List</span><span class="p">[</span><span class="n">Action</span><span class="p">]</span>      <span class="c1"># the things to do if an event matches, and the conditions are met</span>
+</pre></div>
+</div>
+<p>Trigger’s, Condition’s and Action’s can all have properties, which can be edited in the UI</p>
+</section>
+<section id="ioconfig-input-output">
+<h3>IOConfig / Input / Output<a class="headerlink" href="#ioconfig-input-output" title="Permalink to this heading">¶</a></h3>
+<p>A “bot” is a fundamentally transformative process — input is accepted
+in the form of commands, messages, etc. and then some output is generated
+(such as a reply).</p>
+<p>For some systems, this will be one unified API — Discord bots need only
+one key to interact with all guilds and perform all the things they want to.</p>
+<p>On the other hand, an advanced twitch bot requires multiple inputs and
+(potentially) multiple outputs. In order to read and respond to chat,
+tokens must be generated for the bot account itself; in order to look
+for other events such as followers, subscriptions, rewards, and raids,
+tokens have to be made for the streamer’s account — which is generally
+a different user/channel to the bot.</p>
+<p>Other inputs might include API calls/webhooks to the management system itself,
+allowing for devices like stream decks to be configured to directly interact
+with the bot.</p>
+<section id="ioconfig">
+<h4>IOConfig<a class="headerlink" href="#ioconfig" title="Permalink to this heading">¶</a></h4>
+<p>From an implementation perspective, these will be configured as inputs/outputs
+(so cases like discord where one connection is both don’t require two to be
+configured). These configurations will then present a list of Inputs and Outputs
+which can be used in Triggers.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mewbot.api.v1</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">class</span> <span class="nc">Discord</span><span class="p">(</span><span class="n">IOConfig</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">oauth_token</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The oAuth token used to interact with the Discord API&quot;&quot;&quot;</span>
+        <span class="o">...</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">guilds</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Which Guild IDs to connect this bot to.</span>
+
+<span class="sd">        If empty, will bind to all guilds that the bot has access to&quot;&quot;&quot;</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">get_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Input</span><span class="p">]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">get_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Output</span><span class="p">]:</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="input">
+<h4>Input<a class="headerlink" href="#input" title="Permalink to this heading">¶</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">Input</span></code> class surfaces events into the core event loop.
+These will be associated with an output for the “reply” logic.</p>
+</section>
+<section id="output">
+<h4>Output<a class="headerlink" href="#output" title="Permalink to this heading">¶</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">Output</span></code> class will not be used a lot, but will be available for giving
+a target for “replies” to events triggered by time passing or webhooks.</p>
+<p>Outputs will be responsible for string replacements — <code class="docutils literal notranslate"><span class="pre">${user}</span></code> gives full
+username, <code class="docutils literal notranslate"><span class="pre">${&#64;user}</span></code> &#64;s them, <code class="docutils literal notranslate"><span class="pre">${user()}</span></code> gives the username but tries to
+contextually remove trailing things in brackets (e.g. pronouns)
+which aren’t part of the ‘name’ per se.</p>
+<p>TODO: Pronouns — there should be a special datastore for pronouns, and a
+pre-built config that supplied !pronouns to get and set them.
+If possible, having better twitch’s and discord roles as data sources for this.
+This would then allow a <code class="docutils literal notranslate"><span class="pre">${user_they}</span></code> to return they, she, he etc. if the
+pronoun has been set, or if the bot is able to auto detect it, otherwise
+just use the user name.
+<code class="docutils literal notranslate"><span class="pre">${they}</span></code> will go for just a pronoun, using “they” by default, but be
+discouraged (I can see cases where a name wouldn’t scan, but maybe this should
+not be included in the spec).</p>
+</section>
+</section>
+<section id="behaviour">
+<h3>Behaviour<a class="headerlink" href="#behaviour" title="Permalink to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Behaviour</span><span class="p">:</span>
+  <span class="n">triggers</span><span class="p">:</span>   <span class="n">List</span><span class="p">[</span><span class="n">Trigger</span><span class="p">]</span>     <span class="c1"># This of things that can trigger this behaviour</span>
+  <span class="n">conditions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Condition</span><span class="p">]</span>   <span class="c1"># conditions on the action being called when it is matched (e.g. &quot;is subscribed&quot;)</span>
+  <span class="n">actions</span><span class="p">:</span>    <span class="n">List</span><span class="p">[</span><span class="n">Action</span><span class="p">]</span>      <span class="c1"># the things to do if an event matches, and the conditions are met</span>
+</pre></div>
+</div>
+<section id="template">
+<h4>Template<a class="headerlink" href="#template" title="Permalink to this heading">¶</a></h4>
+<p>Behaviours are going to be big and complicated, so modules should
+provide Templates which help users quickly create them based on common
+use cases.</p>
+<p>Like the other elements, these have a number of properties that can
+be presented to the UI/API, but the <code class="docutils literal notranslate"><span class="pre">Template</span></code> is not stored as part
+of the <code class="docutils literal notranslate"><span class="pre">Bot</span></code> configuration — instead it is used to generate the
+<code class="docutils literal notranslate"><span class="pre">Behaviour</span></code> and add it to the bot.</p>
+</section>
+</section>
+<section id="datastore">
+<h3>Datastore<a class="headerlink" href="#datastore" title="Permalink to this heading">¶</a></h3>
+<p>A datastore is a represents all persistent user-defined parts of bot state,
+which can then the used by Behaviours. The data stored in these datastores
+is typed.</p>
+<section id="single-valued-datastore">
+<h4>Single-Valued Datastore<a class="headerlink" href="#single-valued-datastore" title="Permalink to this heading">¶</a></h4>
+<p>The most trivial kind of datastore stores a single value, and has a getter
+and setter.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">DataRecord</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
+  <span class="n">value</span><span class="p">:</span> <span class="n">T</span>
+  <span class="n">modified_at</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span>
+  <span class="n">modified_by</span><span class="p">:</span> <span class="nb">str</span>
+
+<span class="k">class</span> <span class="nc">Datastore</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T</span><span class="p">]):</span>
+  <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+
+  <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataRecord</span><span class="p">[</span><span class="n">T</span><span class="p">]:</span>
+    <span class="o">...</span>
+
+  <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">T</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+
+  <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">name</span></code> of the datastore is a unique-per-bot name which is used to bind it
+to behaviours in the UI.</p>
+<p>In some cases, the setter may be not implemented, but it must never throw
+an exception. This might be useful for a RandomNumberDataSource (which returns
+a different pseudo-random number each call), or a DataSource that is wrapping
+an external API.</p>
+<p>When the <code class="docutils literal notranslate"><span class="pre">set</span></code> is not implemented, <code class="docutils literal notranslate"><span class="pre">clear</span></code> should likewise be a no-op. <code class="docutils literal notranslate"><span class="pre">clear</span></code>
+should also be a valid operation if <code class="docutils literal notranslate"><span class="pre">set</span></code> is, but may use a differnt default
+value. <code class="docutils literal notranslate"><span class="pre">set</span></code> may reject <code class="docutils literal notranslate"><span class="pre">None</span></code> as a value, if having an undefined value does not
+make sense for the datastore.</p>
+</section>
+<section id="list-datastores">
+<h4>List Datastores<a class="headerlink" href="#list-datastores" title="Permalink to this heading">¶</a></h4>
+<p>One other Datasource contract is defined as part of the specification, which
+is the <code class="docutils literal notranslate"><span class="pre">List</span></code> equivalent of the above datasource.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">ListDatastore</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">T</span><span class="p">]]):</span>
+  <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataRecord</span><span class="p">[</span><span class="n">T</span><span class="p">]:</span>
+    <span class="o">...</span>
+
+  <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">T</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+
+  <span class="k">def</span> <span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+
+  <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="o">...</span>
+
+  <span class="k">def</span> <span class="nf">random_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataRecord</span><span class="p">[</span><span class="n">T</span><span class="p">]:</span>
+    <span class="o">...</span>
+
+  <span class="k">def</span> <span class="nf">random_entries</span><span class="p">(</span><span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">DataRecord</span><span class="p">[</span><span class="n">T</span><span class="p">]]:</span>
+    <span class="o">...</span>
+
+  <span class="k">def</span> <span class="nf">get</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">DataRecord</span><span class="p">[</span><span class="n">T</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Should function like an iterator, returning the next value each time.&quot;&quot;&quot;</span>
+
+  <span class="k">def</span> <span class="nf">set</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">DataRecord</span><span class="p">[</span><span class="n">T</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;If __setitem__ is defined, and this is an incrementing list, this</span>
+<span class="sd">       should function as per list.append()&quot;&quot;&quot;</span>
+
+   <span class="k">def</span> <span class="nf">clear</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">DataRecord</span><span class="p">[</span><span class="n">T</span><span class="p">]:</span>
+<span class="w">     </span><span class="sd">&quot;&quot;&quot;If __delitem__ is defined, this should delete all items&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>The generic List Datastore is only defined for 0-based contiguous lists.
+When designing custom implementation that extend this class, you should
+be aware that behaviours that are looking for any list storage could be
+using your specific implementation, and design around that.</p>
+<p>As with the single valued version, having the datastore be writable is
+optional; this is for when the datastore is wrapping some other external
+or immutable source of data.</p>
+<p>One of <code class="docutils literal notranslate"><span class="pre">random_entry()</span></code> or <code class="docutils literal notranslate"><span class="pre">__getitem__</span></code> must be defined. If <code class="docutils literal notranslate"><span class="pre">__getitem__</span></code>
+is defined, <code class="docutils literal notranslate"><span class="pre">__len__</span></code> must be as well. If <code class="docutils literal notranslate"><span class="pre">random_entry</span></code> is defined,
+then either <code class="docutils literal notranslate"><span class="pre">__len__</span></code> must be defined, or <code class="docutils literal notranslate"><span class="pre">random_entries</span></code> needs a custom
+implementation, as the default one will rely on knowning the length.</p>
+</section>
+<section id="datarecord-audit-information">
+<h4>DataRecord Audit Information<a class="headerlink" href="#datarecord-audit-information" title="Permalink to this heading">¶</a></h4>
+<p>As part of the built in format for data stores, each record will record
+when it was modified and some contextual information for what by.</p>
+<p>TODO: Determine the exact format of what should be recorded as part of
+this record, and update the function signatures above.</p>
+<p>This data includes the behaviour that made the change (or if it was made
+via the UI), and an (optional) username for context. In behaviours that
+are triggered off of chat messages, this will be the name of the user
+who sent the message. For changes in the UI, this will be the user who
+was logged into the UI.</p>
+</section>
+<section id="data-moderation">
+<h4>Data Moderation<a class="headerlink" href="#data-moderation" title="Permalink to this heading">¶</a></h4>
+<p>TODO: Determine if this is to be a built-in feature of <em>all</em> list APIs.
+TODO: Should this in fact be a part of the DataRecord, and include who</p>
+<blockquote>
+<div><p>did the moderation action?</p>
+</div></blockquote>
+<p>Datastores which are using user-submitted data may want to undergo
+moderation, and have records stored in the dataset which will not be
+returned by a random() or a get() call.</p>
+</section>
+<section id="data-persistence">
+<h4>Data Persistence<a class="headerlink" href="#data-persistence" title="Permalink to this heading">¶</a></h4>
+<p>As well as the abstract classes outlined here, implementations will be
+provided that can store datastores of the primitive types in an SQLite
+database. This will use one table for all of the single valued
+datastores (indexed by the datastore name), and a table per list
+datastore, named after the datastore (to optimise length and other calls).</p>
+<p>TODO: Decide whether this should explicitly be able to handle any
+JSON-encodable structure, rather than just the primitive types. Storing
+the data as JSON also means there is only one column type to deal with.</p>
+<p>These are expected to be the primary datastores in use, except for wrapping
+external calls (such as to APIs), or certain complex data types.</p>
+</section>
+</section>
+<section id="trigger">
+<h3>Trigger<a class="headerlink" href="#trigger" title="Permalink to this heading">¶</a></h3>
+<p>To be written.</p>
+<p>TODO: ajCameron suggestion - Offer trigger negation - so flips when triggers would trigger.</p>
+</section>
+<section id="conditions">
+<h3>Conditions<a class="headerlink" href="#conditions" title="Permalink to this heading">¶</a></h3>
+<p>To be written</p>
+</section>
+<section id="actions">
+<h3>Actions<a class="headerlink" href="#actions" title="Permalink to this heading">¶</a></h3>
+<p>To be written</p>
+</section>
+<section id="context-flow">
+<h3>Context Flow<a class="headerlink" href="#context-flow" title="Permalink to this heading">¶</a></h3>
+<p>An event that is triggering a behaviour must come with</p>
+</section>
+</section>
+<section id="configuration-discoverability">
+<h2>Configuration + Discoverability<a class="headerlink" href="#configuration-discoverability" title="Permalink to this heading">¶</a></h2>
+<section id="registry">
+<h3>Registry<a class="headerlink" href="#registry" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Validation — modules will need to have a validate function. Where possible, this should check real things (e.g., if one of your configuration options is a discord channel, does that channel exist).</p></li>
+<li><p>The discord channel thing raises the question of actual valid vs. presentation value. Discord channels are actually long numbers, not names….</p></li>
+</ul>
+</section>
+<section id="properties">
+<h3>Properties<a class="headerlink" href="#properties" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="human-readable-descriptions">
+<h3>Human Readable Descriptions<a class="headerlink" href="#human-readable-descriptions" title="Permalink to this heading">¶</a></h3>
+<p>Each component will need to present a human readable text string;
+e.g. a Trigger might have “When a user sends the chat command !help”,
+a condition might be “the user is a moderator”, and an action might be
+“send the message “I don’t need any help from you, <a class="reference external" href="mailto:${&#37;&#52;&#48;user">${<span>&#64;</span>user</a>}””.
+When you’re not actively editing the behaviour, rather than show the panels,
+all parts of the behaviour will be put together into an sentence/paragraph
+description of the behaviour (user story style)</p>
+<p>When the behaviour is edited in the UI, this will accordian out into the
+main edit view with the inputs.</p>
+</section>
+<section id="yaml-representation">
+<h3>Yaml Representation<a class="headerlink" href="#yaml-representation" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="version-control">
+<h3>Version Control<a class="headerlink" href="#version-control" title="Permalink to this heading">¶</a></h3>
+</section>
+</section>
+<section id="user-interface">
+<h2>User Interface<a class="headerlink" href="#user-interface" title="Permalink to this heading">¶</a></h2>
+<section id="login-acl">
+<h3>Login + ACL<a class="headerlink" href="#login-acl" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="behaviour-editing-ui">
+<h3>Behaviour Editing UI<a class="headerlink" href="#behaviour-editing-ui" title="Permalink to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">+-------------------------------+------------------------------+------------------------------+</span>
+<span class="o">|</span>         <span class="n">Triggers</span>              <span class="o">|</span>         <span class="n">Conditions</span>           <span class="o">|</span>           <span class="n">Actions</span>            <span class="o">|</span>
+<span class="o">+-------------------------------+------------------------------+------------------------------+</span>
+<span class="o">|</span> <span class="o">+--------------------------+</span>  <span class="o">|</span>                              <span class="o">|</span> <span class="o">+--------------------------+</span> <span class="o">|</span>
+<span class="o">|</span> <span class="o">|</span> <span class="n">Chat</span> <span class="n">Command</span>             <span class="o">|</span>  <span class="o">|</span>                              <span class="o">|</span> <span class="o">|</span> <span class="n">Static</span> <span class="n">Text</span> <span class="n">Reply</span>        <span class="o">|</span> <span class="o">|</span>
+<span class="o">|</span> <span class="o">|</span>  <span class="n">text</span><span class="p">:</span> <span class="o">|</span> <span class="n">plan</span> <span class="o">|</span>          <span class="o">|</span>  <span class="o">|</span>                              <span class="o">|</span> <span class="o">|</span>  <span class="n">text</span><span class="p">:</span> <span class="o">|</span> <span class="n">Do</span> <span class="n">the</span> <span class="n">thing</span> <span class="o">|</span>  <span class="o">|</span> <span class="o">|</span>
+<span class="o">|</span> <span class="o">+--------------------------+</span>  <span class="o">|</span>                              <span class="o">|</span> <span class="o">+--------------------------+</span> <span class="o">|</span>
+<span class="o">|</span> <span class="o">+--------------------------+</span>  <span class="o">|</span>                              <span class="o">|</span>                              <span class="o">|</span>
+<span class="o">|</span> <span class="o">|</span> <span class="n">Chat</span> <span class="n">Command</span>             <span class="o">|</span>  <span class="o">|</span>                              <span class="o">|</span>                              <span class="o">|</span>
+<span class="o">|</span> <span class="o">|</span>  <span class="n">text</span><span class="p">:</span> <span class="o">|</span> <span class="n">flan</span> <span class="o">|</span>          <span class="o">|</span>  <span class="o">|</span>                              <span class="o">|</span>                              <span class="o">|</span>
+<span class="o">|</span> <span class="o">+--------------------------+</span>  <span class="o">|</span>                              <span class="o">|</span>                              <span class="o">|</span>
+<span class="o">+-------------------------------+------------------------------+------------------------------+</span>
+<span class="o">|</span> <span class="o">+--------------------------+</span>  <span class="o">|</span> <span class="o">+--------------------------+</span> <span class="o">|</span> <span class="o">+--------------------------+</span> <span class="o">|</span>
+<span class="o">|</span> <span class="o">|</span> <span class="n">Chat</span> <span class="n">Command</span>             <span class="o">|</span>  <span class="o">|</span> <span class="o">|</span> <span class="n">Is</span> <span class="n">Moderator</span>             <span class="o">|</span> <span class="o">|</span> <span class="o">|</span> <span class="n">Static</span> <span class="n">Text</span> <span class="n">Reply</span>        <span class="o">|</span> <span class="o">|</span>
+<span class="o">|</span> <span class="o">|</span>  <span class="n">text</span><span class="p">:</span> <span class="o">|</span> <span class="n">sass</span> <span class="o">|</span>          <span class="o">|</span>  <span class="o">|</span> <span class="o">+--------------------------+</span> <span class="o">|</span> <span class="o">|</span>  <span class="n">text</span><span class="p">:</span> <span class="o">|</span> <span class="n">foolish</span> <span class="n">Ben</span> <span class="o">|</span>   <span class="o">|</span> <span class="o">|</span>
+<span class="o">|</span> <span class="o">+--------------------------+</span>  <span class="o">|</span>                              <span class="o">|</span> <span class="o">+--------------------------+</span> <span class="o">|</span>
+<span class="o">+-------------------------------+------------------------------+------------------------------+</span>
+</pre></div>
+</div>
+</section>
+<section id="datastore-editing-ui">
+<h3>Datastore Editing UI<a class="headerlink" href="#datastore-editing-ui" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Datastores will need to be editable in the UI. Esepecially moderated datastores</p></li>
+<li><p>Datastore moderated</p></li>
+<li><p>Clear button</p></li>
+</ul>
+</section>
+<section id="reviewing-logs">
+<h3>Reviewing Logs<a class="headerlink" href="#reviewing-logs" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="testing-committing-changes">
+<h3>Testing + Committing Changes<a class="headerlink" href="#testing-committing-changes" title="Permalink to this heading">¶</a></h3>
+<p>Test mode — because stuff will be in version control, there should be a
+button to apply your changes temporarily without committing them.
+This should force your to keep the test tab open and “active” otherwise
+it’ll revert to the known config.</p>
+</section>
+</section>
+<section id="bot-runner">
+<h2>Bot Runner<a class="headerlink" href="#bot-runner" title="Permalink to this heading">¶</a></h2>
+<section id="event-queue">
+<h3>Event Queue<a class="headerlink" href="#event-queue" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="compiling-triggers">
+<h3>Compiling Triggers<a class="headerlink" href="#compiling-triggers" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="scheduling-triggers">
+<h3>Scheduling Triggers<a class="headerlink" href="#scheduling-triggers" title="Permalink to this heading">¶</a></h3>
+</section>
+</section>
+<section id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this heading">¶</a></h2>
+<section id="change-logs-version-control">
+<h3>Change Logs (Version Control)<a class="headerlink" href="#change-logs-version-control" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="text-logs">
+<h3>Text Logs<a class="headerlink" href="#text-logs" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="prometheus-metrics">
+<h3>Prometheus Metrics<a class="headerlink" href="#prometheus-metrics" title="Permalink to this heading">¶</a></h3>
+</section>
+</section>
+<section id="user-stories">
+<h2>User Stories<a class="headerlink" href="#user-stories" title="Permalink to this heading">¶</a></h2>
+<section id="basic-call-and-response">
+<h3>Basic call-and-response<a class="headerlink" href="#basic-call-and-response" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="randomised-responses">
+<h3>Randomised Responses<a class="headerlink" href="#randomised-responses" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="shoutouts-for-raids-and-vips">
+<h3>Shoutouts for Raids and VIPs<a class="headerlink" href="#shoutouts-for-raids-and-vips" title="Permalink to this heading">¶</a></h3>
+<p>Core modules I think that will be needed: a StartedChattingTrigger (first message in over an hour)</p>
+</section>
+<section id="post-periodic-reminders-with-live-streaming">
+<h3>Post Periodic Reminders with Live Streaming<a class="headerlink" href="#post-periodic-reminders-with-live-streaming" title="Permalink to this heading">¶</a></h3>
+<p>a PeriodicWhilstActiveTrigger (for things like snerge).</p>
+</section>
+<section id="counters">
+<h3>Counters<a class="headerlink" href="#counters" title="Permalink to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Data</span> <span class="n">Stores</span>
+<span class="o">|-------|--------|---------|</span>
+<span class="o">|</span> <span class="n">Name</span>  <span class="o">|</span> <span class="n">Type</span>   <span class="o">|</span> <span class="n">Default</span> <span class="o">|</span>
+<span class="o">|-------|--------|---------|</span>
+<span class="o">|</span> <span class="n">falls</span> <span class="o">|</span> <span class="n">Number</span> <span class="o">|</span>       <span class="mi">0</span> <span class="o">|</span>
+<span class="o">|-------|--------|---------|</span>
+
+
+<span class="n">Behaviours</span>
+<span class="o">|--------------------------|--------------|-------------------------------------|</span>
+<span class="o">|</span> <span class="n">Chat</span> <span class="n">command</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">fall</span><span class="p">)</span>  <span class="o">|</span> <span class="n">Is</span> <span class="n">Moderator</span> <span class="o">|</span> <span class="o">-</span> <span class="n">increment</span> <span class="s1">&#39;falls&#39;</span> <span class="n">datastore</span>       <span class="o">|</span>
+<span class="o">|--------------------------|--------------|-------------------------------------|</span>
+<span class="o">|</span> <span class="n">Chat</span> <span class="n">command</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">falls</span><span class="p">)</span> <span class="o">|</span>              <span class="o">|</span> <span class="o">-</span> <span class="n">reply</span><span class="o">-</span><span class="nb">all</span> <span class="k">with</span> <span class="s1">&#39;falls&#39;</span> <span class="n">data</span> <span class="n">store</span> <span class="o">|</span>
+<span class="o">|--------------------------|--------------|-------------------------------------|</span>
+</pre></div>
+</div>
+</section>
+<section id="quote-database">
+<h3>Quote Database<a class="headerlink" href="#quote-database" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="reacting-to-subscriptions">
+<h3>Reacting to Subscriptions<a class="headerlink" href="#reacting-to-subscriptions" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="competitions">
+<h3>Competitions<a class="headerlink" href="#competitions" title="Permalink to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">|</span> <span class="n">Chat</span> <span class="n">command</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">startgiveaway</span><span class="p">)</span>     <span class="o">|</span> <span class="n">Is</span> <span class="n">Moderator</span>   <span class="o">|</span> <span class="o">-</span> <span class="n">Clear</span> <span class="s1">&#39;giveaway&#39;</span> <span class="n">datastore</span>               <span class="o">|</span>
+<span class="o">|</span>                                      <span class="o">|</span>                <span class="o">|</span> <span class="o">-</span> <span class="n">Set</span> <span class="n">datastore</span> <span class="s1">&#39;gphrase&#39;</span> <span class="n">to</span> <span class="n">arg</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>        <span class="o">|</span>
+<span class="o">|--------------------------------------|----------------|--------------------------------------------|</span>
+<span class="o">|</span> <span class="n">Chat</span> <span class="n">command</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">datstore</span><span class="p">[</span><span class="n">gphrase</span><span class="p">])</span> <span class="o">|</span>                <span class="o">|</span> <span class="o">-</span> <span class="n">Add</span> <span class="n">user</span> <span class="n">to</span> <span class="s1">&#39;giveaway&#39;</span> <span class="n">datastore</span>         <span class="o">|</span>
+<span class="o">|--------------------------------------|----------------|--------------------------------------------|</span>
+<span class="o">|</span> <span class="n">Chat</span> <span class="n">command</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">stopgiveaway</span><span class="p">)</span>      <span class="o">|</span> <span class="n">Is</span> <span class="n">Moderator</span>   <span class="o">|</span> <span class="o">-</span> <span class="n">Clear</span> <span class="n">datastore</span> <span class="s1">&#39;gphrase&#39;</span>                <span class="o">|</span>
+<span class="o">|--------------------------------------|----------------|--------------------------------------------|</span>
+<span class="o">|</span> <span class="n">Chat</span> <span class="n">command</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">drawwinner</span><span class="p">)</span>        <span class="o">|</span> <span class="n">Is</span> <span class="n">Moderator</span>   <span class="o">|</span> <span class="o">-</span> <span class="n">Get</span> <span class="n">random</span> <span class="n">item</span> <span class="k">for</span> <span class="n">datastore</span> <span class="s1">&#39;giveaway&#39;</span> <span class="o">|</span>
+</pre></div>
+</div>
+</section>
+<section id="give-game-details-based-on-current-streamed-game">
+<h3>Give game details based on current streamed game<a class="headerlink" href="#give-game-details-based-on-current-streamed-game" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="cute-animal-pictures">
+<h3>Cute Animal Pictures<a class="headerlink" href="#cute-animal-pictures" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="go-live-notifications">
+<h3>Go Live Notifications<a class="headerlink" href="#go-live-notifications" title="Permalink to this heading">¶</a></h3>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">mewbot</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../top_level_md_files/main_code_of_conduct.html">Contributor Covenant Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../top_level_md_files/main_contributing.html">CONTRIBUTING.md</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../top_level_md_files/main_contributing.html#contributing">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../top_level_md_files/main_contributors.html">CONTRIBUTORS.md</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../top_level_md_files/main_contributors.html#contributors">Contributors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../top_level_md_files/main_license.html">LICENSE.md</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../top_level_md_files/main_readme.html">README.md</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../top_level_md_files/main_readme.html#mewbot">MewBot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README_DOCS.html">Welcome to the mewbot docs!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README_DOCS.html#what-should-go-in-here">What should go in here?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README_DOCS.html#why-are-there-a-mix-of-md-files-and-rst-files-in-here">Why are there a mix of md files and rst files in here?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README_DOCS.html#how-do-i-build-this-documentation">How do I build this documentation?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README_DOCS.html#how-to-i-contribute-to-these-docs">How to I contribute to these docs?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README_DOCS.html#help-my-doc-changes-are-not-showing-up">Help! My doc changes are not showing up!?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README_DOCS.html#i-fear-sphinx">I fear sphinx!?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../README_DOCS.html#things-to-look-into-later">Things to look into later</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Kitteh’s Bot Framework/Infrastructure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#a-bot-s-context">A Bot’s Context</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#intentional-design-limitations">Intentional Design Limitations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#languages">Languages</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#primary-components">Primary Components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#bot">Bot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ioconfig-input-output">IOConfig / Input / Output</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ioconfig">IOConfig</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#input">Input</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#output">Output</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#behaviour">Behaviour</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#template">Template</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#datastore">Datastore</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#single-valued-datastore">Single-Valued Datastore</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#list-datastores">List Datastores</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#datarecord-audit-information">DataRecord Audit Information</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#data-moderation">Data Moderation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#data-persistence">Data Persistence</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#trigger">Trigger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#conditions">Conditions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#actions">Actions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#context-flow">Context Flow</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-discoverability">Configuration + Discoverability</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#registry">Registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#properties">Properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#human-readable-descriptions">Human Readable Descriptions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#yaml-representation">Yaml Representation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#version-control">Version Control</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#user-interface">User Interface</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#login-acl">Login + ACL</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#behaviour-editing-ui">Behaviour Editing UI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#datastore-editing-ui">Datastore Editing UI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reviewing-logs">Reviewing Logs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#testing-committing-changes">Testing + Committing Changes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#bot-runner">Bot Runner</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#event-queue">Event Queue</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compiling-triggers">Compiling Triggers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scheduling-triggers">Scheduling Triggers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#change-logs-version-control">Change Logs (Version Control)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#text-logs">Text Logs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#prometheus-metrics">Prometheus Metrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#user-stories">User Stories</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#basic-call-and-response">Basic call-and-response</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#randomised-responses">Randomised Responses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shoutouts-for-raids-and-vips">Shoutouts for Raids and VIPs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#post-periodic-reminders-with-live-streaming">Post Periodic Reminders with Live Streaming</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#counters">Counters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quote-database">Quote Database</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reacting-to-subscriptions">Reacting to Subscriptions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#competitions">Competitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#give-game-details-based-on-current-streamed-game">Give game details based on current streamed game</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cute-animal-pictures">Cute Animal Pictures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#go-live-notifications">Go Live Notifications</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Storage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data-flow.html">Data Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vision.html">Vision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../source_mewbot/mewbot.api.html">mewbot.api package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../source_mewbot/mewbot.core.html">mewbot.core package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../source_mewbot/mewbot.io.html">mewbot.io package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../source_mewbot/mewbot.html">mewbot package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../source_mewbot/mewbot.test.html">mewbot.test package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../source_mewbot/mewbot.tools.html">mewbot.tools package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../source_mewbot/modules.html">mewbot</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../design-docs-index.html">&lt;no title&gt;</a><ul>
+      <li>Previous: <a href="../design-docs-index.html" title="previous chapter">&lt;no title&gt;</a></li>
+      <li>Next: <a href="data.html" title="next chapter">Data Storage</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2023, Mewler Org.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/design-docs/README.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
