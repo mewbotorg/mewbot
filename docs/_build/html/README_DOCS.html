@@ -96,10 +96,26 @@ There seems to be some issues with <code class="docutils literal notranslate"><s
 </section>
 <section id="help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent">
 <h1>Help! Sphin is complaining about <code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">Field</span> <span class="pre">list</span> <span class="pre">ends</span> <span class="pre">without</span> <span class="pre">a</span> <span class="pre">blank</span> <span class="pre">line;</span> <span class="pre">unexpected</span> <span class="pre">unindent.</span></code><a class="headerlink" href="#help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent" title="Permalink to this heading">¶</a></h1>
-<p>This seems to be a valid problem, but something about the <code class="docutils literal notranslate"><span class="pre">.md</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">.rst</span></code> conversion is confusing <code class="docutils literal notranslate"><span class="pre">sphinx</span></code>.
+<section id="and-adding-lines-before-the-error-does-not-seem-to-move-where-the-error-occurs">
+<h2>And adding lines before the error does not seem to move where the error occurs<a class="headerlink" href="#and-adding-lines-before-the-error-does-not-seem-to-move-where-the-error-occurs" title="Permalink to this heading">¶</a></h2>
+<p>E.g. The error is reported on line 54, and adding more lines before line 54 does not seem to move the line reporting the error.
+(In this case, the error was well before - around line 23.
+Notably _removing lines 23-&gt;End <em>did not resolve the error</em>.
+The error was still reported on line 54 when line 54 was beyond the end of the document).</p>
+<p>This seems to be a valid problem.
+Something about the <code class="docutils literal notranslate"><span class="pre">.md</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">.rst</span></code> conversion is confusing <code class="docutils literal notranslate"><span class="pre">sphinx</span></code>.
 The upshot of this is it cannot determine where the line which is causing the difficulty is <em>actually</em> found.
 So this means that there is a badly indented line <em>somewhere</em> in the file it’s complaining about.
 Might I suggest a binary search?</p>
+<p>(In this example, the problem was, eventually, tracked to a line which read</p>
+<div class="highlight-md notranslate"><div class="highlight"><pre><span></span><span class="k">&gt; </span><span class="ge">:warning: This project is still in the very early stages. Some basic bots can be built</span>
+<span class="k">&gt; </span><span class="ge">and run, but we currently consider all parts of the framework to be unstable.</span>
+</pre></div>
+</div>
+<p>Which was just not translating properly.
+An alternative method of emphasis was adopted.</p>
+<p>)</p>
+</section>
 </section>
 <section id="i-fear-sphinx">
 <h1>I fear sphinx!?<a class="headerlink" href="#i-fear-sphinx" title="Permalink to this heading">¶</a></h1>
@@ -149,7 +165,10 @@ Might I suggest a binary search?</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#help-my-doc-changes-are-not-showing-up">Help! My doc changes are not showing up!?</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent">Help! Sphin is complaining about <code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">Field</span> <span class="pre">list</span> <span class="pre">ends</span> <span class="pre">without</span> <span class="pre">a</span> <span class="pre">blank</span> <span class="pre">line;</span> <span class="pre">unexpected</span> <span class="pre">unindent.</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="#help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent">Help! Sphin is complaining about <code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">Field</span> <span class="pre">list</span> <span class="pre">ends</span> <span class="pre">without</span> <span class="pre">a</span> <span class="pre">blank</span> <span class="pre">line;</span> <span class="pre">unexpected</span> <span class="pre">unindent.</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#and-adding-lines-before-the-error-does-not-seem-to-move-where-the-error-occurs">And adding lines before the error does not seem to move where the error occurs</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="#i-fear-sphinx">I fear sphinx!?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#things-to-look-into-later">Things to look into later</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dev-docs/io-dev-notes/discord-dev-notes.html">Why am I getting blank events when messages are sent in channels the bot is monitoring?</a></li>

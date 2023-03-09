@@ -64,10 +64,29 @@ There seems to be some issues with `sphinx` caching.
 
 # Help! Sphin is complaining about `WARNING: Field list ends without a blank line; unexpected unindent.`
 
-This seems to be a valid problem, but something about the `.md` -> `.rst` conversion is confusing `sphinx`.
+## And adding lines before the error does not seem to move where the error occurs
+
+E.g. The error is reported on line 54, and adding more lines before line 54 does not seem to move the line reporting the error.
+(In this case, the error was well before - around line 23. 
+Notably _removing lines 23->End _did not resolve the error_. 
+The error was still reported on line 54 when line 54 was beyond the end of the document).
+
+This seems to be a valid problem.
+Something about the `.md` -> `.rst` conversion is confusing `sphinx`.
 The upshot of this is it cannot determine where the line which is causing the difficulty is _actually_ found.
 So this means that there is a badly indented line _somewhere_ in the file it's complaining about.
 Might I suggest a binary search?
+
+(In this example, the problem was, eventually, tracked to a line which read
+
+```md
+> :warning: This project is still in the very early stages. Some basic bots can be built
+> and run, but we currently consider all parts of the framework to be unstable.
+```
+Which was just not translating properly.
+An alternative method of emphasis was adopted.
+
+)
 
 # I fear sphinx!?
 

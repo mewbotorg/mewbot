@@ -43,7 +43,7 @@ These docs are intended as a living document.
 Feel free to add to them.
 In particular, details of problems you encountered - and how you solved them - would be most welcome.
 
-## Doc strings
+# Doc strings
 
 Another very helpful thing you can do is add to, or further build out, the doc strings at module, class and function level.
 Sphinx uses the reStructuredText Docstring Format.
@@ -53,7 +53,9 @@ See https://peps.python.org/pep-0287/ for more information.
 For the use of rst with sphinx, please see  https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html.
 Note this is a typed library, so we should not have to explicitly type our variables in the doc string.
 
-# Help! My doc changes are not showing up!?
+# Troubleshooting
+
+## Help! My doc changes are not showing up!?
 
 https://stackoverflow.com/questions/17366625/sphinx-uses-old-module-code
 
@@ -62,14 +64,31 @@ Additional functionality will be added to `conf.py` which should render this unn
 If in doubt, delete it anyway.
 There seems to be some issues with `sphinx` caching.
 
-# Help! Sphin is complaining about `WARNING: Field list ends without a blank line; unexpected unindent.`
+## Help! Sphin is complaining about `WARNING: Field list ends without a blank line; unexpected unindent.`
 
-This seems to be a valid problem, but something about the `.md` -> `.rst` conversion is confusing `sphinx`.
+### And adding lines before the error does not seem to move where the error occurs
+
+E.g. The error is reported on line 54, and adding more lines before line 54 does not seem to move the line reporting the error.
+(In this case, the error was well before - around line 23. 
+Notably _removing lines 23->End _did not resolve the error_. 
+The error was still reported on line 54 when line 54 was beyond the end of the document).
+
+This seems to be a valid problem.
+Something about the `.md` -> `.rst` conversion is confusing `sphinx`.
 The upshot of this is it cannot determine where the line which is causing the difficulty is _actually_ found.
 So this means that there is a badly indented line _somewhere_ in the file it's complaining about.
 Might I suggest a binary search?
 
-# I fear sphinx!?
+(In this example, the problem was, eventually, tracked to a line which read
+
+```md
+> :warning: This project is still in the very early stages. Some basic bots can be built
+> and run, but we currently consider all parts of the framework to be unstable.
+```
+Which was just not translating properly.
+An alternative method of emphasis was adopted.)
+
+## I fear sphinx!?
 
 This is understandable and natural.
 

@@ -7,22 +7,26 @@ SPDX-License-Identifier: CC-BY-4.0
 # MewBot
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](CONTRIBUTORS.md)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
+
 [![Linting](https://github.com/mewler/mewbot/actions/workflows/review.yaml/badge.svg)](https://github.com/mewler/mewbot/actions/workflows/review.yaml)
+
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mewler_mewbot&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mewler_mewbot)
 
-MewBot is an automation framework intended to simplify building cross-platform
-text/chat-bots.
+MewBot is an automation framework intended to simplify building cross-platform text/chat-bots.
 The design is intended to be modular with configuration separated from code,
 allowing users and developers to build out custom logic and behaviours with
 minimal coding experience.
 
 ### Status
 
-> :warning: This project is still in the very early stages. Some basic bots can be built
-> and run, but we currently consider all parts of the framework to be unstable.
+| WARNING: This project is still in the very early stages. |
+| --- |
+
+Some basic bots can be built and run, but we currently consider all parts of the framework to be unstable.
 
 ### Packages and Modules
 
