@@ -14,7 +14,7 @@
     <script src="_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="&lt;no title&gt;" href="design-docs-index.html" />
+    <link rel="next" title="&lt;no title&gt;" href="dev-docs-index.html" />
     <link rel="prev" title="README.md" href="top_level_md_files/main_readme.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -94,6 +94,13 @@ Additional functionality will be added to <code class="docutils literal notransl
 If in doubt, delete it anyway.
 There seems to be some issues with <code class="docutils literal notranslate"><span class="pre">sphinx</span></code> caching.</p>
 </section>
+<section id="help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent">
+<h1>Help! Sphin is complaining about <code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">Field</span> <span class="pre">list</span> <span class="pre">ends</span> <span class="pre">without</span> <span class="pre">a</span> <span class="pre">blank</span> <span class="pre">line;</span> <span class="pre">unexpected</span> <span class="pre">unindent.</span></code><a class="headerlink" href="#help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent" title="Permalink to this heading">¶</a></h1>
+<p>This seems to be a valid problem, but something about the <code class="docutils literal notranslate"><span class="pre">.md</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">.rst</span></code> conversion is confusing <code class="docutils literal notranslate"><span class="pre">sphinx</span></code>.
+The upshot of this is it cannot determine where the line which is causing the difficulty is <em>actually</em> found.
+So this means that there is a badly indented line <em>somewhere</em> in the file it’s complaining about.
+Might I suggest a binary search?</p>
+</section>
 <section id="i-fear-sphinx">
 <h1>I fear sphinx!?<a class="headerlink" href="#i-fear-sphinx" title="Permalink to this heading">¶</a></h1>
 <p>This is understandable and natural.</p>
@@ -142,11 +149,14 @@ There seems to be some issues with <code class="docutils literal notranslate"><s
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#help-my-doc-changes-are-not-showing-up">Help! My doc changes are not showing up!?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent">Help! Sphin is complaining about <code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">Field</span> <span class="pre">list</span> <span class="pre">ends</span> <span class="pre">without</span> <span class="pre">a</span> <span class="pre">blank</span> <span class="pre">line;</span> <span class="pre">unexpected</span> <span class="pre">unindent.</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="#i-fear-sphinx">I fear sphinx!?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#things-to-look-into-later">Things to look into later</a></li>
-<li class="toctree-l1"><a class="reference internal" href="design-docs/README.html">Kitteh’s Bot Framework/Infrastructure</a></li>
-<li class="toctree-l1"><a class="reference internal" href="design-docs/data.html">Data Storage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-docs/io-dev-notes/discord-dev-notes.html">Why am I getting blank events when messages are sent in channels the bot is monitoring?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-docs/io-dev-notes/discord-dev-notes.html#pycord-is-not-seeing-events-i-expect-it-to">Pycord is not seeing events I expect it to</a></li>
 <li class="toctree-l1"><a class="reference internal" href="design-docs/data-flow.html">Data Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design-docs/data.html">Data Storage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design-docs/README.html">Kitteh’s Bot Framework/Infrastructure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="design-docs/vision.html">Vision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source_mewbot/mewbot.api.html">mewbot.api package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source_mewbot/mewbot.core.html">mewbot.core package</a></li>
@@ -155,6 +165,9 @@ There seems to be some issues with <code class="docutils literal notranslate"><s
 <li class="toctree-l1"><a class="reference internal" href="source_mewbot/mewbot.test.html">mewbot.test package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source_mewbot/mewbot.tools.html">mewbot.tools package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source_mewbot/modules.html">mewbot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source_examples/examples.discord_bots.html">examples.discord_bots package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source_examples/examples.html">examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source_examples/modules.html">examples</a></li>
 </ul>
 
 <div class="relations">
@@ -162,7 +175,7 @@ There seems to be some issues with <code class="docutils literal notranslate"><s
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="top_level_md_files/main_readme.html" title="previous chapter">README.md</a></li>
-      <li>Next: <a href="design-docs-index.html" title="next chapter">&lt;no title&gt;</a></li>
+      <li>Next: <a href="dev-docs-index.html" title="next chapter">&lt;no title&gt;</a></li>
   </ul></li>
 </ul>
 </div>

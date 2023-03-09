@@ -62,6 +62,13 @@ Additional functionality will be added to `conf.py` which should render this unn
 If in doubt, delete it anyway.
 There seems to be some issues with `sphinx` caching.
 
+# Help! Sphin is complaining about `WARNING: Field list ends without a blank line; unexpected unindent.`
+
+This seems to be a valid problem, but something about the `.md` -> `.rst` conversion is confusing `sphinx`.
+The upshot of this is it cannot determine where the line which is causing the difficulty is _actually_ found.
+So this means that there is a badly indented line _somewhere_ in the file it's complaining about.
+Might I suggest a binary search?
+
 # I fear sphinx!?
 
 This is understandable and natural.
@@ -70,6 +77,7 @@ Can I recommend some resources to get you started?
 
 https://samnicholls.net/2016/06/15/how-to-sphinx-readthedocs/
 https://pythonhosted.org/an_example_pypi_project/sphinx.html
+
 
 # Things to look into later
 

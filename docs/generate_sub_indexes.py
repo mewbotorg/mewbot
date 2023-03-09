@@ -99,6 +99,18 @@ def generate_top_level_md_files_index() -> None:
 
 
 def generate_source_index(src_folder: str) -> None:
+    """
+    Assists auto-generation of documentation from doc strings of entire modules.
+
+    sphinx has an inbuilt script for iteratively generating documentation from the doc strings of
+    entire modules.
+    However, it doesn't have a good means of generating index files for this auto-generated files
+    so you can include them more easily in the docs.
+    This function generates that index file, which can then be included in the toc for the master
+    index file.
+    :param src_folder:
+    :return:
+    """
 
     src_dir_paths: list[str] = []
     for file_name in os.listdir(src_folder):
@@ -123,7 +135,62 @@ def generate_source_index(src_folder: str) -> None:
     """)
 
 
+def generate_docs_folder_index(docs_folder: str) -> None:
+    """
+    Generates an index file so an entire docs tree (e.g. design-docs) can be included in the toc.
+
+    :param docs_folder:
+    :return:
+    """
+    valid_file_paths = []
+    for root, dirs, files in os.walk(docs_folder):
+        for file_name in files:
+            if os.path.splitext(file_name)[1].lower() != ".md":
+                continue
+
+            valid_file_paths.append(os.path.join(root, file_name))
+
+    # Process valid_index_files into an OS agnostic form
+    new_valid_file_paths: list[str] = []
+    for file_path in valid_file_paths:
+        file_tokens = file_path.split(os.sep)
+        new_valid_file_paths.append("/".join(file_tokens))
+
+    valid_file_paths = new_valid_file_paths
+
+    # Caption string which will be used to name this toc
+    name_tokens = docs_folder.split("-")
+    name_tokens = [_.title() for _ in name_tokens]
+    name_str = " ".join(name_tokens)
+
+    # Generate the index string which will point to all the index files in the
+    index_str = "   " + "\n   ".join(valid_file_paths)
+
+    # Gen the index name and remove it if it exists already
+    index_file_name = f"{docs_folder}-index.rst"
+    if os.path.exists(index_file_name):
+        os.unlink(index_file_name)
+
+    # Write the index file out
+    with open(index_file_name, "w") as main_files_index:
+        main_files_index.write(f"""
+
+..
+  NOTE - THIS IS AN AUTO-GENERATED FILE - CHANGES MADE HERE WILL NOT PERSIST!
+
+.. toctree::
+   :maxdepth: 4
+   :caption: {name_str}:
+
+{index_str}
+
+    """)
+
+
 if __name__ == "__main__":
 
     generate_top_level_md_files_index()
     generate_source_index(src_folder=SOURCE_MEWBOT_DIR)
+    generate_source_index(src_folder=SOURCE_EXAMPLES_DIR)
+    generate_docs_folder_index("design-docs")
+    generate_docs_folder_index("dev-docs")

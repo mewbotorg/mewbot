@@ -1,10 +1,15 @@
 
 
+..
+  NOTE - THIS IS AN AUTO-GENERATED FILE - CHANGES MADE HERE WILL NOT PERSIST!
+
 .. toctree::
    :maxdepth: 4
-   :caption: Design Docs Contents:
+   :caption: Design Docs:
 
-   design-docs/README
-   design-docs/data
-   design-docs/data-flow
-   design-docs/vision
+   design-docs/data-flow.md
+   design-docs/data.md
+   design-docs/README.md
+   design-docs/vision.md
+
+    

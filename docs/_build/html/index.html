@@ -33,6 +33,7 @@
             
   <section id="welcome-to-mewbot-s-documentation">
 <h1>Welcome to mewbot’s documentation!<a class="headerlink" href="#welcome-to-mewbot-s-documentation" title="Permalink to this heading">¶</a></h1>
+<p>It’s getting better every day!</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
@@ -86,8 +87,23 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="README_DOCS.html#help-my-doc-changes-are-not-showing-up">Help! My doc changes are not showing up!?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README_DOCS.html#help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent">Help! Sphin is complaining about <code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">Field</span> <span class="pre">list</span> <span class="pre">ends</span> <span class="pre">without</span> <span class="pre">a</span> <span class="pre">blank</span> <span class="pre">line;</span> <span class="pre">unexpected</span> <span class="pre">unindent.</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="README_DOCS.html#i-fear-sphinx">I fear sphinx!?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="README_DOCS.html#things-to-look-into-later">Things to look into later</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-docs/io-dev-notes/discord-dev-notes.html">Why am I getting blank events when messages are sent in channels the bot is monitoring?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-docs/io-dev-notes/discord-dev-notes.html#pycord-is-not-seeing-events-i-expect-it-to">Pycord is not seeing events I expect it to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design-docs/data-flow.html">Data Flow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="design-docs/data-flow.html#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design-docs/data-flow.html#inputeventqueue">InputEventQueue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design-docs/data-flow.html#input-processing-threads">Input Processing Threads</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design-docs/data-flow.html#output-event-queue-processor">Output Event Queue + Processor</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="design-docs/data.html">Data Storage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="design-docs/data.html#datasource">DataSource</a></li>
+<li class="toctree-l2"><a class="reference internal" href="design-docs/data.html#datastore">DataStore</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="design-docs/README.html">Kitteh’s Bot Framework/Infrastructure</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="design-docs/README.html#introduction">Introduction</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="design-docs/README.html#a-bot-s-context">A Bot’s Context</a></li>
@@ -165,18 +181,6 @@
 <li class="toctree-l3"><a class="reference internal" href="design-docs/README.html#go-live-notifications">Go Live Notifications</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="design-docs/data.html">Data Storage</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="design-docs/data.html#datasource">DataSource</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design-docs/data.html#datastore">DataStore</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="design-docs/data-flow.html">Data Flow</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="design-docs/data-flow.html#inputs">Inputs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design-docs/data-flow.html#inputeventqueue">InputEventQueue</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design-docs/data-flow.html#input-processing-threads">Input Processing Threads</a></li>
-<li class="toctree-l2"><a class="reference internal" href="design-docs/data-flow.html#output-event-queue-processor">Output Event Queue + Processor</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="design-docs/vision.html">Vision</a><ul>
@@ -752,6 +756,140 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="source_examples/examples.discord_bots.html">examples.discord_bots package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source_examples/examples.discord_bots.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source_examples/examples.discord_bots.html#module-examples.discord_bots.delete_warn_discord_bot">examples.discord_bots.delete_warn_discord_bot module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.delete_warn_discord_bot.DiscordDeleteEventTrigger"><code class="docutils literal notranslate"><span class="pre">DiscordDeleteEventTrigger</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.delete_warn_discord_bot.DiscordDeleteEventTrigger.consumes_inputs"><code class="docutils literal notranslate"><span class="pre">DiscordDeleteEventTrigger.consumes_inputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.delete_warn_discord_bot.DiscordDeleteEventTrigger.matches"><code class="docutils literal notranslate"><span class="pre">DiscordDeleteEventTrigger.matches()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.delete_warn_discord_bot.DiscordDeleteResponseAction"><code class="docutils literal notranslate"><span class="pre">DiscordDeleteResponseAction</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.delete_warn_discord_bot.DiscordDeleteResponseAction.act"><code class="docutils literal notranslate"><span class="pre">DiscordDeleteResponseAction.act()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.delete_warn_discord_bot.DiscordDeleteResponseAction.consumes_inputs"><code class="docutils literal notranslate"><span class="pre">DiscordDeleteResponseAction.consumes_inputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.delete_warn_discord_bot.DiscordDeleteResponseAction.message"><code class="docutils literal notranslate"><span class="pre">DiscordDeleteResponseAction.message</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.delete_warn_discord_bot.DiscordDeleteResponseAction.produces_outputs"><code class="docutils literal notranslate"><span class="pre">DiscordDeleteResponseAction.produces_outputs()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source_examples/examples.discord_bots.html#module-examples.discord_bots.discord_to_desktop_notification">examples.discord_bots.discord_to_desktop_notification module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.discord_to_desktop_notification.DiscordMessageToNotificationAction"><code class="docutils literal notranslate"><span class="pre">DiscordMessageToNotificationAction</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.discord_to_desktop_notification.DiscordMessageToNotificationAction.act"><code class="docutils literal notranslate"><span class="pre">DiscordMessageToNotificationAction.act()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.discord_to_desktop_notification.DiscordMessageToNotificationAction.consumes_inputs"><code class="docutils literal notranslate"><span class="pre">DiscordMessageToNotificationAction.consumes_inputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.discord_to_desktop_notification.DiscordMessageToNotificationAction.message"><code class="docutils literal notranslate"><span class="pre">DiscordMessageToNotificationAction.message</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.discord_to_desktop_notification.DiscordMessageToNotificationAction.produces_outputs"><code class="docutils literal notranslate"><span class="pre">DiscordMessageToNotificationAction.produces_outputs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.discord_to_desktop_notification.DiscordTextCommandTrigger"><code class="docutils literal notranslate"><span class="pre">DiscordTextCommandTrigger</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.discord_to_desktop_notification.DiscordTextCommandTrigger.command"><code class="docutils literal notranslate"><span class="pre">DiscordTextCommandTrigger.command</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.discord_to_desktop_notification.DiscordTextCommandTrigger.consumes_inputs"><code class="docutils literal notranslate"><span class="pre">DiscordTextCommandTrigger.consumes_inputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.discord_to_desktop_notification.DiscordTextCommandTrigger.matches"><code class="docutils literal notranslate"><span class="pre">DiscordTextCommandTrigger.matches()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source_examples/examples.discord_bots.html#module-examples.discord_bots.editor_warn_discord_bot">examples.discord_bots.editor_warn_discord_bot module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.editor_warn_discord_bot.DiscordEditResponse"><code class="docutils literal notranslate"><span class="pre">DiscordEditResponse</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.editor_warn_discord_bot.DiscordEditResponse.act"><code class="docutils literal notranslate"><span class="pre">DiscordEditResponse.act()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.editor_warn_discord_bot.DiscordEditResponse.consumes_inputs"><code class="docutils literal notranslate"><span class="pre">DiscordEditResponse.consumes_inputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.editor_warn_discord_bot.DiscordEditResponse.message"><code class="docutils literal notranslate"><span class="pre">DiscordEditResponse.message</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.editor_warn_discord_bot.DiscordEditResponse.produces_outputs"><code class="docutils literal notranslate"><span class="pre">DiscordEditResponse.produces_outputs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.editor_warn_discord_bot.DiscordEditTrigger"><code class="docutils literal notranslate"><span class="pre">DiscordEditTrigger</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.editor_warn_discord_bot.DiscordEditTrigger.consumes_inputs"><code class="docutils literal notranslate"><span class="pre">DiscordEditTrigger.consumes_inputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.editor_warn_discord_bot.DiscordEditTrigger.matches"><code class="docutils literal notranslate"><span class="pre">DiscordEditTrigger.matches()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source_examples/examples.discord_bots.html#module-examples.discord_bots.history_discord_bot">examples.discord_bots.history_discord_bot module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.history_discord_bot.DiscordAllCommandTrigger"><code class="docutils literal notranslate"><span class="pre">DiscordAllCommandTrigger</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.history_discord_bot.DiscordAllCommandTrigger.command"><code class="docutils literal notranslate"><span class="pre">DiscordAllCommandTrigger.command</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.history_discord_bot.DiscordAllCommandTrigger.consumes_inputs"><code class="docutils literal notranslate"><span class="pre">DiscordAllCommandTrigger.consumes_inputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.history_discord_bot.DiscordAllCommandTrigger.matches"><code class="docutils literal notranslate"><span class="pre">DiscordAllCommandTrigger.matches()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.history_discord_bot.DiscordPrintAction"><code class="docutils literal notranslate"><span class="pre">DiscordPrintAction</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.history_discord_bot.DiscordPrintAction.act"><code class="docutils literal notranslate"><span class="pre">DiscordPrintAction.act()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.history_discord_bot.DiscordPrintAction.consumes_inputs"><code class="docutils literal notranslate"><span class="pre">DiscordPrintAction.consumes_inputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.history_discord_bot.DiscordPrintAction.message"><code class="docutils literal notranslate"><span class="pre">DiscordPrintAction.message</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.history_discord_bot.DiscordPrintAction.produces_outputs"><code class="docutils literal notranslate"><span class="pre">DiscordPrintAction.produces_outputs()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source_examples/examples.discord_bots.html#module-examples.discord_bots.trivial_discord_bot">examples.discord_bots.trivial_discord_bot module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.trivial_discord_bot.DiscordCommandTextResponse"><code class="docutils literal notranslate"><span class="pre">DiscordCommandTextResponse</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.trivial_discord_bot.DiscordCommandTextResponse.act"><code class="docutils literal notranslate"><span class="pre">DiscordCommandTextResponse.act()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.trivial_discord_bot.DiscordCommandTextResponse.consumes_inputs"><code class="docutils literal notranslate"><span class="pre">DiscordCommandTextResponse.consumes_inputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.trivial_discord_bot.DiscordCommandTextResponse.message"><code class="docutils literal notranslate"><span class="pre">DiscordCommandTextResponse.message</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.trivial_discord_bot.DiscordCommandTextResponse.produces_outputs"><code class="docutils literal notranslate"><span class="pre">DiscordCommandTextResponse.produces_outputs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.trivial_discord_bot.DiscordTextCommandTrigger"><code class="docutils literal notranslate"><span class="pre">DiscordTextCommandTrigger</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.trivial_discord_bot.DiscordTextCommandTrigger.command"><code class="docutils literal notranslate"><span class="pre">DiscordTextCommandTrigger.command</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.trivial_discord_bot.DiscordTextCommandTrigger.consumes_inputs"><code class="docutils literal notranslate"><span class="pre">DiscordTextCommandTrigger.consumes_inputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#examples.discord_bots.trivial_discord_bot.DiscordTextCommandTrigger.matches"><code class="docutils literal notranslate"><span class="pre">DiscordTextCommandTrigger.matches()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source_examples/examples.discord_bots.html#module-examples.discord_bots">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source_examples/examples.html">examples package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source_examples/examples.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.discord_bots.html">examples.discord_bots package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#module-examples.discord_bots.delete_warn_discord_bot">examples.discord_bots.delete_warn_discord_bot module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#module-examples.discord_bots.discord_to_desktop_notification">examples.discord_bots.discord_to_desktop_notification module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#module-examples.discord_bots.editor_warn_discord_bot">examples.discord_bots.editor_warn_discord_bot module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#module-examples.discord_bots.history_discord_bot">examples.discord_bots.history_discord_bot module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#module-examples.discord_bots.trivial_discord_bot">examples.discord_bots.trivial_discord_bot module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html#module-examples.discord_bots">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source_examples/examples.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source_examples/examples.html#module-examples.rss_input">examples.rss_input module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.html#examples.rss_input.RSSPrintAction"><code class="docutils literal notranslate"><span class="pre">RSSPrintAction</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.html#examples.rss_input.RSSPrintAction.act"><code class="docutils literal notranslate"><span class="pre">RSSPrintAction.act()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.html#examples.rss_input.RSSPrintAction.consumes_inputs"><code class="docutils literal notranslate"><span class="pre">RSSPrintAction.consumes_inputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.html#examples.rss_input.RSSPrintAction.produces_outputs"><code class="docutils literal notranslate"><span class="pre">RSSPrintAction.produces_outputs()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source_examples/examples.html#module-examples.yaml_bot">examples.yaml_bot module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.html#examples.yaml_bot.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="source_examples/examples.html#module-examples">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source_examples/modules.html">examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source_examples/examples.html">examples package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.discord_bots.html">examples.discord_bots package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.html#module-examples.rss_input">examples.rss_input module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.html#examples.rss_input.RSSPrintAction"><code class="docutils literal notranslate"><span class="pre">RSSPrintAction</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.html#module-examples.yaml_bot">examples.yaml_bot module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="source_examples/examples.html#examples.yaml_bot.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="source_examples/examples.html#module-examples">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </div>
 </section>
@@ -797,11 +935,14 @@
 <li class="toctree-l1"><a class="reference internal" href="README_DOCS.html#how-do-i-build-this-documentation">How do I build this documentation?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="README_DOCS.html#how-to-i-contribute-to-these-docs">How to I contribute to these docs?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="README_DOCS.html#help-my-doc-changes-are-not-showing-up">Help! My doc changes are not showing up!?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README_DOCS.html#help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent">Help! Sphin is complaining about <code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">Field</span> <span class="pre">list</span> <span class="pre">ends</span> <span class="pre">without</span> <span class="pre">a</span> <span class="pre">blank</span> <span class="pre">line;</span> <span class="pre">unexpected</span> <span class="pre">unindent.</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="README_DOCS.html#i-fear-sphinx">I fear sphinx!?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="README_DOCS.html#things-to-look-into-later">Things to look into later</a></li>
-<li class="toctree-l1"><a class="reference internal" href="design-docs/README.html">Kitteh’s Bot Framework/Infrastructure</a></li>
-<li class="toctree-l1"><a class="reference internal" href="design-docs/data.html">Data Storage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-docs/io-dev-notes/discord-dev-notes.html">Why am I getting blank events when messages are sent in channels the bot is monitoring?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-docs/io-dev-notes/discord-dev-notes.html#pycord-is-not-seeing-events-i-expect-it-to">Pycord is not seeing events I expect it to</a></li>
 <li class="toctree-l1"><a class="reference internal" href="design-docs/data-flow.html">Data Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design-docs/data.html">Data Storage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design-docs/README.html">Kitteh’s Bot Framework/Infrastructure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="design-docs/vision.html">Vision</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source_mewbot/mewbot.api.html">mewbot.api package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source_mewbot/mewbot.core.html">mewbot.core package</a></li>
@@ -810,6 +951,9 @@
 <li class="toctree-l1"><a class="reference internal" href="source_mewbot/mewbot.test.html">mewbot.test package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source_mewbot/mewbot.tools.html">mewbot.tools package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source_mewbot/modules.html">mewbot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source_examples/examples.discord_bots.html">examples.discord_bots package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source_examples/examples.html">examples package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source_examples/modules.html">examples</a></li>
 </ul>
 
 <div class="relations">
