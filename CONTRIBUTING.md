@@ -13,10 +13,11 @@ All contributions, in any form, must also confirm with the [code of conduct](COD
 You can see all contributors, past and present, in the [contributors list](CONTRIBUTING.md).
 This list is managed using the [AllContributors bot](https://allcontributors.org/docs/en/bot/overview).
 
-> :information_source: This document is a living document, and will adapt based on the project's needs.
+> This document is a living document, and will adapt based on the project's needs.
 > If some part of this document creates a hindrance, raise an issue explaining the problem.
 
 <!-- This section is pending the modularisation work in issue #13
+
 ## Scope: What Lives in this Repository?
 
 MewBot's core provides simple interfaces for developing bot components and a system for loading and running them.

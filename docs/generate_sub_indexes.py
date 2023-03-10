@@ -42,7 +42,13 @@ def generate_top_level_md_files_index() -> None:
     valid_index_files: list[str] = []
     for file_name in top_level_files:
 
-        if os.path.splitext(file_name)[1] != ".md":
+        # Also copy any images from the top level into the link dir
+        if os.path.splitext(file_name)[1].lower() in (".svg", ".tff", ".jpg"):
+
+            new_image_path = os.path.join(TOP_LEVEL_FILES_LINK_DIR, file_name)
+            shutil.copy(os.path.join("..", file_name), new_image_path)
+
+        if os.path.splitext(file_name)[1].lower() != ".md":
             continue
 
         file_name_token = os.path.splitext(file_name)[0]

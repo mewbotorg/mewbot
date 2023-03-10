@@ -23,8 +23,8 @@ minimal coding experience.
 
 ### Status
 
-| WARNING: This project is still in the very early stages. |
-| --- |
+| WARNING: This project is still in the very early stages.  |
+|-----------------------------------------------------------|
 
 Some basic bots can be built and run, but we currently consider all parts of the framework to be unstable.
 

@@ -35,7 +35,7 @@
   <section id="welcome-to-the-mewbot-docs">
 <h1>Welcome to the mewbot docs!<a class="headerlink" href="#welcome-to-the-mewbot-docs" title="Permalink to this heading">¶</a></h1>
 <p>Mewbot is a plugin friendly, multi-platform, chatbot framework which can load bots from YAML definitions.</p>
-<p>The docs are built using sphinx.</p>
+<p>The docs are built using <code class="docutils literal notranslate"><span class="pre">sphinx</span></code>.</p>
 </section>
 <section id="what-should-go-in-here">
 <h1>What should go in here?<a class="headerlink" href="#what-should-go-in-here" title="Permalink to this heading">¶</a></h1>
@@ -62,7 +62,8 @@ As such they have not, yet, been translated.</p>
 <li><p>This will install <code class="docutils literal notranslate"><span class="pre">sphinx</span></code> and the plugins it needs to build</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">cd</span></code> into <code class="docutils literal notranslate"><span class="pre">./docs</span></code> (the folder containing this file)</p></li>
 <li><p>Run <code class="docutils literal notranslate"><span class="pre">sphinx-apidoc</span> <span class="pre">-o</span> <span class="pre">source_mewbot/</span> <span class="pre">../src/mewbot</span></code> - This will recursively generate sphinx docs for the entire code base off the docstrings embedded in the code itself.</p></li>
-<li><p>Run <code class="docutils literal notranslate"><span class="pre">sphinx-apidoc</span> <span class="pre">-o</span> <span class="pre">source_examples/</span> <span class="pre">../src/examples</span></code> - This will do the same for the examples</p></li>
+<li><p>Run <code class="docutils literal notranslate"><span class="pre">sphinx-apidoc</span> <span class="pre">-o</span> <span class="pre">source_examples/</span> <span class="pre">../src/examples</span></code> - This will do the same for the examples .</p></li>
+<li><p>The output of this will be stored in the <code class="docutils literal notranslate"><span class="pre">source_mewbot</span></code> and <code class="docutils literal notranslate"><span class="pre">source_examples</span></code> folders respectively.</p></li>
 <li><p>NOTE - doc strings in the source are considered a source of truth. Please DO NOT edit the generated files - please edit the doc strings in <code class="docutils literal notranslate"><span class="pre">src</span></code> directly.</p></li>
 <li><p>Run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">generate_sub_indexes.py</span></code> - this will generate index files for <code class="docutils literal notranslate"><span class="pre">design-docs</span></code>, <code class="docutils literal notranslate"><span class="pre">dev-docs</span></code> e.t.c. as well as the auto generated fies in <code class="docutils literal notranslate"><span class="pre">source_mewbot</span></code> and <code class="docutils literal notranslate"><span class="pre">source_examples</span></code></p></li>
 <li><p>Run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">purge_sphinx_cache.py</span></code> - to actually make these changes show up anywhere.</p></li>
@@ -77,17 +78,19 @@ As such they have not, yet, been translated.</p>
 These docs are intended as a living document.
 Feel free to add to them.
 In particular, details of problems you encountered - and how you solved them - would be most welcome.</p>
+</section>
 <section id="doc-strings">
-<h2>Doc strings<a class="headerlink" href="#doc-strings" title="Permalink to this heading">¶</a></h2>
+<h1>Doc strings<a class="headerlink" href="#doc-strings" title="Permalink to this heading">¶</a></h1>
 <p>Another very helpful thing you can do is add to, or further build out, the doc strings at module, class and function level.
 Sphinx uses the reStructuredText Docstring Format.</p>
 <p>See <a class="reference external" href="https://peps.python.org/pep-0287/">https://peps.python.org/pep-0287/</a> for more information.</p>
 <p>For the use of rst with sphinx, please see  <a class="reference external" href="https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html">https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html</a>.
 Note this is a typed library, so we should not have to explicitly type our variables in the doc string.</p>
 </section>
-</section>
+<section id="troubleshooting">
+<h1>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this heading">¶</a></h1>
 <section id="help-my-doc-changes-are-not-showing-up">
-<h1>Help! My doc changes are not showing up!?<a class="headerlink" href="#help-my-doc-changes-are-not-showing-up" title="Permalink to this heading">¶</a></h1>
+<h2>Help! My doc changes are not showing up!?<a class="headerlink" href="#help-my-doc-changes-are-not-showing-up" title="Permalink to this heading">¶</a></h2>
 <p><a class="reference external" href="https://stackoverflow.com/questions/17366625/sphinx-uses-old-module-code">https://stackoverflow.com/questions/17366625/sphinx-uses-old-module-code</a></p>
 <p>Delete the <code class="docutils literal notranslate"><span class="pre">_build/doctrees</span></code> folder.
 Additional functionality will be added to <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> which should render this unnecessary to do manually.
@@ -95,9 +98,9 @@ If in doubt, delete it anyway.
 There seems to be some issues with <code class="docutils literal notranslate"><span class="pre">sphinx</span></code> caching.</p>
 </section>
 <section id="help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent">
-<h1>Help! Sphin is complaining about <code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">Field</span> <span class="pre">list</span> <span class="pre">ends</span> <span class="pre">without</span> <span class="pre">a</span> <span class="pre">blank</span> <span class="pre">line;</span> <span class="pre">unexpected</span> <span class="pre">unindent.</span></code><a class="headerlink" href="#help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent" title="Permalink to this heading">¶</a></h1>
+<h2>Help! Sphin is complaining about <code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">Field</span> <span class="pre">list</span> <span class="pre">ends</span> <span class="pre">without</span> <span class="pre">a</span> <span class="pre">blank</span> <span class="pre">line;</span> <span class="pre">unexpected</span> <span class="pre">unindent.</span></code><a class="headerlink" href="#help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent" title="Permalink to this heading">¶</a></h2>
 <section id="and-adding-lines-before-the-error-does-not-seem-to-move-where-the-error-occurs">
-<h2>And adding lines before the error does not seem to move where the error occurs<a class="headerlink" href="#and-adding-lines-before-the-error-does-not-seem-to-move-where-the-error-occurs" title="Permalink to this heading">¶</a></h2>
+<h3>And adding lines before the error does not seem to move where the error occurs<a class="headerlink" href="#and-adding-lines-before-the-error-does-not-seem-to-move-where-the-error-occurs" title="Permalink to this heading">¶</a></h3>
 <p>E.g. The error is reported on line 54, and adding more lines before line 54 does not seem to move the line reporting the error.
 (In this case, the error was well before - around line 23.
 Notably _removing lines 23-&gt;End <em>did not resolve the error</em>.
@@ -113,16 +116,16 @@ Might I suggest a binary search?</p>
 </pre></div>
 </div>
 <p>Which was just not translating properly.
-An alternative method of emphasis was adopted.</p>
-<p>)</p>
+An alternative method of emphasis was adopted.)</p>
 </section>
 </section>
 <section id="i-fear-sphinx">
-<h1>I fear sphinx!?<a class="headerlink" href="#i-fear-sphinx" title="Permalink to this heading">¶</a></h1>
+<h2>I fear sphinx!<a class="headerlink" href="#i-fear-sphinx" title="Permalink to this heading">¶</a></h2>
 <p>This is understandable and natural.</p>
 <p>Can I recommend some resources to get you started?</p>
 <p><a class="reference external" href="https://samnicholls.net/2016/06/15/how-to-sphinx-readthedocs/">https://samnicholls.net/2016/06/15/how-to-sphinx-readthedocs/</a>
 <a class="reference external" href="https://pythonhosted.org/an_example_pypi_project/sphinx.html">https://pythonhosted.org/an_example_pypi_project/sphinx.html</a></p>
+</section>
 </section>
 <section id="things-to-look-into-later">
 <h1>Things to look into later<a class="headerlink" href="#things-to-look-into-later" title="Permalink to this heading">¶</a></h1>
@@ -160,16 +163,17 @@ An alternative method of emphasis was adopted.</p>
 <li class="toctree-l1"><a class="reference internal" href="#what-should-go-in-here">What should go in here?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#why-are-there-a-mix-of-md-files-and-rst-files-in-here">Why are there a mix of md files and rst files in here?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#how-do-i-build-this-documentation">How do I build this documentation?</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#how-to-i-contribute-to-these-docs">How to I contribute to these docs?</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#doc-strings">Doc strings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#how-to-i-contribute-to-these-docs">How to I contribute to these docs?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#doc-strings">Doc strings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#help-my-doc-changes-are-not-showing-up">Help! My doc changes are not showing up!?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent">Help! Sphin is complaining about <code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">Field</span> <span class="pre">list</span> <span class="pre">ends</span> <span class="pre">without</span> <span class="pre">a</span> <span class="pre">blank</span> <span class="pre">line;</span> <span class="pre">unexpected</span> <span class="pre">unindent.</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#and-adding-lines-before-the-error-does-not-seem-to-move-where-the-error-occurs">And adding lines before the error does not seem to move where the error occurs</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="#help-my-doc-changes-are-not-showing-up">Help! My doc changes are not showing up!?</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent">Help! Sphin is complaining about <code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">Field</span> <span class="pre">list</span> <span class="pre">ends</span> <span class="pre">without</span> <span class="pre">a</span> <span class="pre">blank</span> <span class="pre">line;</span> <span class="pre">unexpected</span> <span class="pre">unindent.</span></code></a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#and-adding-lines-before-the-error-does-not-seem-to-move-where-the-error-occurs">And adding lines before the error does not seem to move where the error occurs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#i-fear-sphinx">I fear sphinx!</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="#i-fear-sphinx">I fear sphinx!?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#things-to-look-into-later">Things to look into later</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dev-docs/io-dev-notes/discord-dev-notes.html">Why am I getting blank events when messages are sent in channels the bot is monitoring?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dev-docs/io-dev-notes/discord-dev-notes.html#pycord-is-not-seeing-events-i-expect-it-to">Pycord is not seeing events I expect it to</a></li>
