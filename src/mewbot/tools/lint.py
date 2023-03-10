@@ -20,6 +20,7 @@ from collections.abc import Iterable
 import argparse
 import os
 import subprocess
+import sys
 
 from mewbot.tools import Annotation, ToolChain, gather_paths
 
@@ -93,12 +94,29 @@ class LintToolchain(ToolChain):
         based on those annotations and resolvable constants.
         """
 
-        args = ["mypy", "--strict", "--exclude", "setup"]
+        args = ["mypy", "--strict", "--explicit-package-bases"]
 
         if not self.is_ci:
             args.append("--pretty")
 
+        # MyPy does not use the stock import engine for doing its analysis,
+        # so we have to give it additional hints about how the namespace package
+        # structure works.
+        # See https://mypy.readthedocs.io/en/stable/running_mypy.html#mapping-file-paths-to-modules
+        #
+        # There are two steps to this:
+        #  - We set MYPYPATH equivalent to PYTHONPATH
+        os.putenv("MYPYPATH", os.pathsep.join(gather_paths("src")))
+        #  - We alter the folder list such that, in src-dir folders, we pass the
+        #    folder of the actual pacakge (i.e. ./src/mewbot rather than ./src)
+        folder_backup = self.folders
+        self.folders = set(get_module_paths(*self.folders))
+
+        # Run mypy
         result = self.run_tool("MyPy (type checker)", *args)
+
+        # Reset the folders list.
+        self.folders = folder_backup
 
         for line in result.stdout.decode("utf-8").split("\n"):
             if ":" not in line:
@@ -218,6 +236,26 @@ def lint_black_diffs(
             continue
 
         buffer += diff_line + "\n"
+
+
+def get_module_paths(*folders: str) -> Iterable[str]:
+    """
+    Covert a list of folders into modules paths.
+
+    "src-dir" style folders will be expanded out into the paths for the
+    root of each module. src-dir style roots are detected on the basis
+    of being members of `sys.path`.
+    """
+
+    for path in folders:
+        if path not in sys.path:
+            yield path
+
+        yield from [
+            module_path
+            for module_path in [os.path.join(path, module) for module in os.listdir(path)]
+            if os.path.isdir(module_path)
+        ]
 
 
 def parse_lint_options() -> argparse.Namespace:
