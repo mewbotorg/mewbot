@@ -7,16 +7,31 @@
 Welcome to mewbot's documentation!
 ==================================
 
-It's getting better every day!
+It's getting better every day! Most days!
 
 .. toctree::
    :maxdepth: 4
-   :caption: Contents:
+   :caption: Introduction:
 
    main_files_index
+
+.. toctree::
+   :maxdepth: 1
+   :caption: These Docs:
+
    README_DOCS
-   dev-docs-index
+
+.. toctree::
+   :maxdepth: 4
+   :caption: Dev and Design:
+
    design-docs-index
+   dev-docs-index
+
+.. toctree::
+   :maxdepth: 4
+   :caption: Code Guide:
+
    source_mewbot_index
    source_examples_index
 

@@ -4,6 +4,8 @@ SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
+## DiscordIO Dev and Troubleshooting Notes
+
 ### Why am I getting blank events when messages are sent in channels the bot is monitoring?
 
 As of late August 2022, discord bots now need the message content permission to be explicitly enabled (was implicitly enabled up to this point).
@@ -12,6 +14,6 @@ Enable the scope for the token via the developer portal and things should start 
 
 ### Pycord is not seeing events I expect it to
 
-If you have enabled the appropiate scope for your bot via the developer token, and you are still not getting input events, you may need to update the intents in the __init__ of DiscordInput.
+If you have enabled the appropriate scope for your bot via the developer token, and you are still not getting input events, you may need to update the intents in the __init__ of DiscordInput.
 Currently they are set to `all` - but something might have altered here.
 

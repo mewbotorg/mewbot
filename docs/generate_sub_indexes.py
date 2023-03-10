@@ -13,7 +13,10 @@ SOURCE_MEWBOT_DIR = "source_mewbot"
 SOURCE_EXAMPLES_DIR = "source_examples"
 
 TOP_LEVEL_FILES_NEED_TITLE = {
-    "code_of_conduct.md": False
+    "code_of_conduct.md": False,
+    "contributing.md": False,
+    "contributors.md": False,
+    "readme.md": False
 }
 
 
@@ -34,6 +37,12 @@ def generate_top_level_md_files_index() -> None:
     a title?
     """
     top_level_files = os.listdir("..")
+
+    assert "README.md" in top_level_files, f"README.md not found in the projects root! {top_level_files}"
+
+    # Shuffle README.md to the front of the list, so it'll be displayed at the top
+    top_level_files.remove("README.md")
+    top_level_files = ["README.md", ] + top_level_files
 
     if os.path.exists(TOP_LEVEL_FILES_LINK_DIR):
         shutil.rmtree(TOP_LEVEL_FILES_LINK_DIR)

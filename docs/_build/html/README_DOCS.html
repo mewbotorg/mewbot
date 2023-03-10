@@ -14,8 +14,8 @@
     <script src="_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="&lt;no title&gt;" href="dev-docs-index.html" />
-    <link rel="prev" title="README.md" href="top_level_md_files/main_readme.html" />
+    <link rel="next" title="&lt;no title&gt;" href="design-docs-index.html" />
+    <link rel="prev" title="LICENSE.md" href="top_level_md_files/main_license.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -97,34 +97,49 @@ Additional functionality will be added to <code class="docutils literal notransl
 If in doubt, delete it anyway.
 There seems to be some issues with <code class="docutils literal notranslate"><span class="pre">sphinx</span></code> caching.</p>
 </section>
-<section id="help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent">
-<h2>Help! Sphin is complaining about <code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">Field</span> <span class="pre">list</span> <span class="pre">ends</span> <span class="pre">without</span> <span class="pre">a</span> <span class="pre">blank</span> <span class="pre">line;</span> <span class="pre">unexpected</span> <span class="pre">unindent.</span></code><a class="headerlink" href="#help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent" title="Permalink to this heading">¶</a></h2>
-<section id="and-adding-lines-before-the-error-does-not-seem-to-move-where-the-error-occurs">
-<h3>And adding lines before the error does not seem to move where the error occurs<a class="headerlink" href="#and-adding-lines-before-the-error-does-not-seem-to-move-where-the-error-occurs" title="Permalink to this heading">¶</a></h3>
+<section id="help-sphinx-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent">
+<h2>Help! Sphinx is complaining about <code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">Field</span> <span class="pre">list</span> <span class="pre">ends</span> <span class="pre">without</span> <span class="pre">a</span> <span class="pre">blank</span> <span class="pre">line;</span> <span class="pre">unexpected</span> <span class="pre">unindent.</span></code><a class="headerlink" href="#help-sphinx-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent" title="Permalink to this heading">¶</a></h2>
+<p>Or similar error.</p>
+<p>This is regretfully common, and something in the <code class="docutils literal notranslate"><span class="pre">sphinx</span></code> parser seems positively allergic to reporting the correct line which is causing the error.</p>
+<p>NOTE - This, sometimes, <em>does not</em> seem to meaningfully change output when the error is resolved.
+It may be safe to ignore.</p>
+<section id="adding-lines-before-the-error-does-not-seem-to-move-where-the-error-occurs">
+<h3>Adding lines before the error does not seem to move where the error occurs<a class="headerlink" href="#adding-lines-before-the-error-does-not-seem-to-move-where-the-error-occurs" title="Permalink to this heading">¶</a></h3>
 <p>E.g. The error is reported on line 54, and adding more lines before line 54 does not seem to move the line reporting the error.
 (In this case, the error was well before - around line 23.
 Notably _removing lines 23-&gt;End <em>did not resolve the error</em>.
 The error was still reported on line 54 when line 54 was beyond the end of the document).</p>
 <p>This seems to be a valid problem.
-Something about the <code class="docutils literal notranslate"><span class="pre">.md</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">.rst</span></code> conversion is confusing <code class="docutils literal notranslate"><span class="pre">sphinx</span></code>.
+Perhaps something about the <code class="docutils literal notranslate"><span class="pre">.md</span> <span class="pre">-&gt;</span> <span class="pre">.rst</span></code> conversion is confusing <code class="docutils literal notranslate"><span class="pre">sphinx</span></code>.
 The upshot of this is it cannot determine where the line which is causing the difficulty is <em>actually</em> found.
-So this means that there is a badly indented line <em>somewhere</em> in the file it’s complaining about.
-Might I suggest a binary search?</p>
+So this means that there is a badly indented line <em>somewhere</em> in the file it’s complaining about.</p>
+<p>The best way I have currently found to track it down is a binary search.</p>
+</section>
+<section id="the-error-seems-to-be-meaningful-but-on-the-wrong-line">
+<h3>The error seems to be meaningful, but on the wrong line<a class="headerlink" href="#the-error-seems-to-be-meaningful-but-on-the-wrong-line" title="Permalink to this heading">¶</a></h3>
 <p>(In this example, the problem was, eventually, tracked to a line which read</p>
 <div class="highlight-md notranslate"><div class="highlight"><pre><span></span><span class="k">&gt; </span><span class="ge">:warning: This project is still in the very early stages. Some basic bots can be built</span>
 <span class="k">&gt; </span><span class="ge">and run, but we currently consider all parts of the framework to be unstable.</span>
 </pre></div>
 </div>
 <p>Which was just not translating properly.
-An alternative method of emphasis was adopted.)</p>
+In particular, the <code class="docutils literal notranslate"><span class="pre">:warning:</span></code> emoji was not rendering, and throwing the error.
+An alternative method of emphasis was adopted.
+However, directly entering the unicode value of the desired emoji was also found to work in subsequent testing).</p>
 </section>
 </section>
-<section id="i-fear-sphinx">
-<h2>I fear sphinx!<a class="headerlink" href="#i-fear-sphinx" title="Permalink to this heading">¶</a></h2>
-<p>This is understandable and natural.</p>
+<section id="i-m-worried-about-using-sphinx-it-seems-a-little-tricky">
+<h2>I’m worried about using <code class="docutils literal notranslate"><span class="pre">sphinx</span></code>. It seems a little tricky.<a class="headerlink" href="#i-m-worried-about-using-sphinx-it-seems-a-little-tricky" title="Permalink to this heading">¶</a></h2>
+<p>This is understandable and natural.
+However, it is <em>quite good</em> at generating documentation.
+Although considerable effort in configuration and troubleshooting seems to be sometimes needed.</p>
 <p>Can I recommend some resources to get you started?</p>
-<p><a class="reference external" href="https://samnicholls.net/2016/06/15/how-to-sphinx-readthedocs/">https://samnicholls.net/2016/06/15/how-to-sphinx-readthedocs/</a>
-<a class="reference external" href="https://pythonhosted.org/an_example_pypi_project/sphinx.html">https://pythonhosted.org/an_example_pypi_project/sphinx.html</a></p>
+<ol class="arabic simple">
+<li><p><a class="reference external" href="https://www.sphinx-doc.org/en/master/">https://www.sphinx-doc.org/en/master/</a> (bit deep end, but very comprehensive)</p></li>
+<li><p><a class="reference external" href="https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html">https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html</a> (good introduction, but assumes <code class="docutils literal notranslate"><span class="pre">sphinx</span></code> is being used in the context of <code class="docutils literal notranslate"><span class="pre">readthedocs</span></code> - which is not our current intent)</p></li>
+<li><p><a class="reference external" href="https://samnicholls.net/2016/06/15/how-to-sphinx-readthedocs/">https://samnicholls.net/2016/06/15/how-to-sphinx-readthedocs/</a> (same problem as above, but a better introduction)</p></li>
+<li><p><a class="reference external" href="https://pythonhosted.org/an_example_pypi_project/sphinx.html">https://pythonhosted.org/an_example_pypi_project/sphinx.html</a> (working example)</p></li>
+</ol>
 </section>
 </section>
 <section id="things-to-look-into-later">
@@ -149,38 +164,35 @@ An alternative method of emphasis was adopted.)</p>
 
 
 <h3>Navigation</h3>
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul class="current">
+<p class="caption" role="heading"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="top_level_md_files/main_readme.html">MewBot</a></li>
 <li class="toctree-l1"><a class="reference internal" href="top_level_md_files/main_code_of_conduct.html">Contributor Covenant Code of Conduct</a></li>
-<li class="toctree-l1"><a class="reference internal" href="top_level_md_files/main_contributing.html">CONTRIBUTING.md</a></li>
-<li class="toctree-l1"><a class="reference internal" href="top_level_md_files/main_contributing.html#contributing">Contributing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="top_level_md_files/main_contributors.html">CONTRIBUTORS.md</a></li>
-<li class="toctree-l1"><a class="reference internal" href="top_level_md_files/main_contributors.html#contributors">Contributors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="top_level_md_files/main_contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="top_level_md_files/main_contributors.html">Contributors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="top_level_md_files/main_license.html">LICENSE.md</a></li>
-<li class="toctree-l1"><a class="reference internal" href="top_level_md_files/main_readme.html">README.md</a></li>
-<li class="toctree-l1"><a class="reference internal" href="top_level_md_files/main_readme.html#mewbot">MewBot</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">These Docs:</span></p>
+<ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Welcome to the mewbot docs!</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#what-should-go-in-here">What should go in here?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#why-are-there-a-mix-of-md-files-and-rst-files-in-here">Why are there a mix of md files and rst files in here?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#how-do-i-build-this-documentation">How do I build this documentation?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#how-to-i-contribute-to-these-docs">How to I contribute to these docs?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#doc-strings">Doc strings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#help-my-doc-changes-are-not-showing-up">Help! My doc changes are not showing up!?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#help-sphin-is-complaining-about-warning-field-list-ends-without-a-blank-line-unexpected-unindent">Help! Sphin is complaining about <code class="docutils literal notranslate"><span class="pre">WARNING:</span> <span class="pre">Field</span> <span class="pre">list</span> <span class="pre">ends</span> <span class="pre">without</span> <span class="pre">a</span> <span class="pre">blank</span> <span class="pre">line;</span> <span class="pre">unexpected</span> <span class="pre">unindent.</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#and-adding-lines-before-the-error-does-not-seem-to-move-where-the-error-occurs">And adding lines before the error does not seem to move where the error occurs</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#i-fear-sphinx">I fear sphinx!</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#things-to-look-into-later">Things to look into later</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dev-docs/io-dev-notes/discord-dev-notes.html">Why am I getting blank events when messages are sent in channels the bot is monitoring?</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dev-docs/io-dev-notes/discord-dev-notes.html#pycord-is-not-seeing-events-i-expect-it-to">Pycord is not seeing events I expect it to</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Dev and Design:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="design-docs/data-flow.html">Data Flow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="design-docs/data.html">Data Storage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="design-docs/README.html">Kitteh’s Bot Framework/Infrastructure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="design-docs/vision.html">Vision</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-docs/io-dev-notes/discord-dev-notes.html">DiscordIO Dev and Troubleshooting Notes</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Code Guide:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="source_mewbot/mewbot.api.html">mewbot.api package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source_mewbot/mewbot.core.html">mewbot.core package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source_mewbot/mewbot.io.html">mewbot.io package</a></li>
@@ -197,8 +209,8 @@ An alternative method of emphasis was adopted.)</p>
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="top_level_md_files/main_readme.html" title="previous chapter">README.md</a></li>
-      <li>Next: <a href="dev-docs-index.html" title="next chapter">&lt;no title&gt;</a></li>
+      <li>Previous: <a href="top_level_md_files/main_license.html" title="previous chapter">LICENSE.md</a></li>
+      <li>Next: <a href="design-docs-index.html" title="next chapter">&lt;no title&gt;</a></li>
   </ul></li>
 </ul>
 </div>

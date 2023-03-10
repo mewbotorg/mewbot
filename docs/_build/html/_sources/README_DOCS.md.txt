@@ -65,9 +65,16 @@ Additional functionality will be added to `conf.py` which should render this unn
 If in doubt, delete it anyway.
 There seems to be some issues with `sphinx` caching.
 
-## Help! Sphin is complaining about `WARNING: Field list ends without a blank line; unexpected unindent.`
+## Help! Sphinx is complaining about `WARNING: Field list ends without a blank line; unexpected unindent.`
 
-### And adding lines before the error does not seem to move where the error occurs
+Or similar error.
+
+This is regretfully common, and something in the `sphinx` parser seems positively allergic to reporting the correct line which is causing the error.
+
+NOTE - This, sometimes, _does not_ seem to meaningfully change output when the error is resolved.
+It may be safe to ignore.
+
+### Adding lines before the error does not seem to move where the error occurs
 
 E.g. The error is reported on line 54, and adding more lines before line 54 does not seem to move the line reporting the error.
 (In this case, the error was well before - around line 23. 
@@ -75,10 +82,13 @@ Notably _removing lines 23->End _did not resolve the error_.
 The error was still reported on line 54 when line 54 was beyond the end of the document).
 
 This seems to be a valid problem.
-Something about the `.md` -> `.rst` conversion is confusing `sphinx`.
+Perhaps something about the `.md -> .rst` conversion is confusing `sphinx`.
 The upshot of this is it cannot determine where the line which is causing the difficulty is _actually_ found.
 So this means that there is a badly indented line _somewhere_ in the file it's complaining about.
-Might I suggest a binary search?
+
+The best way I have currently found to track it down is a binary search.
+
+### The error seems to be meaningful, but on the wrong line
 
 (In this example, the problem was, eventually, tracked to a line which read
 
@@ -87,17 +97,22 @@ Might I suggest a binary search?
 > and run, but we currently consider all parts of the framework to be unstable.
 ```
 Which was just not translating properly.
-An alternative method of emphasis was adopted.)
+In particular, the `:warning:` emoji was not rendering, and throwing the error.
+An alternative method of emphasis was adopted.
+However, directly entering the unicode value of the desired emoji was also found to work in subsequent testing).
 
-## I fear sphinx!
+## I'm worried about using `sphinx`. It seems a little tricky.
 
 This is understandable and natural.
+However, it is _quite good_ at generating documentation.
+Although considerable effort in configuration and troubleshooting seems to be sometimes needed.
 
 Can I recommend some resources to get you started?
 
-https://samnicholls.net/2016/06/15/how-to-sphinx-readthedocs/
-https://pythonhosted.org/an_example_pypi_project/sphinx.html
-
+1) https://www.sphinx-doc.org/en/master/ (bit deep end, but very comprehensive)
+2) https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html (good introduction, but assumes `sphinx` is being used in the context of `readthedocs` - which is not our current intent)
+3) https://samnicholls.net/2016/06/15/how-to-sphinx-readthedocs/ (same problem as above, but a better introduction)
+4) https://pythonhosted.org/an_example_pypi_project/sphinx.html (working example)
 
 # Things to look into later
 
