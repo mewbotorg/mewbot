@@ -2,7 +2,9 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
-"""Tests for the Behaviour clas in v1 of the API."""
+"""
+Test cases for the basic interface of the API v1 Behaviour class.
+"""
 
 from __future__ import annotations
 

@@ -4,6 +4,7 @@
 
 """
 Provides tests for mewbot core operations.
+
 In particular, that the interfaces for the various components match expectations.
 """
 
@@ -100,7 +101,6 @@ class TestComponent:
 
         However, DataSource interfaces have not, yet, been defined.
         As such, a lookup on them should fail.
-        :return:
         """
         with pytest.raises(ValueError):  # @UndefinedVariable
             _ = ComponentKind.interface(ComponentKind(ComponentKind.DataSource))
@@ -121,8 +121,6 @@ class TestComponent:
     def test_componentkind_values_list() -> None:
         """
         Lists the valid ComponentKinds - in particular, checks "Behavior" is in this list.
-
-        :return:
         """
         values = ComponentKind.values()
         assert isinstance(values, list)
