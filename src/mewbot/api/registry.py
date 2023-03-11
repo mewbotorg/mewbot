@@ -135,8 +135,7 @@ class ComponentRegistry(abc.ABCMeta):
 
         def do_register(api: type[Component]) -> type[Component]:
             """
-            See :func:`~mewbot.ComponentRegistry.register_api_version` - which returns this
-            function.
+            See :func:`~mewbot.ComponentRegistry.register_api_version`.
 
             :param api:
             :return:
