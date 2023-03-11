@@ -4,6 +4,10 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Provides an IOConfig with the capability to produce desktop notifications.
+"""
+
 from __future__ import annotations
 
 from typing import Optional, Set, Sequence, Type, Any
@@ -36,19 +40,39 @@ class DesktopNotificationOutputEvent(OutputEvent):
 
 
 class DesktopNotificationIO(IOConfig):
+    """
+    IOConfig which provides an output to produce desktop notifications on supported systems.
+    """
+
     _input: None
     _output: Optional[DesktopNotificationOutput] = None
 
     def __init__(self, *args: Optional[Any], **kwargs: Optional[Any]) -> None:
+        """
+        Init desktop notification output.
+
+        Most of the configuration will be done after init by the loader - using the yaml which
+        defined this IOConfig.
+        :param args:
+        :param kwargs:
+        """
         self._logger = logging.getLogger(__name__ + "DesktopNotificationIO")
         # Not entirely sure why, but empty properties in the yaml errors
         self._logger.info("DesktopNotificationIO received args - %s", args)
         self._logger.info("DesktopNotificationIO received kwargs - %s", kwargs)
 
     def get_inputs(self) -> Sequence[Input]:
+        """
+        Currently just an empty list as monitoring notifictions is not currently supported.
+        """
         return []
 
     def get_outputs(self) -> Sequence[Output]:
+        """
+        Returns the outputs for this IOConfig.
+
+        Currently, a single output which can produce desktop notifications on a host system.
+        """
         if not self._output:
             self._output = DesktopNotificationOutput()
 
@@ -56,10 +80,22 @@ class DesktopNotificationIO(IOConfig):
 
 
 class DesktopNotificationOutput(Output):
+    """
+    Output which will produce desktop notifications on supported systems.
+    """
+
     _engine: DesktopNotificationOutputEngine
     _logger: logging.Logger
 
     def __init__(self, *args: Optional[Any], **kwargs: Optional[Any]) -> None:
+        """
+        Initialize a DesktopNotificationOutput.
+
+        Actual work of producing notifications will be done with an output engined.
+        Held by this class.
+        :param args:
+        :param kwargs:
+        """
         super().__init__(*args, **kwargs)
 
         self._logger = logging.getLogger(__name__ + "DesktopNotificationOutput")
@@ -72,14 +108,14 @@ class DesktopNotificationOutput(Output):
     @staticmethod
     def consumes_outputs() -> Set[Type[OutputEvent]]:
         """
-        Defines the set of output events that this Output class can consume
-        :return:
+        Defines the set of output events that this Output class can consume.
         """
         return {DesktopNotificationOutputEvent}
 
     async def output(self, event: OutputEvent) -> bool:
         """
         Does the work of transmitting the event to the world.
+
         :param event:
         :return:
         """
@@ -104,6 +140,9 @@ class DesktopNotificationOutputEngine:
     _enabled: bool
 
     def __init__(self) -> None:
+        """
+        Init the Engine which will actually produce notifications.
+        """
         self._logger = logging.getLogger(__name__ + "DesktopNotificationOutputEngine")
         self._logger.info("DesktopNotificationOutputEngine starting")
 
@@ -168,6 +207,7 @@ class DesktopNotificationOutputEngine:
     def notify(self, title: str, text: str) -> bool:
         """
         Preform the actual notification task using the internal setup.
+
         Means we can avoid live patching externally accessible functions.
         """
         if not self._enabled:
@@ -188,17 +228,19 @@ class DesktopNotificationOutputEngine:
     def disable(self) -> None:
         """
         Disable the notification system.
-        :return:
         """
         self._enabled = False
 
     @property
     def enabled(self) -> bool:
+        """
+        Reports if the desktop notification output engine is enabled.
+        """
         return self._enabled
 
     def _do_windows_setup(self) -> None:
         """
-        Determine if we can notify and disable self if cannot
+        Determine if we can notify and disable self if cannot.
         """
         if ToastNotifier is None:
             self._logger.info(
@@ -213,8 +255,10 @@ class DesktopNotificationOutputEngine:
 
     def _linux_notify_send_method(self, title: str, text: str) -> bool:
         """
-        Use notify-send to attempt to notify the user. This should work on (most) systems, but does
-        not support callback or use dbus. _linux_notify2_method uses notify2 which wraps dbus.
+        Use notify-send to attempt to notify the user.
+
+        This should work on (most) systems, but does not support callback or use dbus.
+        _linux_notify2_method uses notify2 which wraps dbus.
         :return:
         """
         status = subprocess.call(["notify-send", title, text])
@@ -233,6 +277,7 @@ class DesktopNotificationOutputEngine:
     def _windows_toast_method(self, title: str, text: str) -> bool:
         """
         Uses the win10toast library to send "toast" notifications.
+
         Except it turns out it doesn't. See the answers in
         https://stackoverflow.com/questions/64230231/
         In fact, it abuses the legacy win xp notification system - so no feedback.

@@ -25,9 +25,7 @@ ignore-self-only-init=true
 [tool.pylint."MESSAGES CONTROL"]
 
 disable=[
-    "missing-module-docstring",
-    "missing-class-docstring",
-    "missing-function-docstring",
+
 ]
 
 [tool.coverage.run]

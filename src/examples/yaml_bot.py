@@ -4,6 +4,10 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Basic example of how to load a mewbot component from yaml.
+"""
+
 from __future__ import annotations
 
 from mewbot.demo import Foo
@@ -11,6 +15,16 @@ from mewbot.loader import load_component
 
 
 def main() -> None:
+    """
+    Basic demo of loading a component from yaml.
+
+    Component is a Condition.
+    Information concerning the Condition loaded is printed to stdout after load.
+    This also demonstrates the __str__ methods of the loaded component
+    As well as it's serialized form, and the result of reloading the component from serialized data.
+    (Also serves as a demo that the serialized and deserialized objects are the same)
+    :return:
+    """
     yaml_demo = load_component(
         {
             "kind": "Condition",

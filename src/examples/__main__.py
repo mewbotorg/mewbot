@@ -4,6 +4,10 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Supports running the example yaml files included with mewbot, and third party plugins.
+"""
+
 from __future__ import annotations
 
 import sys

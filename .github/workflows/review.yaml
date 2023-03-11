@@ -76,10 +76,7 @@ jobs:
         run:  pip install -r requirements-dev.txt
 
       - name: Run PyDocStyle
-        run: >
-          git diff --name-only --diff-filter=ACMRT
-          "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}" |
-          grep '.py$' | xargs --no-run-if-empty pydocstyle
+        run: pydocstyle
 
   test:
     name: Test Python code
