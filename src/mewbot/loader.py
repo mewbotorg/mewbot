@@ -6,8 +6,6 @@
 
 """
 Provides functions to load mewbot components from YAML.
-
-All functions which load components from YAML should go here.
 """
 
 from __future__ import annotations

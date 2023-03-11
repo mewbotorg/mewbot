@@ -210,7 +210,7 @@ class InternalMewbotDiscordClient(discord.Client):
     """
     Discord.Client with overrode methods to actually interact with mewbot.
 
-    (In particular, methods have been overridden to write events to the InputQueue when they occur)
+    In particular, methods have been overridden to write events to the InputQueue when they occur.
     """
 
     _logger: logging.Logger

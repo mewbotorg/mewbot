@@ -35,7 +35,7 @@ from itertools import cycle
 import aiohttp
 import feedparser  # type: ignore
 
-from mewbot.api.v1 import IOConfig, Input, Output, InputEvent, OutputEvent
+from mewbot.api.v1 import IOConfig, Input, Output, InputEvent
 
 # rss input operates on a polling loop
 # feed read attempts are spread out over the interval
@@ -86,29 +86,6 @@ class RSSInputEvent(InputEvent):
     entry: feedparser.util.FeedParserDict  # raw entry for later processing
 
     startup: bool  # Was this feed read as part of first read for any given site?
-
-
-@dataclasses.dataclass
-class RSSOutputEvent(OutputEvent):
-    """
-    NOT CURRENTLY SUPPORTED.
-
-    Put an event on the internal RSS feed maintained by the IOConfig.
-    """
-
-    # pylint: disable=too-many-instance-attributes
-    # Want to fully represent the core RSS standard
-
-    title: str  # The title of the item.
-    link: str  # The URL of the item.
-    description: str  # The item synopsis.
-    author: str  # Email address of the author of the item
-    category: str  # Includes the item in one or more categories.
-    comments: str  # URL of a page for comments relating to the item
-    enclosure: str  # URL of a page for comments relating to the item.
-    guid: str  # Describes a media object that is attached to the item.
-    pub_date: str  # Indicates when the item was published.
-    source: str  # The RSS channel that the item came from.
 
 
 class RSSIO(IOConfig):

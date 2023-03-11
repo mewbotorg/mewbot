@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 """
-Provides an IOConfig with the capability to produce desktop notifications on (most) systems.
+Provides an IOConfig with the capability to produce desktop notifications.
 """
 
 from __future__ import annotations

@@ -36,6 +36,7 @@ class TestComponent:
     def test_componentkind_interface_map_behaviour() -> None:
         """
         The interface method returns the interface supported by that Component.
+
         In this case, a Behavior type object should present a BehaviorInterface
         :return:
         """
@@ -48,6 +49,7 @@ class TestComponent:
     def test_componentkind_interface_map_trigger() -> None:
         """
         The interface method returns the interface supported by that Component.
+
         In this case, a Trigger type object should present a TriggerInterface
         :return:
         """
@@ -59,6 +61,7 @@ class TestComponent:
     def test_componentkind_interface_map_condition() -> None:
         """
         The interface method returns the interface supported by that Component.
+
         In this case, a Condition type object should present a ConditionInterface
         :return:
         """
@@ -71,6 +74,7 @@ class TestComponent:
     def test_componentkind_interface_map_action() -> None:
         """
         The interface method returns the interface supported by that Component.
+
         In this case, a Action type object should present a ActionInterface
         :return:
         """
@@ -80,6 +84,7 @@ class TestComponent:
     def test_componentkind_interface_map_ioconfig() -> None:
         """
         The interface method returns the interface supported by that Component.
+
         In this case, a IOConfig type object should present a IOConfigInterface
         :return:
         """
@@ -92,6 +97,7 @@ class TestComponent:
     def test_componentkind_interface_map_datasource() -> None:
         """
         The interface method returns the interface supported by that Component.
+
         However, DataSource interfaces have not, yet, been defined.
         As such, a lookup on them should fail.
         :return:
@@ -103,6 +109,7 @@ class TestComponent:
     def test_componentkind_interface_map_template() -> None:
         """
         The interface method returns the interface supported by that Component.
+
         However, Template interfaces have not, yet, been defined.
         As such, a lookup on them should fail.
         :return:
@@ -114,6 +121,7 @@ class TestComponent:
     def test_componentkind_values_list() -> None:
         """
         Lists the valid ComponentKinds - in particular, checks "Behavior" is in this list.
+
         :return:
         """
         values = ComponentKind.values()

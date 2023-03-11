@@ -45,7 +45,7 @@ class SocketIO(IOConfig):
 
     def __init__(self) -> None:
         """
-        Initialise the SokcetIO IOConfig.
+        Initialise the SocketIO IOConfig.
         """
         self._logger = logging.getLogger(__name__ + "SocketInput")
         self._socket = None
