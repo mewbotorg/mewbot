@@ -41,7 +41,7 @@ class TestRegistry:
     def test_class_double_registration() -> None:
         """Test error registering a class which implements two API versions."""
 
-        error = "Class tests.test_registry.Pepper inherits from two APIs"
+        error = "Class test_registry.Pepper inherits from two APIs"
 
         @ComponentRegistry.register_api_version(ComponentKind.Condition, "double")
         class Condiment(Condition, abc.ABC):
