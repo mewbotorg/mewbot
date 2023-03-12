@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
-# Loads a file in, sees if it works
+"""Testing loading a DiscordIO from YAML definition."""
 
 from __future__ import annotations
 
@@ -19,9 +19,13 @@ from mewbot.api.v1 import IOConfig
 
 
 class TestIoHttpsPost(BaseTestClassWithConfig[DiscordIO]):
+    """Testing loading a DiscordIO from YAML definition."""
+
     config_file: str = "examples/discord_bots/trivial_discord_bot.yaml"
     implementation: Type[DiscordIO] = DiscordIO
 
     def test_check_class(self) -> None:
+        """Testing loading a DiscordIO from YAML definition."""
+
         assert isinstance(self.component, DiscordIO)
         assert isinstance(self.component, IOConfig)

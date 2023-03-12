@@ -4,6 +4,10 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Provides functions to load mewbot components from YAML.
+"""
+
 from __future__ import annotations
 
 from typing import Any, TextIO, Type
@@ -30,7 +34,7 @@ _REQUIRED_KEYS = set(ConfigBlock.__annotations__.keys())  # pylint: disable=no-m
 
 
 def assert_message(obj: Any, interface: Type[Any]) -> str:
-    """Generates the assert error message for an incomplete interface"""
+    """Generates the assert error message for an incomplete interface."""
 
     uuid = getattr(obj, "uuid", "<unknown>")
     return (
@@ -40,9 +44,14 @@ def assert_message(obj: Any, interface: Type[Any]) -> str:
 
 
 def configure_bot(name: str, stream: TextIO) -> Bot:
-    """Loads a series of components from a YAML file to crate a bot
+    """
+    Loads a series of components from a YAML file to crate a bot.
 
-    The YAML is expected to be a series of IOConfig, DataSource, and Behaviour blocks."""
+    The YAML is expected to be a series of IOConfig, DataSource, and Behaviour blocks.
+
+    :param name: The name of the bot
+    :param stream: YAML which defined the bot.
+    """
 
     bot = Bot(name)
     number = 0
@@ -70,7 +79,7 @@ def configure_bot(name: str, stream: TextIO) -> Bot:
 
 
 def load_behaviour(config: BehaviourConfigBlock) -> BehaviourInterface:
-    """Creates a behaviour and its components based on a configuration block"""
+    """Creates a behaviour and its components based on a configuration block."""
 
     behaviour = load_component(config)
 
@@ -99,7 +108,7 @@ def load_behaviour(config: BehaviourConfigBlock) -> BehaviourInterface:
 
 
 def load_component(config: ConfigBlock) -> Component:
-    """Creates a component based on a configuration block"""
+    """Creates a component based on a configuration block."""
 
     # Ensure that the object we have been passed contains all required fields.
     if not _REQUIRED_KEYS.issubset(config.keys()):
@@ -145,9 +154,11 @@ def load_component(config: ConfigBlock) -> Component:
 
 
 def get_implementation(implementation: str) -> Type[Any]:
-    """Gets a Class object from a module based on a fully-qualified name
+    """
+    Gets a Class object from a module based on a fully-qualified name.
 
-    This will attempt to load the module if it is not already loaded"""
+    This will attempt to load the module if it is not already loaded.
+    """
 
     # Load the module the component is expected to be in.
     module_name, class_name = implementation.rsplit(".", 1)

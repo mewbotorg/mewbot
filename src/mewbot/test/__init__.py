@@ -4,6 +4,10 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Provides support classes and objects for mewbot tests.
+"""
+
 from __future__ import annotations
 
 from typing import Generic, Optional, Type, TypeVar
@@ -19,6 +23,16 @@ T_co = TypeVar("T_co", bound=Component, covariant=True)
 
 
 class BaseTestClassWithConfig(ABC, Generic[T_co]):
+    """
+    Base for a class of tests designed to test components in isolation.
+
+    Class offers the features of
+     - loads a configuration from a config file
+     - isolates a particular component from within that config file
+     - (determined by overriding implementation with the class type you want to examine)
+     - presents that component, along with the yaml which defines it, for testing
+    """
+
     config_file: str
     implementation: Type[T_co]
     _config: Optional[ConfigBlock] = None
@@ -26,7 +40,7 @@ class BaseTestClassWithConfig(ABC, Generic[T_co]):
 
     @property
     def config(self) -> ConfigBlock:
-        """Returns the YAML-defined config the"""
+        """Returns the YAML-defined config for the given implementation."""
 
         if not self._config:
             impl = self.implementation.__module__ + "." + self.implementation.__name__
@@ -43,7 +57,7 @@ class BaseTestClassWithConfig(ABC, Generic[T_co]):
 
     @property
     def component(self) -> T_co:
-        """Returns the component loaded from the config block"""
+        """Returns the component loaded from the config block."""
 
         if not self._component:
             component = load_component(self.config)

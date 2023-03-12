@@ -4,6 +4,12 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Provides an IOConfig which can poll RSS feeds and produce InputEvents from them.
+
+Currently, can only read from a list of RSS feeds which it regularly polls.
+"""
+
 from __future__ import annotations
 
 from typing import (
@@ -29,7 +35,7 @@ from itertools import cycle
 import aiohttp
 import feedparser  # type: ignore
 
-from mewbot.api.v1 import IOConfig, Input, Output, InputEvent, OutputEvent
+from mewbot.api.v1 import IOConfig, Input, Output, InputEvent
 
 # rss input operates on a polling loop
 # feed read attempts are spread out over the interval
@@ -56,7 +62,8 @@ SOURCE_NOT_SET_STR = "SRC NOT SET BY SOURCE"
 @dataclasses.dataclass
 class RSSInputEvent(InputEvent):
     """
-    Should contain all the info from the original RSS message.
+    Should contain all the info from the original RSS message in a mewbot InputEvent.
+
     Some normalisation might be required, as not all RSS feeds seem to correspond to the standard.
     Spec from https://validator.w3.org/feed/docs/rss2.html#hrelementsOfLtitemgt
     """
@@ -81,24 +88,11 @@ class RSSInputEvent(InputEvent):
     startup: bool  # Was this feed read as part of first read for any given site?
 
 
-@dataclasses.dataclass
-class RSSOutputEvent(OutputEvent):
-    # pylint: disable=too-many-instance-attributes
-    # Want to fully represent the core RSS standard
-
-    title: str  # The title of the item.
-    link: str  # The URL of the item.
-    description: str  # The item synopsis.
-    author: str  # Email address of the author of the item
-    category: str  # Includes the item in one or more categories.
-    comments: str  # URL of a page for comments relating to the item
-    enclosure: str  # URL of a page for comments relating to the item.
-    guid: str  # Describes a media object that is attached to the item.
-    pub_date: str  # Indicates when the item was published.
-    source: str  # The RSS channel that the item came from.
-
-
 class RSSIO(IOConfig):
+    """
+    IOConfig to read from RSS feeds.
+    """
+
     _input: Optional[RSSInput] = None
     _output: None
 
@@ -110,6 +104,14 @@ class RSSIO(IOConfig):
         *args: Optional[Any],
         **kwargs: Optional[Any],
     ) -> None:
+        """
+        Configure the RSSIO.
+
+        Most of the actual configuration is done after __init__ using information from the yaml
+        that defines this class.
+        :param args:
+        :param kwargs:
+        """
         self._logger = logging.getLogger(__name__ + "DesktopNotificationIO")
 
         # Not entirely sure why, but empty properties in the yaml errors
@@ -118,6 +120,9 @@ class RSSIO(IOConfig):
 
     @property
     def polling_every(self) -> int:
+        """
+        Number of seconds between each time a site in the polling list is polled.
+        """
         return self._polling_every
 
     @polling_every.setter
@@ -126,6 +131,12 @@ class RSSIO(IOConfig):
 
     @property
     def sites(self) -> List[str]:
+        """
+        Get a list of the sites which are currently being polled.
+
+        Note - changing the return of this function DOES NOT change which sites are being polled.
+        :return:
+        """
         return self._sites
 
     @sites.setter
@@ -143,7 +154,7 @@ class RSSIO(IOConfig):
 
     def get_inputs(self) -> Sequence[Input]:
         """
-        Returns the inputs supported by the IOConfig - starting them if needed
+        Returns the inputs supported by the IOConfig - starting them if needed.
         """
         if not self._input:
             self._input = RSSInput(self._sites, self._polling_every)
@@ -151,11 +162,23 @@ class RSSIO(IOConfig):
         return [self._input]
 
     def get_outputs(self) -> Sequence[Output]:
+        """
+        We do not currently support RSS output, so this is an empty list.
+        """
         return []
 
 
 @dataclasses.dataclass
 class RSSInputState:
+    """
+    State of the sites being monitored.
+
+    Information stored includes
+     - which sites are currently being polled
+     - which sites have been started (historic entries retrieved and put on the wire)
+     - which entries have been put on the wire in total
+    """
+
     _sites: List[str]  # A list of sites to poll for RSS update events
     _sites_iter: Iterable[str]
     _sites_started: Set[str]  # sites which have undergone startup
@@ -163,7 +186,7 @@ class RSSInputState:
 
     def start(self) -> None:
         """
-        Calculates all internal states based off _sites
+        Calculates all internal states based off _sites.
         """
         self._sites_iter = cycle(iter(self._sites))
 
@@ -177,6 +200,13 @@ class RSSInputState:
 
     @property
     def sites(self) -> List[str]:
+        """
+        Sites which are currently being polled.
+
+        Note - changing the return of this _will not_ change the sites currently being polled.
+        Please explicitly change the attribute for that.
+        :return:
+        """
         return self._sites
 
     @sites.setter
@@ -188,14 +218,30 @@ class RSSInputState:
 
     @property
     def sites_iter(self) -> Iterable[str]:
+        """
+        Iterable of the sites currently being polled.
+
+        Note - mutating this _will not_ change the sites currently being polled.
+        :return:
+        """
         return self._sites_iter
 
     @property
     def sites_started(self) -> Set[str]:
+        """
+        Sites which have been started (i.e. the initial number of entries read and sent).
+
+        Note - changing the return of this _will_ change what sites are registered as having been
+        started.
+        :return:
+        """
         return self._sites_started
 
     @property
     def sent_entries_size(self) -> int:
+        """
+        The number of entries which have been put on the wire.
+        """
         return len(self._sent_entries)
 
     def note_site_started(self, site_started: str) -> None:
@@ -207,6 +253,7 @@ class RSSInputState:
     def note_event_transmitted(self, site_url: str, site_uid: str) -> None:
         """
         Record that an entry with a uid has been put on the wire.
+
         Now broken down by site so that we can more easily purge the old entries.
         When they have been superseded by new ones.
         Otherwise, they would just accumulate endlessly - a nasty memory leak.
@@ -222,7 +269,9 @@ class RSSInputState:
 
 class RSSInput(Input):
     """
-    Polling RSS Input source -
+    Polling RSS Input source.
+
+    Produces RSSInputEvents every time a new event is detected in an RSS feed.
     """
 
     _loop: Union[None, asyncio.events.AbstractEventLoop]
@@ -238,6 +287,15 @@ class RSSInput(Input):
     def __init__(
         self, sites: List[str], polling_every: int, startup_queue_depth: int = 5
     ) -> None:
+        """
+        Start up the RSSInput.
+
+        This class will contain an internal state which contains a summary of the state of the
+        polling of the various RSS feeds.
+        :param sites:
+        :param polling_every:
+        :param startup_queue_depth:
+        """
         super().__init__()
 
         # Internal state variables
@@ -278,8 +336,9 @@ class RSSInput(Input):
     @property
     def polling_interval(self) -> Union[float, None]:
         """
-        polling_interval is the time that the Input should wait between polling a new site.
-        The total time between repoll of each site is polling_every.
+        This is the time that the Input should wait between polling a new site.
+
+        The total time between re-poll of each site is polling_every.
         """
         # If we have no sites to poll, then we shall do nothing
         if len(self.state.sites) == 0:
@@ -288,6 +347,12 @@ class RSSInput(Input):
 
     @property
     def sites(self) -> List[str]:
+        """
+        List of sites currently being polled by this runner.
+
+        Note - changing the return object for this _will_ change what sites are being polled.
+        :return:
+        """
         return self.state.sites
 
     @sites.setter
@@ -305,6 +370,12 @@ class RSSInput(Input):
 
     @property
     def polling_every(self) -> int:
+        """
+        Interval between polling each of the sites in the sites list.
+
+        (Thus every site will be polled once each _this_ number of seconds).
+        :return:
+        """
         return self._polling_every
 
     @polling_every.setter
@@ -313,6 +384,9 @@ class RSSInput(Input):
 
     @property
     def loop(self) -> asyncio.events.AbstractEventLoop:
+        """
+        Return the main event loop for this process.
+        """
         if self._loop is not None:
             return self._loop
         self._loop = asyncio.get_running_loop()
@@ -321,7 +395,10 @@ class RSSInput(Input):
     def _get_entry_uid(self, entry: feedparser.util.FeedParserDict, site_url: str) -> str:
         """
         Returns a unique id (on a system level) for the given entry and site combination.
-        Used to determine if entries have been put on the wire or not
+
+        Used to determine if entries have been put on the wire or not.
+        As such, must always return some kind of semi-unique identifier.
+        Even if the entry.guid of the FeedParserDict is malformed.
         """
         try:
             entry_in_feed_id = entry.guid
@@ -344,8 +421,7 @@ class RSSInput(Input):
 
     async def run(self) -> None:
         """
-        Fires up an aiohttp app to run the service.
-        Token needs to be set by this point.
+        Starts all sites, and then commences regular polling.
         """
         self._logger.info(
             "About to start RSS polling - %s will be polled every %s seconds",
@@ -388,8 +464,11 @@ class RSSInput(Input):
 
     async def startup_site_feed(self, site_url: str) -> None:
         """
-        Preform the first read of a site - there is some information to gather which must be stored.
+        Preform the first read of a site.
+
         The requested number of events must be read and put on the wire.
+        It must be noted that the site has been started.
+        Regular polling of the site should commence after this method has been called.
         """
         self._logger.info(
             "Starting feed for site %s - %s entries will be retrieved",
@@ -426,6 +505,12 @@ class RSSInput(Input):
         self.state.note_site_started(site_url)
 
     async def poll_site_feed(self, site_url: str) -> None:
+        """
+        Preform a poll of an individual site's feed.
+
+        :param site_url:
+        :return:
+        """
         self._logger.info("Reading from site %s", site_url)
 
         # Read the site feed
@@ -464,13 +549,17 @@ class RSSInput(Input):
 
 class RSSInputEventFactory:
     """
-    Responsible for taking a FeedParserDict representing a new entity and transforming it
-    into a RSSInputEvent to go on the wire.
+    Transforms a FeedParserDict into a RSSInputEvent to go on the wire.
+
+    Class can be subclassed to provide finer control over feed entry to Input Event transformation.
     """
 
     _logger: logging.Logger
 
     def __init__(self) -> None:
+        """
+        Will start with independent logger.
+        """
         self._logger = logging.getLogger(__name__ + "RSSInputEventFactory")
 
     def __call__(
@@ -558,7 +647,7 @@ class RSSInputEventFactory:
         problem_list: List[str],
     ) -> str:
         """
-        Extract a field from an rss entry.
+        Extract a named field from an RSS entry.
         """
         try:
             entry_attr = getattr(entry, attr_name)
@@ -570,6 +659,14 @@ class RSSInputEventFactory:
 
     @staticmethod
     def extract_enclosure(entry: feedparser.util.FeedParserDict) -> str:
+        """
+        Presented as an optional method because this is an optional attribute.
+
+        As such, there is no logging if this method fails. It will just return the
+        ENCLOSURE_NOT_SET_STR constant.
+        :param entry:
+        :return:
+        """
         try:
             entry_enclosure = entry.enclosure
         except AttributeError:
@@ -582,7 +679,14 @@ class RSSInputEventFactory:
         self, entry: feedparser.util.FeedParserDict, site_url: str, problem_list: List[str]
     ) -> str:
         """
-        We always need some form of guid - so using a method with a fallback
+        Extract the guid from an RSS entry.
+
+        We always need some form of guid - so using a method with a fallback which will always
+        generate _something_ - hopefully - unique to the entry.
+        :param entry:
+        :param site_url:
+        :param problem_list:
+        :return:
         """
 
         # guid - there are no rules for this syntax
@@ -608,6 +712,18 @@ class RSSInputEventFactory:
     def extract_pubdate(
         self, entry: feedparser.util.FeedParserDict, site_url: str, problem_list: List[str]
     ) -> str:
+        """
+        Extract the pubdate from an RSS entry.
+
+        Presented as a separate method to allow higher level logging ("warning", not "info") if
+        this fails.
+        (This should _never_ fail - if it does, one of the sites being polled is producing
+        malformed RSS).
+        :param entry:
+        :param site_url:
+        :param problem_list:
+        :return:
+        """
         # pubDate - if this is not being set, something is badly wrong
         try:
             entry_pubdate = entry.pubDate
