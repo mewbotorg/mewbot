@@ -6,6 +6,8 @@
 Test cases for the basic interface of the API v1 Behaviour class.
 """
 
+# pylint: disable=too-few-public-methods
+
 from __future__ import annotations
 
 from typing import Any
@@ -70,9 +72,9 @@ class TestBehaviour:
 
         assert behaviour.name == "Test"
         assert behaviour.active
-        assert behaviour.triggers == []
-        assert behaviour.conditions == []
-        assert behaviour.actions == []
+        assert isinstance(behaviour.triggers, list) and not behaviour.triggers
+        assert isinstance(behaviour.conditions, list) and not behaviour.conditions
+        assert isinstance(behaviour.actions, list) and not behaviour.actions
 
     @staticmethod
     def test_serialise_behaviour() -> None:
@@ -83,10 +85,10 @@ class TestBehaviour:
 
         assert config["kind"] == "Behaviour"
         assert config["implementation"] == "mewbot.api.v1.Behaviour"
-        assert config["properties"] == {}
-        assert config["triggers"] == []
-        assert config["conditions"] == []
-        assert config["actions"] == []
+        assert isinstance(config["properties"], dict) and not config["properties"]
+        assert isinstance(config["triggers"], list) and not config["triggers"]
+        assert isinstance(config["conditions"], list) and not config["conditions"]
+        assert isinstance(config["actions"], list) and not config["actions"]
 
     @staticmethod
     def test_create_add_invalid() -> None:
@@ -106,14 +108,16 @@ class TestBehaviour:
         behaviour.add(trigger)
 
         assert behaviour.triggers == [trigger]
-        assert behaviour.conditions == []
-        assert behaviour.actions == []
+        assert isinstance(behaviour.conditions, list) and not behaviour.conditions
+        assert isinstance(behaviour.actions, list) and not behaviour.actions
 
     @staticmethod
     def test_create_add_condition() -> None:
         """Test adding a condition to a behaviour."""
 
         class TestCondition(Condition):
+            """Example condition for testing."""
+
             @staticmethod
             def consumes_inputs() -> set[type[InputEvent]]:
                 return {InputEvent}
@@ -125,15 +129,17 @@ class TestBehaviour:
         condition = TestCondition()
         behaviour.add(condition)
 
-        assert behaviour.triggers == []
+        assert isinstance(behaviour.triggers, list) and not behaviour.triggers
         assert behaviour.conditions == [condition]
-        assert behaviour.actions == []
+        assert isinstance(behaviour.actions, list) and not behaviour.actions
 
     @staticmethod
     def test_create_add_action() -> None:
         """Test adding an action to a behaviour."""
 
         class TestAction(Action):
+            """Example action for testing."""
+
             @staticmethod
             def consumes_inputs() -> set[type[InputEvent]]:
                 return {InputEvent}
@@ -149,8 +155,8 @@ class TestBehaviour:
         action = TestAction()
         behaviour.add(action)
 
-        assert behaviour.triggers == []
-        assert behaviour.conditions == []
+        assert isinstance(behaviour.triggers, list) and not behaviour.triggers
+        assert isinstance(behaviour.conditions, list) and not behaviour.conditions
         assert behaviour.actions == [action]
 
     @staticmethod
@@ -168,14 +174,16 @@ class TestBehaviour:
             trigger = TestBehaviour.trigger_generator(inputs)
             behaviour.add(trigger)
 
-        assert len(behaviour.triggers) == len(triggers)
-        assert behaviour.consumes_inputs() == interests
+        assert len(behaviour.triggers) == len(triggers), f"Incorrect triggers in {name}"
+        assert behaviour.consumes_inputs() == interests, f"Incorrect triggers in {name}"
 
     @staticmethod
     def trigger_generator(events: set[type[InputEvent]]) -> Trigger:
         """Utility method for making a Trigger that consumes a given set of InputEvents."""
 
         class RequestedTrigger(Trigger):
+            """Utility method for making a Trigger that consumes a given set of InputEvents."""
+
             @staticmethod
             def consumes_inputs() -> set[type[InputEvent]]:
                 return events

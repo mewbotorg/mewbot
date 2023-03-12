@@ -250,6 +250,7 @@ def get_module_paths(*folders: str) -> Iterable[str]:
     for path in folders:
         if path not in sys.path:
             yield path
+            continue
 
         yield from [
             module_path
