@@ -42,6 +42,7 @@ class LintToolchain(ToolChain):
         yield from self.lint_flake8()
         yield from self.lint_mypy()
         yield from self.lint_pylint()
+        yield from self.lint_pydocstyle()
 
     def lint_black(self) -> Iterable[Annotation]:
         """
@@ -135,6 +136,33 @@ class LintToolchain(ToolChain):
             except ValueError:
                 pass
 
+    def lint_pydocstyle(self) -> Iterable[Annotation]:
+        """
+        Runs 'pydocstyle', which tests python doc blocks.
+
+        pydocstyle checks for the existence and format of doc strings in all
+        python modules, classes, and methods. These will have to be formatted
+        with a single headline, arguments, return values and any extra info.
+        """
+
+        result = self.run_tool("PyDocStyle", "pydocstyle", "--match=.*\\.py$")
+
+        lines = iter(result.stdout.decode("utf-8").split("\n"))
+
+        for header in lines:
+            if ":" not in header:
+                continue
+
+            try:
+                file, line_no = header.split(" ", 1)[0].split(":")
+                error = next(lines).strip()
+
+                yield Annotation("error", file, int(line_no), 1, "", error)
+            except ValueError:
+                pass
+            except StopIteration:
+                pass
+
 
 def lint_black_errors(
     result: subprocess.CompletedProcess[bytes],
@@ -205,7 +233,7 @@ def parse_lint_options() -> argparse.Namespace:
         "--no-tests",
         dest="tests",
         action="store_false",
-        default=False,
+        default=True,
         help="Exclude tests from linting",
     )
     parser.add_argument(

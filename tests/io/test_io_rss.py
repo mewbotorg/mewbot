@@ -2,6 +2,10 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Tests for the RSS IO configuration.
+"""
+
 from typing import Type
 
 import asyncio
@@ -16,6 +20,8 @@ from mewbot.api.v1 import IOConfig
 
 class TestRSSIO(BaseTestClassWithConfig[RSSIO]):
     """
+    Tests for the RSS IO configuration.
+
     Load a bot with an RSSInput - this should yield a fully loaded RSSIO config.
     Which can then be tested.
     """
@@ -24,10 +30,14 @@ class TestRSSIO(BaseTestClassWithConfig[RSSIO]):
     implementation: Type[RSSIO] = RSSIO
 
     def test_check_class(self) -> None:
+        """Confirm the configuration has been correctly loaded."""
+
         assert isinstance(self.component, RSSIO)
         assert isinstance(self.component, IOConfig)
 
     def get_rss_input_from_component(self) -> RSSInput:
+        """Get the input from the IOConfig, and check it is set up correctly."""
+
         self.component.get_inputs()  # Tests the "inputs not none" case
         component_rss_input = self.component.get_inputs()
         assert isinstance(component_rss_input, list)
@@ -39,7 +49,7 @@ class TestRSSIO(BaseTestClassWithConfig[RSSIO]):
 
     def test_rss_input_declared_outputs(self) -> None:
         """
-        Tests that the declared output events of the RSSInput are all InputClass descendants
+        Tests that the declared output events of the RSSInput are all InputClass descendants.
         """
         rss_io_input = self.get_rss_input_from_component()
 
@@ -171,7 +181,7 @@ class TestRSSIO(BaseTestClassWithConfig[RSSIO]):
     @pytest.mark.asyncio
     async def test_component_run_after_repeated_get_inputs_call(self) -> None:
         """
-        Run the component's input method after nullifying components
+        Run the component's input method after nullifying components.
         """
         self.component.get_inputs()
         test_rss_io_input = self.get_rss_input_from_component()
@@ -247,6 +257,7 @@ class TestRSSIO(BaseTestClassWithConfig[RSSIO]):
     async def test_run_with_existing_events_in_state_input_queue(self) -> None:
         """
         Call run twice - which should result in existing events being seen twice.
+
         Unlike the above test for this case, there us an output queue defined.
         Check events are put onto the output queue.
         """
