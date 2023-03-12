@@ -2,6 +2,10 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Tests for the RSS IO configuration.
+"""
+
 from typing import Type
 
 import asyncio
