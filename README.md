@@ -75,7 +75,7 @@ printf '. ./tools/path\n' >>venv/bin/activate
 source venv/bin/activate
 
 # Install all dependencies (including development dependencies)
-pip install requirements-dev.txt
+pip install -r requirements-dev.txt
 
 # Run a demo!
 python3 -m examples examples/trivial_socket.yaml
