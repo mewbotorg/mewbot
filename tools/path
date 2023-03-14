@@ -4,7 +4,16 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
-PYTHON=${PYTHON:-python3}
+if ! command -v python3 &> /dev/null
+then
+    echo "python3 could not be found"
+    echo "You may be on windows - trying with python not python3"
+    echo "BEWARE! You might be trying to run with python2 - this will fail pretty quick if so"
+    PYTHON=${PYTHON:-python}
+else
+    PYTHON=${PYTHON:-python3}
+fi
+
 readonly PYTHON
 
 PYTHONPATH="$("$PYTHON" src/mewbot/tools/path.py)"
