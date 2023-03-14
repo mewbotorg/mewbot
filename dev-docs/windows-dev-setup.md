@@ -414,7 +414,7 @@ It must be placed on the path of the python interpreter your currently using. In
 C:\mewbot_dev\mewbot_venv\Lib\site-packages
 ```
 
-Simple add a file named `mewbot.pth` here with the single line `C:\mewbot_dev\mewbot`. It's probably best to add it as a new file, instead of modifying one of the existing ones - as these are under system control and may be overwritten without warning.
+Simple add a file named `mewbot.pth` here with the single line `C:\mewbot_dev\mewbot\src`. It's probably best to add it as a new file, instead of modifying one of the existing ones - as these are under system control and may be overwritten without warning.
 
 ##### Modify the venv activation script
 
