@@ -248,15 +248,16 @@ def get_module_paths(*folders: str) -> Iterable[str]:
     """
 
     for path in folders:
-        if path not in sys.path:
+        if path in sys.path:
+            # Each folder in PYTHONPATH is considered a src-dir style collection of modules
+            # We xpand these into the actual list of modules
+            potential_paths = [os.path.join(path, module) for module in os.listdir(path)]
+            yield from [
+                module_path for module_path in potential_paths if os.path.isdir(module_path)
+            ]
+        else:
+            # All other paths are returned unchanged
             yield path
-            continue
-
-        yield from [
-            module_path
-            for module_path in [os.path.join(path, module) for module in os.listdir(path)]
-            if os.path.isdir(module_path)
-        ]
 
 
 def parse_lint_options() -> argparse.Namespace:
