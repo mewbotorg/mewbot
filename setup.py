@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 """
+Custom setup.py to install some, or all, mewbot pckages.
+
 A hacked up setup.py which will install all of `src` as one package locally,
 but is used to build multiple packages for publishing.
 
@@ -31,9 +33,11 @@ PACKAGES: Set[str] = {"", "io", "core", "api", "test"}
 
 
 def load_requirements(requirements: List[str], file: str) -> None:
-    """Parse a requirements.txt into file into a set of dependencies.
+    """
+    Parse a requirements.txt into file into a set of dependencies.
 
-    Note that this function does not follow `-r` or process and other flags."""
+    Note that this function does not follow `-r` or process and other flags.
+    """
 
     if not os.path.exists(file):
         return
@@ -45,7 +49,9 @@ def load_requirements(requirements: List[str], file: str) -> None:
 
 
 def main() -> None:
-    """Wrap setuptools with dynamically generated packages and information"""
+    """
+    Wrap setuptools with dynamically generated packages and information.
+    """
 
     version = "0.0.1"
     config: Dict[str, Union[str, List[str]]] = {

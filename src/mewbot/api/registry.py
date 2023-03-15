@@ -5,6 +5,8 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 """
+Tooling for recording the creation of implementation classes, allowing for lists.
+
 Automation for registering components and plugins with a MewBot runner.
 
 Plugins are loaded using the metadata from python packages.
@@ -132,6 +134,12 @@ class ComponentRegistry(abc.ABCMeta):
         """
 
         def do_register(api: type[Component]) -> type[Component]:
+            """
+            See :func:`~mewbot.ComponentRegistry.register_api_version`.
+
+            :param api:
+            :return:
+            """
             if api not in mcs.registered:
                 raise TypeError("Can not register an API version from a non-registered class")
 

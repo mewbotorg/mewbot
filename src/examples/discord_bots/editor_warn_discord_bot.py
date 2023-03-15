@@ -8,6 +8,15 @@
 # this is an example - duplication for emphasis is desirable
 # Aims to expose the full capabilities of this discord bot framework
 
+"""
+Provides python support functions for the editor_warn_discord_bot.yaml example bot.
+
+Bot which warns the user when there has been a message edit event in any of the channels which
+this bot has access to.
+If message is in the discord cache, then the message contents before they were edited will be
+provided, along with the current contents of the message.
+"""
+
 from __future__ import annotations
 
 from typing import Any, Dict, Set, Type
@@ -29,11 +38,20 @@ class DiscordEditTrigger(Trigger):
 
     @staticmethod
     def consumes_inputs() -> Set[Type[InputEvent]]:
+        """
+        Inputs which will be examined by this trigger.
+        """
         return {
             DiscordMessageEditInputEvent,
         }
 
     def matches(self, event: InputEvent) -> bool:
+        """
+        Matches, and so triggers, on all discord message edit input events.
+
+        :param event:
+        :return:
+        """
         if isinstance(event, DiscordMessageEditInputEvent):
             return True
 
@@ -55,16 +73,25 @@ class DiscordEditResponse(Action):
 
     @staticmethod
     def consumes_inputs() -> Set[Type[InputEvent]]:
+        """
+        Input Events this Action can - theoretically - respond to.
+        """
         return {
             DiscordMessageEditInputEvent,
         }
 
     @staticmethod
     def produces_outputs() -> Set[Type[OutputEvent]]:
+        """
+        Output Events this Action can produce.
+        """
         return {DiscordOutputEvent}
 
     @property
     def message(self) -> str:
+        """
+        Not currently in use - should be removed.
+        """
         return self._message
 
     @message.setter

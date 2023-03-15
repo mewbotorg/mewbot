@@ -2,8 +2,11 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
-# Unified test of http and socket parts of mewbot.io
-# Loads a file in, sees if it works, and then probes the socket and http class.
+"""
+Unified test of http and socket parts of mewbot.io.
+
+Loads a file in, sees if it works, and then probes the socket and http class.
+"""
 
 from __future__ import annotations
 
@@ -23,16 +26,25 @@ from mewbot.api.v1 import IOConfig
 
 
 class TestIoHttpsPost(BaseTestClassWithConfig[HTTPServlet]):
+    """
+    Unified test of http and socket parts of mewbot.io.
+
+    Loads a file in, sees if it works, and then probes the socket and http class.
+    """
+
     config_file: str = "examples/trivial_http_post.yaml"
     implementation: Type[HTTPServlet] = HTTPServlet
 
     def test_check_class(self) -> None:
+        """Test instance creation."""
+
         assert isinstance(self.component, HTTPServlet)
         assert isinstance(self.component, SocketIO)
         assert isinstance(self.component, IOConfig)
 
     def test_check_setget(self) -> None:
-        # Check each set and get
+        """Test property get/set."""
+
         temp_component = copy.deepcopy(self.component)
 
         new_host = "nullfailtouse"

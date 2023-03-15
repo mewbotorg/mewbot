@@ -8,7 +8,7 @@
 -r requirements-test.txt
 
 # Installation toolchain
-setuptools~=67.4
+setuptools~=67.6
 
 # Copyright linting toolchain
 reuse~=1.1
@@ -25,6 +25,7 @@ black>=23.1.0
 flake8>=6.0.0
 pylint>=2.16.0
 pytest-github-actions-annotate-failures>=0.1.7
+pydocstyle>=6.3.0
 
 # Type checking toolchain
 mypy>=0.991
