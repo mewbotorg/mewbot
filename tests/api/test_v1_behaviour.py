@@ -10,7 +10,7 @@ Test cases for the basic interface of the API v1 Behaviour class.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, AsyncIterable
 
 import pytest
 
@@ -148,8 +148,10 @@ class TestBehaviour:
             def produces_outputs() -> set[type[OutputEvent]]:
                 return {OutputEvent}
 
-            async def act(self, event: InputEvent, state: dict[str, Any]) -> None:
-                pass
+            async def act(
+                self, event: InputEvent, state: dict[str, Any]
+            ) -> AsyncIterable[OutputEvent]:
+                yield OutputEvent()
 
         behaviour = Behaviour("Test", True)
         action = TestAction()

@@ -10,7 +10,7 @@ This common elements are often used in various of the examples.
 
 from __future__ import annotations
 
-from typing import Set, Type, Dict, Any
+from typing import Set, Type, Dict, Any, AsyncIterable
 
 from mewbot.api.v1 import Condition, Trigger, Action, InputEvent, OutputEvent
 
@@ -77,7 +77,7 @@ class PrintAction(Action):
         """This action cannot produce any OutputEvents."""
         return set()
 
-    async def act(self, event: InputEvent, state: Dict[str, Any]) -> None:
+    async def act(self, event: InputEvent, state: Dict[str, Any]) -> AsyncIterable[None]:
         """
         Just print every event which comes through - which should be all of them.
 
@@ -87,3 +87,4 @@ class PrintAction(Action):
         :return:
         """
         print("Processed event", event)
+        yield None

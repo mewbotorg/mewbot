@@ -20,7 +20,7 @@ provided.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Set, Type
+from typing import Any, AsyncIterable, Dict, Set, Type
 
 import logging
 
@@ -105,17 +105,20 @@ class DiscordDeleteResponseAction(Action):
     def message(self, message: str) -> None:
         self._message = str(message)
 
-    async def act(self, event: InputEvent, state: Dict[str, Any]) -> None:
+    async def act(
+        self, event: InputEvent, state: Dict[str, Any]
+    ) -> AsyncIterable[OutputEvent]:
         """
         Construct a DiscordOutputEvent with the result of performing the calculation.
         """
-        if isinstance(event, DiscordMessageDeleteInputEvent):
-            self._logger.info("We have detected deleting! - %s", event)
-            test_event = DiscordOutputEvent(
-                text=f'User {event.message.author} has deleted message: "{event.message.content}"',
-                message=event.message,
-                use_message_channel=True,
-            )
-            await self.send(test_event)
+        if not isinstance(event, DiscordMessageDeleteInputEvent):
+            self._logger.warning("Received wrong event type %s", type(event))
+            return
 
-        self._logger.warning("Received wrong event type %s", type(event))
+        self._logger.info("We have detected deleting! - %s", event)
+        test_event = DiscordOutputEvent(
+            text=f'User {event.message.author} has deleted message: "{event.message.content}"',
+            message=event.message,
+            use_message_channel=True,
+        )
+        yield test_event
