@@ -39,7 +39,7 @@ jobs:
             requirements-dev.txt
 
       - name: Install dependencies
-        run:  pip install -r requirements-dev.txt
+        run: ./tools/install-deps
 
       - name: Run Linters
         run: ./tools/lint
@@ -75,7 +75,8 @@ jobs:
             requirements-dev.txt
 
       - name: Install dependencies
-        run:  pip install -r requirements-dev.txt
+        shell: bash
+        run: ./tools/install-deps
 
       - name: Run Tests
         shell: bash

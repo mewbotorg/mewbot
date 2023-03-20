@@ -14,6 +14,7 @@ i.e. we can not use any other mewbot code from this file.
 
 from collections.abc import Iterable
 
+import itertools
 import os
 import pathlib
 
@@ -27,9 +28,9 @@ def scan_paths(
         yield from [root / name for name in filters if (root / name).exists()]
         return
 
-    for path, children, _ in os.walk(root):
+    for path, children, files in os.walk(root):
         for name in filters:
-            if name in children:
+            if name in children or name in files:
                 yield pathlib.Path(path) / name
 
 
@@ -38,7 +39,12 @@ def gather_paths(*filters: str) -> Iterable[str]:
 
     root = pathlib.Path(os.curdir)
 
-    return (str(x.absolute()) for x in scan_paths(root, *filters, recursive=False))
+    locations = itertools.chain(
+        scan_paths(root, *filters, recursive=False),
+        scan_paths(root / "plugins", *filters),
+    )
+
+    return (str(x.absolute()) for x in locations)
 
 
 if __name__ == "__main__":
