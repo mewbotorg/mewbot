@@ -4,6 +4,16 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+if ! command -v python3 &> /dev/null
+then
+    echo "python3 could not be found"
+    echo "You may be on windows - trying with python not python3"
+    echo "NOTE - This may result in you using an unexpected version of python!"
+    PYTHON=${PYTHON:-python}
+else
+    PYTHON=${PYTHON:-python3}
+fi
+
 PYTHON=${PYTHON:-python3}
 readonly PYTHON
 
