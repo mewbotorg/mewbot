@@ -48,3 +48,11 @@ sections = ['FUTURE', 'TYPING', 'STDLIB', 'THIRDPARTY', 'FIRSTPARTY', 'LOCALFOLD
 known_typing = ["typing", "types", "collections.abc"]
 # 9 is black compatible, bu does not look great
 multi_line_output = 3
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+filterwarnings = [
+    "ignore:'cgi' is deprecated and slated for removal in Python 3.13",
+    "ignore:'audioop' is deprecated and slated for removal in Python 3.13",
+]
