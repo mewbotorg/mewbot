@@ -23,6 +23,7 @@ import subprocess
 import sys
 
 from mewbot.tools import Annotation, ToolChain, gather_paths
+from mewbot.tools.terminal import CommandDeliminator
 
 
 LEVELS = frozenset({"notice", "warning", "error"})
@@ -41,11 +42,16 @@ class LintToolchain(ToolChain):
     def run(self) -> Iterable[Annotation]:
         """Runs the linting tools in sequence."""
 
-        yield from self.lint_black()
-        yield from self.lint_flake8()
-        yield from self.lint_mypy()
-        yield from self.lint_pylint()
-        yield from self.lint_pydocstyle()
+        with CommandDeliminator("Starting black tool run"):
+            yield from self.lint_black()
+        with CommandDeliminator("Starting flake8 tool run"):
+            yield from self.lint_flake8()
+        with CommandDeliminator("Starting mypy tool run"):
+            yield from self.lint_mypy()
+        with CommandDeliminator("Starting pylint tool run"):
+            yield from self.lint_pylint()
+        with CommandDeliminator("Starting pydocstyle tool run"):
+            yield from self.lint_pydocstyle()
 
     def lint_black(self) -> Iterable[Annotation]:
         """

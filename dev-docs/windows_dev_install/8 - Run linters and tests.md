@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2023 Mewbot Developers <mewbot@quicksilver.london>
+
+SPDX-License-Identifier: BSD-2-Clause
+-->
+
 ## Test that the linters, testers e.t.c run correctly
 
 As ever, there are several approaches to running the linters and the other utility functions.
@@ -174,6 +180,9 @@ Likewise, for the testers, you might do something like
 (mewbot_venv) C:\mewbot_dev\mewbot>python -m mewbot.tools.test
 ```
 
+NOTE - You _need_ to be in the root directory of your repo when you invoke the linters.
+Otherwise, you might end up linting the wrong paths.
+
 ### Passing command line flags to the scripts and getting help
 
 Each of the functions has various command line options - pass `--help` as normal with either technique to see them
@@ -289,5 +298,3 @@ Required test coverage of 40.0% reached. Total coverage: 44.73%
 ================================================= 20 passed in 3.80s ==================================================
 (mewbot_venv) C:\mewbot_dev\mewbot>
 ```
-
-

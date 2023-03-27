@@ -50,61 +50,14 @@ class Annotation:
         return self.file < other.file or self.file == other.file and self.line < other.line
 
 
-class ToolChain(abc.ABC):
-    """
-    Support class for running a series of tools across the codebase.
+class ToolChainBaseTooling:
+    """Tools which are in used in the ToolChain, but might be useful elsewhere."""
 
-    Each tool will be given the same set of folders, and can produce output
-    to the console and/or 'annotations' indicating issues with the code.
-
-    The behaviour of this class alters based whether it is being run in 'CI mode'.
-    This mode disables all interactive and automated features of the toolchain,
-    and instead outputs the state through a series of 'annotations', each one
-    representing an issue the tools found.
-    """
-
-    folders: set[str]
     is_ci: bool
     success: bool
+    folders: set[str]
 
-    def __init__(self, *folders: str, in_ci: bool) -> None:
-        """
-        Sets up a tool chain with the given settings.
-
-        :param folders: The list of folders to run this tool against
-        :param in_ci: Whether this is a run being called from a CI pipeline
-        """
-        self.folders = set(folders)
-        self.is_ci = in_ci
-        self.success = True
-
-    def __call__(self) -> None:
-        """Runs the tool chain, including exiting the script with an appropriate status code."""
-        # Ensure the reporting location exists.
-        if not os.path.exists("./reports"):
-            os.mkdir("./reports")
-
-        issues = list(self.run())
-
-        if self.is_ci:
-            self.github_list(issues)
-
-        sys.exit(not self.success or len(issues) > 0)
-
-    @abc.abstractmethod
-    def run(self) -> Iterable[Annotation]:
-        """
-        Abstract function for this tool chain to run its checks.
-
-        The function can call any number of sub-tools.
-        It should set `success` to false if any tool errors or raises issues.
-
-        When in CI mode, any issues the tool finds should be returned as Annotations.
-        These will then be reported back to the CI runner.
-
-        Outside of CI mode, the toolchain can take the action it deems most appropriate,
-        including pretty messages to the user, automatically fixing, or still using annotations.
-        """
+    run_success: dict[str, bool]
 
     def run_tool(self, name: str, *args: str) -> subprocess.CompletedProcess[bytes]:
         """
@@ -126,6 +79,7 @@ class ToolChain(abc.ABC):
         run_result = self._run_utility(name, arg_list)
 
         self.success = self.success and (run_result.returncode == 0)
+        self.run_success[name] = self.success
 
         return run_result
 
@@ -165,6 +119,73 @@ class ToolChain(abc.ABC):
             run.stderr = b""
 
         return run
+
+
+class ToolChain(abc.ABC, ToolChainBaseTooling):
+    """
+    Support class for running a series of tools across the codebase.
+
+    Each tool will be given the same set of folders, and can produce output
+    to the console and/or 'annotations' indicating issues with the code.
+
+    The behaviour of this class alters based whether it is being run in 'CI mode'.
+    This mode disables all interactive and automated features of the toolchain,
+    and instead outputs the state through a series of 'annotations', each one
+    representing an issue the tools found.
+    """
+
+    folders: set[str]
+    is_ci: bool
+    success: bool
+
+    def __init__(self, *folders: str, in_ci: bool) -> None:
+        """
+        Sets up a tool chain with the given settings.
+
+        :param folders: The list of folders to run this tool against
+        :param in_ci: Whether this is a run being called from a CI pipeline
+        """
+        self.folders = set(folders)
+        self.is_ci = in_ci
+        self.success = True
+        self.run_success = {}
+
+    def execute(self) -> list[Annotation]:
+        """
+        Does everything in __call__ _without_ then calling sys.exit with the success code.
+        """
+        # Ensure the reporting location exists.
+        if not os.path.exists("./reports"):
+            os.mkdir("./reports")
+
+        issues = list(self.run())
+
+        if self.is_ci:
+            self.github_list(issues)
+
+        return issues
+
+    def __call__(self) -> None:
+        """Runs the tool chain, including exiting the script with an appropriate status code."""
+
+        issues = self.execute()
+
+        sys.exit(not self.success or len(issues) > 0)
+
+    @abc.abstractmethod
+    def run(self) -> Iterable[Annotation]:
+        """
+        Abstract function for this tool chain to run its checks.
+
+        The function can call any number of sub-tools.
+        It should set `success` to false if any tool errors or raises issues.
+
+        When in CI mode, any issues the tool finds should be returned as Annotations.
+        These will then be reported back to the CI runner.
+
+        Outside of CI mode, the toolchain can take the action it deems most appropriate,
+        including pretty messages to the user, automatically fixing, or still using annotations.
+        """
 
     @staticmethod
     def github_list(issues: list[Annotation]) -> None:

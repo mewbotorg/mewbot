@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2023 Mewbot Developers <mewbot@quicksilver.london>
+
+SPDX-License-Identifier: BSD-2-Clause
+-->
+
 # Why windows?
 
 The aim of the mewbot project is to allow people to create chatbots with minimal coding experience.

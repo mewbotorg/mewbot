@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2023 Mewbot Developers <mewbot@quicksilver.london>
+
+SPDX-License-Identifier: BSD-2-Clause
+-->
 
 ## The testing script/linting scripts pass locally but fail remotely when pushed to github
 

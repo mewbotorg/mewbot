@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2023 Mewbot Developers <mewbot@quicksilver.london>
+
+SPDX-License-Identifier: BSD-2-Clause
+-->
+
 ## Safety notes
 
 **Please be aware that a mistake in following these instructions _can_ produce a non-functional system.**
