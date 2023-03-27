@@ -9,12 +9,15 @@
 from __future__ import annotations
 
 import abc
+import asyncio
 import dataclasses
 import os
 import subprocess
 import sys
-
 from collections.abc import Iterable
+from io import BytesIO
+
+from typing import IO, BinaryIO
 
 from .path import gather_paths
 
@@ -67,6 +70,8 @@ class ToolChain(abc.ABC):
     is_ci: bool
     success: bool
 
+    timeout: int = 300
+
     def __init__(self, *folders: str, in_ci: bool) -> None:
         """
         Sets up a tool chain with the given settings.
@@ -78,8 +83,15 @@ class ToolChain(abc.ABC):
         self.is_ci = in_ci
         self.success = True
 
+        self.loop = asyncio.get_event_loop()
+
     def __call__(self) -> None:
         """Runs the tool chain, including exiting the script with an appropriate status code."""
+        # Windows hack to allow colour printing in the terminal
+        # See https://bugs.python.org/issue30075 and our windows-dev-notes.
+        if os.name == "nt":
+            os.system("")
+
         # Ensure the reporting location exists.
         if not os.path.exists("./reports"):
             os.mkdir("./reports")
@@ -106,63 +118,135 @@ class ToolChain(abc.ABC):
         including pretty messages to the user, automatically fixing, or still using annotations.
         """
 
-    def run_tool(self, name: str, *args: str) -> subprocess.CompletedProcess[bytes]:
+    def run_tool(
+        self,
+        name: str,
+        *args: str,
+        env: dict[str, str] | None = None,
+        folders: set[str] | None = None,
+    ) -> subprocess.CompletedProcess[bytes]:
         """
         Helper function to run an external program as a check.
 
         The program will have the list of folders appended to the supplied arguments.
         If the process has a non-zero exit code, success is set to False for the chain.
 
-        When in CI mode, this function returns the process result (including stdout and stderr),
-        along with storing copies in the reports/ folder.
+        The output of the command is made available in three different ways:
+          - Output is written to reports/{tool name}.txt
+          - Output and Error are returned to the caller
+          - Mirror Error and Output to the terminal.
 
         :param name: The user-friendly name of the tools
         :param args: The command line to use. The first value should be the executable path.
+        :param env: Environment variables to pass to the sub-process.
+        :param folders: Override for the default set of folders for this toolchain. Use with care.
+        """
+
+        return self.loop.run_until_complete(
+            self.async_run_tool(name, *args, env=env or {}, folders=folders)
+        )
+
+    async def async_run_tool(
+        self, name: str, *args: str, env: dict[str, str], folders: set[str] | None = None
+    ) -> subprocess.CompletedProcess[bytes]:
+        """
+        Helper function to run an external program as a check.
+
+        The program will have the list of folders appended to the supplied arguments.
+        If the process has a non-zero exit code, success is set to False for the chain.
+
+        The output of the command is made available in three different ways:
+          - Output is written to reports/{tool name}.txt
+          - Output and Error are returned to the caller
+          - Mirror Error and Output to the terminal.
+
+        :param name: The user-friendly name of the tools
+        :param args: The command line to use. The first value should be the executable path.
+        :param env: Environment variables to pass to the sub-process.
+        :param folders: Override for the default set of folders for this toolchain. Use with care.
         """
 
         arg_list = list(args)
-        arg_list.extend(self.folders)
+        arg_list.extend(folders or self.folders)
 
-        run_result = self._run_utility(name, arg_list)
+        run_result = await self._run_utility(name, arg_list, env)
+        assert isinstance(run_result, subprocess.CompletedProcess)
 
         self.success = self.success and (run_result.returncode == 0)
 
         return run_result
 
-    def _run_utility(
-        self, name: str, arg_list: list[str]
+    async def _run_utility(
+        self, name: str, arg_list: list[str], env: dict[str, str]
     ) -> subprocess.CompletedProcess[bytes]:
         """
         Helper function to run an external program as a check.
 
-        Outside of CI, the command will be given direct access to stdout/stderr and left to
-        its default behaviour.
+        The output of the command is made available in three different ways:
+          - Output is written to reports/{tool name}.txt
+          - Output and Error are returned to the caller
+          - Error and Output are copied to the terminal.
 
-        Inside of CI, a block/group will be opened to contain the scripts output, and that
-        output will be captured. Additionally, the output will be added to the reports/ folder.
-
-        That output will also be returned to the calling code, allowing it to parse the output
-        (or any generated artifacts) and emit annotations for any issues that have been found.
+        When in CI mode, we add a group header to collapse the output from each
+        tool for ease of reading.
 
         :param name: The user-friendly name of the tools
         :param arg_list: The command line to use. The first value should be the executable path.
+        :param env: Environment variables to pass to the sub-process.
         """
 
-        run = subprocess.run(
-            arg_list, stdin=subprocess.DEVNULL, capture_output=self.is_ci, check=False
+        # Print output header
+        print(f"::group::{name}" if self.is_ci else f"\n{name}\n{'=' * len(name)}")
+
+        env = env.copy()
+        env.update(os.environ)
+
+        process = await asyncio.create_subprocess_exec(
+            *arg_list,
+            stdin=subprocess.DEVNULL,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=env,
+        )
+
+        # MyPy validation trick -- ensure the pipes are defined (they will be).
+        if not process.stdout or not process.stderr:
+            raise ValueError(f"pipes for process {name} not created")
+
+        with open(f"reports/{name}.txt", "wb") as log_file:
+            # Set up the mirroring readers on the two output pipes.
+            task_out = self.loop.create_task(
+                read_pipe(process.stdout, sys.stdout.buffer, log_file)
+            )
+            task_err = self.loop.create_task(read_pipe(process.stderr, sys.stderr.buffer))
+
+            # This is trimmed down version of subprocess.run().
+            try:
+                await asyncio.wait_for(process.wait(), timeout=self.timeout)
+            except TimeoutError:
+                process.kill()
+                # run uses communicate() on windows. May be needed.
+                # However, as we are running the pipes manually, it may not be.
+                # Seems not to be
+                await process.wait()
+            # Re-raise all non-timeout exceptions.
+            except:  # noqa: E722
+                process.kill()
+                await process.wait()
+                raise
+            finally:  # Ensure the other co-routines complete.
+                stdout_buffer = await task_out
+                stderr_buffer = await task_err
+
+        return_code = process.returncode
+        return_code = return_code if return_code is not None else 1
+
+        run = subprocess.CompletedProcess(
+            arg_list, return_code, stdout_buffer.read(), stderr_buffer.read()
         )
 
         if self.is_ci:
-            print(f"::group::{name}")
-            sys.stdout.write(run.stdout.decode("utf-8"))
-            sys.stdout.write(run.stderr.decode("utf-8"))
             print("::endgroup::")
-
-            with open(f"reports/{name}.txt", "wb") as log_file:
-                log_file.write(run.stdout)
-        else:
-            run.stdout = b""
-            run.stderr = b""
 
         return run
 
@@ -181,6 +265,24 @@ class ToolChain(abc.ABC):
         print("::endgroup::")
 
         print("Total Issues:", len(issues))
+
+
+async def read_pipe(pipe: asyncio.StreamReader, *mirrors: BinaryIO) -> IO[bytes]:
+    """
+    Read a pipe from a subprocess into a buffer whilst mirroring it to another pipe.
+    """
+
+    buffer = BytesIO()
+
+    while not pipe.at_eof():
+        block = await pipe.readline()
+        for mirror in mirrors:
+            mirror.write(block)
+            mirror.flush()
+        buffer.write(block)
+
+    buffer.seek(0)
+    return buffer
 
 
 __all__ = ["Annotation", "ToolChain", "gather_paths"]
