@@ -24,7 +24,7 @@ from mewbot.tools import gather_paths
 from mewbot.tools.lint import LintToolchain
 from mewbot.tools.reuse import main as reuse_main
 from mewbot.tools.test import TestToolchain
-from mewbot.tools.terminal import CommandDeliminator
+from mewbot.tools.terminal import CommandDeliminator, ResultPrinter
 
 
 class PreflightToolChain:
@@ -58,6 +58,11 @@ class PreflightToolChain:
         self.run_reuse()
         self.run_lint()
         self.run_test()
+
+        ResultPrinter(
+            {"Reuse result": self.reuse_success, "Tests result": self.test_success},
+            self.lint_success,
+        ).print()
 
     def run_reuse(self) -> None:
         """

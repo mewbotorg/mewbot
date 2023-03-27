@@ -83,6 +83,14 @@ class ToolChainBaseTooling:
 
         return run_result
 
+    def get_run_success(self) -> dict[str, bool]:
+        """
+        Provides access to the run_success object - which stores the results of the run.
+
+        :return:
+        """
+        return self.run_success
+
     def _run_utility(
         self, name: str, arg_list: list[str]
     ) -> subprocess.CompletedProcess[bytes]:
