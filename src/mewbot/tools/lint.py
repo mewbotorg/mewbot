@@ -53,6 +53,12 @@ class LintToolchain(ToolChain):
         with CommandDeliminator("Starting pydocstyle tool run"):
             yield from self.lint_pydocstyle()
 
+        if self.is_ci and self.fail_ci_run:
+            print(
+                f"Some of the tools reports having silently failed!\n" f"{self.run_success}"
+            )
+            sys.exit(1)
+
     def lint_black(self) -> Iterable[Annotation]:
         """
         Run 'black', an automatic formatting tool.

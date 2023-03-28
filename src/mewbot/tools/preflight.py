@@ -22,7 +22,7 @@ import logging
 
 from mewbot.tools import gather_paths
 from mewbot.tools.lint import LintToolchain
-from mewbot.tools.reuse import main as reuse_main
+from mewbot.tools.reuse import ReuseRun
 from mewbot.tools.test import TestToolchain
 from mewbot.tools.terminal import CommandDeliminator, ResultPrinter
 
@@ -73,7 +73,11 @@ class PreflightToolChain:
         # reuse
         self._logger.info("Starting reuse run")
         with CommandDeliminator("Starting reuse run"):
-            self.reuse_success = reuse_main()
+            reuse_tool = ReuseRun()
+
+            print(f"Running reuse on {reuse_tool.get_paths()}")
+
+            self.reuse_success = reuse_tool.run()
 
     def run_lint(self) -> None:
         """
@@ -83,11 +87,16 @@ class PreflightToolChain:
         """
         self._logger.info("Starting linting run")
 
-        paths = list(gather_paths("src", "tests"))
-        linter = LintToolchain(*paths, in_ci=False)
-        linter.execute()
+        with CommandDeliminator("Starting linting run"):
+            target_paths = gather_paths("src", "tests")
+            paths = list(target_paths)
 
-        self.lint_success = linter.run_success
+            print(f"Running lint on {paths}")
+
+            linter = LintToolchain(*paths, in_ci=False)
+            linter.execute()
+
+            self.lint_success = linter.run_success
 
     def run_test(self) -> None:
         """
@@ -100,6 +109,8 @@ class PreflightToolChain:
         paths = list(gather_paths("tests"))
         tester = TestToolchain(*paths, in_ci=False)
         with CommandDeliminator("Starting testing run"):
+            print(f"Running tests on {paths}")
+
             tester.execute()
 
         self.test_success = tester.success

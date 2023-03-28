@@ -47,6 +47,7 @@ There are no .py[i] files in directory 'C:\mewbot_dev\mewbot\plugins\mewbot-clie
 which is not expected, and so would not be caught.
 So the tool can silently fail.
 This is not ideal.
+Resolution - add explicit failure if running in is_ci mode and the error code is non zero.
 
 I'm _fairly_ sure, as a secondary issue, the error message is unhelpful.
 Removing the named folder just causes it to name a different folder.
@@ -68,3 +69,26 @@ If not - all for the good!
 
 Either way, will institute check to see if `mypy` starts silently failing in the future.
 Probably checking the output for the bad error message?
+
+#### Removing the `.mypy_cache` from the root of the repo
+
+In the vague hope it'll improve things...
+
+It did not.
+
+#### Removing `*.egg-info` folders from `src`
+
+This might be causing some confusion.
+
+It was not. This did nothing.
+
+#### Solution
+
+Turns out - entire thing _was actually_ caused by setting `mypy` on empty folders - folders I did not think where empty but, actually, where.
+Embarrassing!
+(What had happened is - I'd changed branches - which had generated some empty folders.
+What confused me was the problem appeared intermittent - in fact, it ws showing up every time I changes branches between the two I was actively working on.
+The apparent complexity was just a red herring.
+The mypy error message was accurate.
+).
+

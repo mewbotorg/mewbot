@@ -147,8 +147,14 @@ class ToolChain(abc.ABC, ToolChainBaseTooling):
     """
 
     folders: set[str]
+
     is_ci: bool
-    success: bool
+    # There is a scenario where a tool could fail - but not produce issues
+    # This flag can be set after each tool run to EXPLICITELY fail the run if required
+    fail_ci_run: bool
+
+    # Did the most recent tool succeed?
+    _success: bool
 
     def __init__(self, *folders: str, in_ci: bool) -> None:
         """
@@ -158,10 +164,35 @@ class ToolChain(abc.ABC, ToolChainBaseTooling):
         :param in_ci: Whether this is a run being called from a CI pipeline
         """
         self.folders = set(folders)
+
         self.is_ci = in_ci
+        self.fail_ci_run = False
+
         self.success = True
         self.run_success = {}
         self.run_result = {}
+
+    @property
+    def success(self) -> bool:
+        """
+        Returns the success flag.
+        """
+        return self._success
+
+    @success.setter
+    def success(self, value: bool) -> None:
+        """
+        Sets the success flag.
+
+        Also ensures the fail_ci_run flag is set True.
+        This is to ensure that a ci run is failed later.
+        (As success just stores the result of the last call to run_utility.
+        :param value:
+        :return:
+        """
+        self._success = value
+        if value is False:
+            self.fail_ci_run = True
 
     def execute(self) -> list[Annotation]:
         """
