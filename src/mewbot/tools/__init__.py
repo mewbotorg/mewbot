@@ -57,7 +57,10 @@ class ToolChainBaseTooling:
     success: bool
     folders: set[str]
 
+    # Stores whether each of the processes was a success or failure
     run_success: dict[str, bool]
+    # Stores the raw return code of each of the processes
+    run_result: dict[str, int]
 
     def run_tool(self, name: str, *args: str) -> subprocess.CompletedProcess[bytes]:
         """
@@ -78,8 +81,9 @@ class ToolChainBaseTooling:
 
         run_result = self._run_utility(name, arg_list)
 
-        self.success = self.success and (run_result.returncode == 0)
+        self.success = run_result.returncode == 0
         self.run_success[name] = self.success
+        self.run_result[name] = run_result.returncode
 
         return run_result
 
@@ -157,6 +161,7 @@ class ToolChain(abc.ABC, ToolChainBaseTooling):
         self.is_ci = in_ci
         self.success = True
         self.run_success = {}
+        self.run_result = {}
 
     def execute(self) -> list[Annotation]:
         """

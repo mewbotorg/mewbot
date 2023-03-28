@@ -48,7 +48,7 @@ which is not expected, and so would not be caught.
 So the tool can silently fail.
 This is not ideal.
 
-I'm _fairly_ sure, as a secondry issue, the error message is unhelpful.
+I'm _fairly_ sure, as a secondary issue, the error message is unhelpful.
 Removing the named folder just causes it to name a different folder.
 
 Similar issues
