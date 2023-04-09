@@ -74,7 +74,7 @@ Please start by posting your issue to our github issue tracker, [which you can f
 We do not assume any responsibility for damage caused to your operating system, place of business, or other property from following these instructions.
 Proceed at your own risk.
 
-In full.
+In full (taken from [the three clause BSD license](https://opensource.org/license/bsd-3-clause/))
 
 THIS SOFTWARE AND DOCUMENTATION IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, 
 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
