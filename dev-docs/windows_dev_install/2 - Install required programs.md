@@ -85,18 +85,23 @@ In particular the official github client for Windows - [git desktop][7].
 Which does the job with no particular fuss and comes bundled with git.
 It also allows you to drop into the command line if there's something particular you want to do.
 
-However, it can be slightly complex - these days - to set up git with github.
+HOne good reason to use git desktop over command line git is it can be slightly complex - these days - to set up git with github.
 Tokens are needed for authentication and generating them is a bit of pain.
-If you don't feel like messing around with keys for github auth, their command line tool is pretty good.
+
+If you don't want to use git desktop, and don't want to mess around with keys for github auth, their command line tool is pretty good.
+
 Likewise, git desktop handles all of the authentication problem for you - and you can always drop into the command line from it if there's a problem.
 
-(For convenience, you can add `git`` to your path so you can use it in any command line terminal - see the instructions [here][9]
+(For convenience, you can add `git` to your path so you can use it in any command line terminal - see the instructions [here][9]
 
-### 3) Install an IDE
+### 3) [OPTIONAL BUT RECOMMENDED] - Install an IDE
 
 It makes writing software a lot easier!
-I recommend [pycharm][8].
-However, it's on the expensive side and has a lot of features - somewhat stiff learning curve.
+If you are new to software development, I heartily recommend it.
+
+In particular, I use and like [pycharm][8] from Jetbrains.
+
+However, it's on the expensive side and has a lot of features - resulting in a somewhat stiff learning curve.
 
 
 [1]: https://www.python.org/downloads/ "Python downloads"

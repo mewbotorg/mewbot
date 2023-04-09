@@ -20,7 +20,7 @@ By the end of this guide you should
 2) Be able to run the `lint`, `test`, `reuse` and `preflight` scripts
 3) Be able to submit code to `mewbot` with confidence it will pass the remote checks
 4) Be able to run the examples
-5) Be equipped with a number of tools to solve problems and set up your dev enironment the way you want it
+5) Be equipped with a number of tools to solve problems and set up your dev environment the way you want it
 
 ### What does my personal setup look like?
 
@@ -33,7 +33,7 @@ This should be pretty close to what you need to do to get a working, minimally v
 This is just what I do - your setup is allowed to look very different.
 
 1) Install all the software I need
-   1) `git` - which I use mostly through `github desktop`
+   1) `git` - which I use mostly through `github desktop` on windows
    2) `python` - versions `3.9`, `3.10` and `3.11`
 2) Make a folder in the root of - `C:\mewbot_dev`
 3) Clone the repo into it - so the files will be at `C:\mewbot_dev\mewbot`

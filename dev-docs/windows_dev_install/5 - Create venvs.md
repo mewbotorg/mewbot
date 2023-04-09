@@ -6,8 +6,8 @@ SPDX-License-Identifier: BSD-2-Clause
 
 ## prepare venvs
 
-Perhaps for all the versions of mewbot we're targeting.
-Perhaps just for `3.9` - it's sorta up to you.
+(Perhaps for all the versions of mewbot we're targeting.
+Perhaps just for `3.9` - it's sorta up to you.)
 
 A `venv` is a `virtual environment` - a copy of your python interpreter which can operate independently of the installed python.
 It's all contained in a single folder - which can be removed and recreated if anything goes awry.
@@ -138,6 +138,8 @@ This is why adding python to the path is not really required - you can get aroun
 
 ### 10) Optional - Add paths to the venv(s) for easier import of other modules
 
+REQUIRED IF YOU ARE DOING PLUGIN DEVELOPMENT.
+
 A useful tool is the ability to add arbitrary paths to the places the python interpreter in the venv can import from.
 
 This is not currently needed for any steps in this process, but is a useful tool mentioned here for completeness.
@@ -155,3 +157,25 @@ Simply add a line to the file - something like `C:\mewbot_dev\mewbot\src`.
 Naturally, this will depend on where you put your mewbot development files.
 A reason as to why you'd prefer this to installing the module in the `venv` does not, immediately, occur.
 But there might be one.)
+
+#### Plugin development
+
+If you are intending to work on one of mewbot's inbuilt plugins then you _must_ add the plugins folder in the root of the repo to the path.
+Without this, python will not be able to detect and load these plugins.
+Changes you make to them will not be detected.
+
+NOTE - DO NOT USE PLUGIN `SETUP.PY` FOR LOCAL INSTALLATION
+
+Each of the plugins should have a `setup.py` file in their root.
+This is intended for distribution of the individual builtin plugins via pypi.
+DO NOT USE IT TO LOCALLY INSTALL PLUGINS.
+
+This behavior is undocumented and may result in a non-functional system.
+
+Instead, create and add to a `.pth` file as described above, adding the line (in my case)
+
+```shell
+C:\\mewbot_dev\\mewbot\plugins
+```
+
+to the file.

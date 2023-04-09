@@ -10,7 +10,7 @@ SPDX-License-Identifier: BSD-2-Clause
 
 I put mine at `C:\mewbot_dev` but really, do as you will.
 
-### 6) Clone the repo
+### 6) Clone the repo into the mewbot dev folder
 
 If you're using git from the command line, you can run something like
 

@@ -12,7 +12,6 @@ SPDX-License-Identifier: BSD-2-Clause
 
 Please back up your files before using any tools such as `regedit`.
 These instructions do not guarantee you will have a working system at the end of this process! 
-(Though you _probably_ will).
 
 Remember to close all open terminals after making changes to Windows environment variables e.t.c.
 

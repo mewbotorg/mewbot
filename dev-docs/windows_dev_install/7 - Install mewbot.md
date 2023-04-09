@@ -143,4 +143,3 @@ There are several advantages to this method
 #### Conclusion
 
 Once this is done, you are ready to enable one (or both) of the ways to run the linters and tests.
-

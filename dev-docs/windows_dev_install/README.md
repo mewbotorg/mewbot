@@ -31,16 +31,18 @@ They should also work on Windows Server and Windows on Arm - but these have not 
 ### Where can I learn about python?
 
 There are many excellent courses online.
-As a personal recommendation, you might want to try these courses
 
-[Todo: Provide some courses]
+This might not be a bad place to start
+ - [Code Academy](https://www.codecademy.com/catalog/language/python)
 
 ### Where can I learn about git?
 
 To contribute to mewbot, you don't need to know much git.
 `pull`, `push` and `pull reqest` should cover you.
 
-[Todo: Provide some sources]
+You might want to check out
+ - [w3schools basic guide](https://www.w3schools.com/git/git_intro.asp?remote=github)
+ - [github desktop basic guide](https://docs.github.com/en/desktop)
 
 ### re. Backing up your files.
 
@@ -67,9 +69,17 @@ We will be delighted to help in any way we can.
 
 Please start by posting your issue to our github issue tracker, [which you can find here](https://github.com/mewler/mewbot/issues).
 
-
-
 **DISCLAIMER**
 
 We do not assume any responsibility for damage caused to your operating system, place of business, or other property from following these instructions.
 Proceed at your own risk.
+
+In full.
+
+THIS SOFTWARE AND DOCUMENTATION IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+HETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
+THIS SOFTWARE, INCLUDING ANY DOCUMENTATION, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

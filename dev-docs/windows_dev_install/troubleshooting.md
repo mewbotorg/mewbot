@@ -44,7 +44,7 @@ This can be particularly useful when installing plugins.
 So local changes will not be registered unless you run `python setup.py install` again.
 Which will overwrite those copied files.
 
-#### You're using some kind of path hack to "install" mewbot, and you've run `setup.py` from a plugin
+#### You're using path manipulation to "install" mewbot, and you've run `setup.py` from a plugin
 
 One of the disadvantages of getting the `mewbot` code on the path with a path hack is that it can deeply confuse pip.
 pip maintains an internal database of the modules it's installed.
@@ -53,4 +53,7 @@ It will not check to see if a module matching that requirement is on the path.
 
 As a consequence of this, unless you install `mewbot` through pip, it might try and load `mewbot` from pypi instead of using your local copy.
 
-In either even, uninstalling `mewbot` using pip _may_ fix the issue.
+In either even
+ - uninstalling `mewbot` using pip 
+ - the installing pip using `python setup.py install`
+_may_ fix the issue.

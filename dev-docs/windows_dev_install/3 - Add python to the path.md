@@ -6,11 +6,13 @@ SPDX-License-Identifier: BSD-2-Clause
 
 ## Add python to the path - optional but recommended
 
-It's only helpful for one step in this process.
-And it only makes that step marginally shorter.
-But it is more convenient ...
+This allows you to more easily invoke python for testing purposes.
+It's also quite a handy utility program to be called on as needed.
 
 ### 4) OPTIONAL - Modify the path to include python
+
+NOTE - You can safely skip this step if you intend to use a `venv`.
+Which is highly recommended for software development.
 
 ### Should you do this?
 
@@ -26,9 +28,8 @@ Type "help", "copyright", "credits" or "license" for more information.
 ```
 (my default python is `3.10` - yours could be `3.9` or otherwise).
 
-You could work directly with the full path to the python executable, but this might be a little verbose.
+You could work directly with the full path to the python executable in subsequent steps, but this might be a little verbose.
 
-NOTE - You can safely skip this step if you intend to use a `venv`.
 If you're using a `venv`, once you activate it, the version of python associated with that `venv` will be on the path anyway as `python`.
 It's more useful to do this if you might be using python for other things - and it's just a bit faster all round.
 
@@ -62,7 +63,6 @@ This approach is probably the simplest. Use it if
 3) Click the "Environment Variables" button.
 4) Under "System Variables", select "Path", then click "Edit".
 5) Click New, add your python folder to the Path, and you're done (mine was "C:\Python310\" - but our will be where ever you've installed the executable)
-
 
 (adapted from the instructions found [here][1])
 
