@@ -82,7 +82,9 @@ class LintToolchain(ToolChain):
 
             try:
                 file, line_no, col, error = line.strip().split(":", 3)
-                yield Annotation("error", file, int(line_no), int(col), "", error.strip())
+                yield Annotation(
+                    "error", file, int(line_no), int(col), "flake8", "", error.strip()
+                )
             except ValueError:
                 pass
 
@@ -130,7 +132,7 @@ class LintToolchain(ToolChain):
 
                 level = level if level in LEVELS else "error"
 
-                yield Annotation(level, file, int(line_no), 1, "", error.strip())
+                yield Annotation(level, file, int(line_no), 1, "mypy", "", error.strip())
             except ValueError:
                 pass
 
@@ -151,7 +153,7 @@ class LintToolchain(ToolChain):
 
             try:
                 file, line_no, col, error = line.strip().split(":", 3)
-                yield Annotation("error", file, int(line_no), int(col), "", error)
+                yield Annotation("error", file, int(line_no), int(col), "pylint", "", error)
             except ValueError:
                 pass
 
@@ -176,7 +178,7 @@ class LintToolchain(ToolChain):
                 file, line_no = header.split(" ", 1)[0].split(":")
                 error = next(lines).strip()
 
-                yield Annotation("error", file, int(line_no), 1, "", error)
+                yield Annotation("error", file, int(line_no), 1, "pydocstyle", "", error)
             except ValueError:
                 pass
             except StopIteration:
@@ -201,7 +203,9 @@ def lint_black_errors(
 
         level = level.strip() if level.strip() in LEVELS else "error"
 
-        yield Annotation(level, file, int(line), int(char), message.strip(), info.strip())
+        yield Annotation(
+            level, file, int(line), int(char), "black", message.strip(), info.strip()
+        )
 
 
 def lint_black_diffs(
@@ -219,7 +223,7 @@ def lint_black_diffs(
 
         if diff_line.startswith("--- "):
             if file and buffer:
-                yield Annotation("error", file, line, 1, "Black alteration", buffer)
+                yield Annotation("error", file, line, 1, "black", "Black alteration", buffer)
 
             buffer = ""
             file, _ = diff_line[4:].split("\t")
@@ -227,7 +231,7 @@ def lint_black_diffs(
 
         if diff_line.startswith("@@"):
             if file and buffer:
-                yield Annotation("error", file, line, 1, "Black alteration", buffer)
+                yield Annotation("error", file, line, 1, "black", "Black alteration", buffer)
 
             _, start, _, _ = diff_line.split(" ")
             _line, _ = start.split(",")

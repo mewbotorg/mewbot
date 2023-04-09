@@ -42,7 +42,7 @@ class TestToolchain(ToolChain):
         result = self.run_tool("PyTest (Testing Framework)", *args)
 
         if result.returncode < 0:
-            yield Annotation("error", "tools/test.py", 1, 1, "Tests Failed", "")
+            yield Annotation("error", "tools/test.py", 1, 1, "pytest", "Tests Failed", "")
 
     def build_pytest_args(self) -> list[str]:
         """
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     testing = TestToolchain(*paths, in_ci=options.is_ci)
 
     # Set up coverage, if requested
-    testing.coverage = options.coverage or options.covering
+    testing.coverage = options.coverage or options.covering or options.is_ci
     testing.covering = options.covering or list(gather_paths("src"))
 
     testing()
