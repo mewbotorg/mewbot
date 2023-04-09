@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Used for automated package discovery
+importlib-metadata~=6.1.0

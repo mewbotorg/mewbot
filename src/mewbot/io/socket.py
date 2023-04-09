@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 
+# SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
+"""
+Provides an IOConfig which listens on a host-socket combination for traffic.
+
+If data is received, will acknowledge and generate an InputEvent containing it.
+"""
+
 from __future__ import annotations
 
 from typing import Optional, Sequence, Set, Type
@@ -14,11 +24,18 @@ from mewbot.api.v1 import Input, InputEvent, IOConfig, Output
 
 @dataclasses.dataclass
 class SocketInputEvent(InputEvent):
+    """
+    Event generated when data is sent to a monitored socket.
+    """
 
     data: bytes
 
 
 class SocketIO(IOConfig):
+    """
+    IOConfig which supports receiving data sent to a socket.
+    """
+
     _host: str = "localhost"
     _port: int = 0
 
@@ -27,11 +44,20 @@ class SocketIO(IOConfig):
     _socket: Optional[SocketInput]
 
     def __init__(self) -> None:
+        """
+        Initialise the SocketIO IOConfig.
+        """
         self._logger = logging.getLogger(__name__ + "SocketInput")
         self._socket = None
 
     @property
     def host(self) -> str:
+        """
+        Returns the host this IOConfig will listen on.
+
+        The port this IOConfig will listen is given by :meth port:.
+        :return:
+        """
         return self._host
 
     @host.setter
@@ -40,6 +66,9 @@ class SocketIO(IOConfig):
 
     @property
     def port(self) -> int:
+        """
+        Returns the port this IOConfig will listen on.
+        """
         return self._port
 
     @port.setter
@@ -50,18 +79,32 @@ class SocketIO(IOConfig):
         return SocketInput(self._host, self._port, self._logger)
 
     def get_inputs(self) -> Sequence[Input]:
+        """
+        Returns the inputs for SocketIO.
+
+        There should be one - a listener which listens to a port on a host.
+        All data sent to that port on the host will be put on the wire.
+        :return:
+        """
         if not self._socket:
             self._socket = self._create_socket()
 
         return [self._socket]
 
     def get_outputs(self) -> Sequence[Output]:
+        """
+        Gets the Outputs for the SocketIO class.
+
+        In this case, there shouldn't be any, because output is not supported.
+        """
         return []
 
 
 class SocketInput(Input):
     """
-    Not complete, but it took an annoyingly long time to get working
+    Listens to a socket for data which will then be put on the wire.
+
+    Not complete, but it took an annoyingly long time to get working.
     so I'm leaving it in for future use.
     """
 
@@ -73,6 +116,14 @@ class SocketInput(Input):
     _port: int
 
     def __init__(self, host: str, port: int, logger: logging.Logger) -> None:
+        """
+        Initialize a SocketInput.
+
+        This class still needs to be run.
+        :param host: Host the socket is on
+        :param port: Port for the socket
+        :param logger: logging.Logger logger for logging.
+        """
         super().__init__()
 
         self._logger = logger
@@ -84,11 +135,13 @@ class SocketInput(Input):
     def produces_inputs() -> Set[Type[InputEvent]]:
         """
         Defines the set of input events this Input class can produce.
-        :return:
         """
         return {SocketInputEvent}
 
     async def run(self) -> None:
+        """
+        Receive input from the socket we're listening to.
+        """
         if not self.queue:
             self._logger.error(".run() called before queue bound")
             return
@@ -103,6 +156,17 @@ class SocketInput(Input):
     async def handle_client(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     ) -> None:
+        """
+        Handles connections from a client.
+
+         - accept a connection from a client.
+         - read the incoming data.
+         - put it on the wire in the form of an OutputEvent
+        - write a confirmation message noting receipt to the original host.
+        :param reader:
+        :param writer:
+        :return:
+        """
         self._logger.info("Accepting connection from %s", reader)
 
         while not reader.at_eof():

@@ -1,4 +1,6 @@
 <!--
+SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
@@ -64,7 +66,7 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement at
-mewbot@tea-cats.co.uk.
+mewbot@quicksilver.london.
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the

@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
 
 ### Why am I getting blank events when messages are sent in channels the bot is monitoring?
 

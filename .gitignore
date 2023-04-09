@@ -1,6 +1,6 @@
-# SPDX-FileCopyrightText: 2021 Benedict Harcourt <ben.harcourt@harcourtprogramming.co.uk>
+# SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
 #
-# SPDX-License-Identifier: BSD-2-Clause
+# SPDX-License-Identifier: CC0-1.0
 
 # Caching directories
 /.local/
@@ -9,23 +9,26 @@ __pycache__/
 .mypy_cache/
 
 # IDE and development environment
-/venv/
-/.idea/
+venv/
+.idea/
 .tox
 .project
 .pydevproject
 
 # Build enivornment
-src/mewbot.egg-info
-/build/
-/dist/
+# - Including all the environments in plugins
+*.egg-info/
+build/
+dist/
 
 # Secrets and local configuration
 examples/TrivialDiscordBot/secrets.json
 
 # Coverage artefacts
-.coverage
-/.coverage_html/
+/.coverage
+/.coverage.*
+/coverage/
+/reports/
 /.pytest_cache/
 /junit.xml
 .coverage*

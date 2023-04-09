@@ -1,18 +1,28 @@
-# SPDX-FileCopyrightText: 2021 Benedict Harcourt <ben.harcourt@harcourtprogramming.co.uk>
+# SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
 #
 # SPDX-License-Identifier: CC0-1.0
 
 -r requirements.txt
+-r requirements-api.txt
+-r requirements-io.txt
+-r requirements-test.txt
 
-black~=22.6
-flake8~=5.0
-mypy>=0.940
-pylint~=2.14
-reuse~=1.0
+# Installation toolchain
+setuptools~=67.6
 
+# Copyright linting toolchain
+reuse~=1.1
+
+# Documentation toolchain
+pydeps~=1.11.0
+
+# Python Linting toolchain
+black>=23.1.0
+flake8>=6.0.0
+pylint>=2.16.0
+pytest-github-actions-annotate-failures>=0.1.7
+pydocstyle>=6.3.0
+
+# Type checking toolchain
+mypy>=0.991
 types-PyYAML~=6.0
-
-pytest>=7.1.1
-pytest-asyncio~=0.19.0
-pytest-cov>=3.0.0
-asyncinotify~=2.0.5

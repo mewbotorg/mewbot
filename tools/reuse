@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
+COPYRIGHT="Mewbot Developers <mewbot@quicksilver.london>"
+LICENSE="BSD-2-Clause"
+
+reuse annotate --merge-copyrights --copyright "$COPYRIGHT" --license "$LICENSE" --skip-unrecognised --skip-existing --recursive .

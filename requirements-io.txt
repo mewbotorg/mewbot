@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+aiohttp>=3.8.0
+
+# Discord Module
+py-cord~=2.4.1
+
+# Notifications module (windows)
+win10toast~=0.9; sys_platform == "win32"
+
+# RSS reader
+feedparser~=6.0.10

@@ -1,0 +1,137 @@
+# SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
+name: Auto-Review
+run-name: "Automated code review for \"${{ github.head_ref }}\""
+
+on:
+  push:
+    branches:
+      - mainline
+  pull_request: # All pull requests
+
+concurrency:
+  group: review-${{ github.head_ref }}
+  cancel-in-progress: true
+
+env:
+  # Which version of the reports Sonar receives.
+  DEFAULT_OS: ubuntu-latest
+  DEFAULT_PYTHON: 3.9
+
+jobs:
+  lint:
+    name: Lint Python code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python ${{ env.DEFAULT_PYTHON }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: ./tools/install-deps
+
+      - name: Run Linters
+        run: ./tools/lint
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: lint-results
+          path: reports
+
+  test:
+    name: Test Python code
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        version: ["3.9", "3.10", "3.11"]
+      fail-fast: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python ${{ matrix.version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.version }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        shell: bash
+        run: ./tools/install-deps
+
+      - name: Run Tests
+        shell: bash
+        run: ./tools/test --cov
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}-${{ matrix.version }}
+          path: reports
+
+  tests-passed:
+    name: Tests Passed
+    runs-on: ubuntu-latest
+
+    needs:
+      - test
+
+    steps:
+      - name: Mark all test runs as successful
+        run: /bin/true
+
+  sonarcloud:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+
+    if: always()
+
+    needs:
+      - lint
+      - test
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        if: always()
+        with:
+          name: lint-results
+          path: reports
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        if: always()
+        with:
+          name: test-results-${{ env.DEFAULT_OS }}-${{ env.DEFAULT_PYTHON }}
+          path: reports
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
