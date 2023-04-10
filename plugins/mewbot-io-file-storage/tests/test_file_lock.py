@@ -65,7 +65,7 @@ class TestAsyncFileLock(FileStorageTestFixture):
             async with aiofiles.open(file_path, "w") as test_handle:
                 lock = AsyncFileLock(test_handle, 0.5)
 
-                error = TimeoutError if sys.version_info.minor > 9 else asyncio.TimeoutError
+                error = TimeoutError if sys.version_info.minor > 10 else asyncio.TimeoutError
                 with pytest.raises(error):
                     await lock.acquire()
 
