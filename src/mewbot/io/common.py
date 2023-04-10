@@ -10,39 +10,13 @@ This common elements are often used in various of the examples.
 
 from __future__ import annotations
 
-from typing import Set, Type, Dict, Any, AsyncIterable
+import abc
 
-from mewbot.api.v1 import Condition, Trigger, Action, InputEvent, OutputEvent
+from collections.abc import AsyncIterable
+from string import Template
+from typing import Any
 
-
-class Foo(Condition):
-    """
-    Example, trivial, condition.
-    """
-
-    @staticmethod
-    def consumes_inputs() -> Set[Type[InputEvent]]:
-        """Foo consumes no Input Events."""
-        return set()
-
-    _channel: str
-
-    @property
-    def channel(self) -> str:
-        """String representation of the channel this Condition acts on."""
-        return self._channel
-
-    @channel.setter
-    def channel(self, val: str) -> None:
-        self._channel = val
-
-    def allows(self, event: InputEvent) -> bool:
-        """Foo always matches any InputEvent passed to it."""
-        return True
-
-    def __str__(self) -> str:
-        """Str rep of Foo - tells you what channel it's watching."""
-        return f"Foo(channel={self.channel})"
+from mewbot.api.v1 import Trigger, Action, InputEvent, OutputEvent
 
 
 class AllEventTrigger(Trigger):
@@ -53,7 +27,7 @@ class AllEventTrigger(Trigger):
     """
 
     @staticmethod
-    def consumes_inputs() -> Set[Type[InputEvent]]:
+    def consumes_inputs() -> set[type[InputEvent]]:
         """This trigger consumes all Input Events."""
         return {InputEvent}
 
@@ -68,16 +42,16 @@ class PrintAction(Action):
     """
 
     @staticmethod
-    def consumes_inputs() -> Set[Type[InputEvent]]:
+    def consumes_inputs() -> set[type[InputEvent]]:
         """This action triggers on all InputEvents."""
         return {InputEvent}
 
     @staticmethod
-    def produces_outputs() -> Set[Type[OutputEvent]]:
+    def produces_outputs() -> set[type[OutputEvent]]:
         """This action cannot produce any OutputEvents."""
         return set()
 
-    async def act(self, event: InputEvent, state: Dict[str, Any]) -> AsyncIterable[None]:
+    async def act(self, event: InputEvent, state: dict[str, Any]) -> AsyncIterable[None]:
         """
         Just print every event which comes through - which should be all of them.
 
