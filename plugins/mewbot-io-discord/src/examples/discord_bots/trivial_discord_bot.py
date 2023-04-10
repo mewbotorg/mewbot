@@ -19,7 +19,7 @@ string also given in the yaml.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Set, Type
+from typing import Any, AsyncIterable, Dict, Set, Type
 
 import logging
 
@@ -116,7 +116,9 @@ class DiscordCommandTextResponse(Action):
     def message(self, message: str) -> None:
         self._message = str(message)
 
-    async def act(self, event: InputEvent, state: Dict[str, Any]) -> None:
+    async def act(
+        self, event: InputEvent, state: Dict[str, Any]
+    ) -> AsyncIterable[OutputEvent]:
         """
         Construct a DiscordOutputEvent with the result of performing the calculation.
         """
@@ -128,4 +130,4 @@ class DiscordCommandTextResponse(Action):
             text=self._message, message=event.message, use_message_channel=True
         )
 
-        await self.send(test_event)
+        yield test_event

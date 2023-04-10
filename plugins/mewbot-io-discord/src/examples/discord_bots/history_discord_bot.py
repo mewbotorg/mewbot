@@ -19,7 +19,7 @@ Note - would be nice to set a number per channel as well as a global number.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Set, Type
+from typing import Any, Dict, Set, Type, AsyncIterable
 
 import logging
 
@@ -116,8 +116,9 @@ class DiscordPrintAction(Action):
     def message(self, message: str) -> None:
         self._message = str(message)
 
-    async def act(self, event: InputEvent, state: Dict[str, Any]) -> None:
+    async def act(self, event: InputEvent, state: Dict[str, Any]) -> AsyncIterable[None]:
         """
         Construct a DiscordOutputEvent with the result of performing the calculation.
         """
         print(event)
+        yield None

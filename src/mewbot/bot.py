@@ -16,7 +16,6 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Set, Type, Callable
 
 import asyncio
-import itertools
 import logging
 import signal
 
@@ -277,11 +276,6 @@ class BotRunner:
         """
         input_tasks: List[asyncio.Task[None]] = []
 
-        # Startup the outputs - which are contained in the behaviors
-        for behaviour in itertools.chain(*self.behaviours.values()):
-            self.logger.info("Binding behaviour %s", behaviour)
-            behaviour.bind_output(self.output_event_queue)
-
         # Startup the inputs
         for _input in self.inputs:
             _input.bind(self.input_event_queue)
@@ -305,9 +299,19 @@ class BotRunner:
                 continue
 
             for event_type in self.behaviours:
-                if isinstance(event, event_type):
-                    for behaviour in self.behaviours[event_type]:
-                        await behaviour.process(event)
+                if not isinstance(event, event_type):
+                    continue
+
+                await asyncio.gather(
+                    self._process_event_for_behaviour(behaviour, event)
+                    for behaviour in self.behaviours[event_type]
+                )
+
+    async def _process_event_for_behaviour(
+        self, behaviour: BehaviourInterface, event: InputEvent
+    ) -> None:
+        async for output in behaviour.process(event):
+            await self.output_event_queue.put(output)
 
     async def process_output_queue(self) -> None:
         """

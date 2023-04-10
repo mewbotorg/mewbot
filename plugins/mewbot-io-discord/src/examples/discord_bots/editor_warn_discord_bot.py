@@ -19,7 +19,7 @@ provided, along with the current contents of the message.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Set, Type
+from typing import Any, AsyncIterable, Dict, Set, Type
 
 import logging
 
@@ -98,18 +98,21 @@ class DiscordEditResponse(Action):
     def message(self, message: str) -> None:
         self._message = str(message)
 
-    async def act(self, event: InputEvent, state: Dict[str, Any]) -> None:
+    async def act(
+        self, event: InputEvent, state: Dict[str, Any]
+    ) -> AsyncIterable[OutputEvent]:
         """
         Construct a DiscordOutputEvent with the result of performing the calculation.
         """
-        if isinstance(event, DiscordMessageEditInputEvent):
-            self._logger.info("We have detected editing! - %s", event)
-            test_event = DiscordOutputEvent(
-                text=f'We have detected editing! "{event.message_before.content}"'
-                f' was changed to "f{event.message_after.content}"',
-                message=event.message_after,
-                use_message_channel=True,
-            )
-            await self.send(test_event)
+        if not isinstance(event, DiscordMessageEditInputEvent):
+            self._logger.warning("Received wrong event type %s", type(event))
+            return
 
-        self._logger.warning("Received wrong event type %s", type(event))
+        self._logger.info("We have detected editing! - %s", event)
+        test_event = DiscordOutputEvent(
+            text=f'We have detected editing! "{event.message_before.content}"'
+            f' was changed to "f{event.message_after.content}"',
+            message=event.message_after,
+            use_message_channel=True,
+        )
+        yield test_event

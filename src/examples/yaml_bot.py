@@ -10,7 +10,7 @@ Basic example of how to load a mewbot component from yaml.
 
 from __future__ import annotations
 
-from mewbot.demo import Foo
+from mewbot.io.common import ReplyAction
 from mewbot.loader import load_component
 
 
@@ -27,18 +27,18 @@ def main() -> None:
     """
     yaml_demo = load_component(
         {
-            "kind": "Condition",
-            "implementation": "mewbot.demo.Foo",
+            "kind": "Action",
+            "implementation": "mewbot.io.common.ReplyAction",
             "uuid": "3f7c493b-ce05-4566-b906-54ece62804c1",
-            "properties": {"channel": "cat"},
+            "properties": {"message": "Hello, World!"},
         }
     )
 
-    local_demo = Foo()
-    local_demo.channel = "cat"
+    local_demo = ReplyAction()
+    local_demo.message = "Hello, World!"
 
     print("Loaded from YAML-like object:  ", yaml_demo)
-    print("Created and channel set        ", local_demo)
+    print("Created and message set        ", local_demo)
     print("Serialised:                    ", local_demo.serialise())
     print("Re-loaded from serialized data:", load_component(local_demo.serialise()))
 
