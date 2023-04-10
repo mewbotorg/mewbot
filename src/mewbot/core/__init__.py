@@ -254,7 +254,7 @@ class ActionInterface(Protocol):
         `state` will be available for any further actions that process this event.
         No functionality is provided to prevent processing more actions.
         """
-        yield OutputEvent()
+        yield OutputEvent()  # pragma: no cover (not reachable)
 
 
 @runtime_checkable
@@ -298,7 +298,7 @@ class BehaviourInterface(Protocol):
         If both of the above succeed, a state object is created, and the Event
         is passed to each action in turn, updating state and emitting any outputs.
         """
-        yield OutputEvent()
+        yield OutputEvent()  # pragma: no cover (not reachable)
 
 
 Component = Union[
