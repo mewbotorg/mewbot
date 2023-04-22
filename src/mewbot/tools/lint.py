@@ -95,8 +95,10 @@ class LintToolchain(ToolChain):
         """
 
         args = ["mypy", "--strict", "--explicit-package-bases"]
+        env = {}
 
         if not self.is_ci:
+            env["MYPY_FORCE_COLOR"] = "1"
             args.append("--pretty")
 
         # MyPy does not use the stock import engine for doing its analysis,
@@ -106,17 +108,14 @@ class LintToolchain(ToolChain):
         #
         # There are two steps to this:
         #  - We set MYPYPATH equivalent to PYTHONPATH
-        os.putenv("MYPYPATH", os.pathsep.join(gather_paths("src")))
+        env["MYPYPATH"] = os.pathsep.join(gather_paths("src"))
+
         #  - We alter the folder list such that, in src-dir folders, we pass the
         #    folder of the actual pacakge (i.e. ./src/mewbot rather than ./src)
-        folder_backup = self.folders
-        self.folders = set(get_module_paths(*self.folders))
+        folders = set(get_module_paths(*self.folders))
 
         # Run mypy
-        result = self.run_tool("MyPy (type checker)", *args)
-
-        # Reset the folders list.
-        self.folders = folder_backup
+        result = self.run_tool("MyPy (type checker)", *args, env=env, folders=folders)
 
         for line in result.stdout.decode("utf-8").split("\n"):
             if ":" not in line:
@@ -190,10 +189,11 @@ def lint_black_errors(
     """Processes 'blacks' output in to annotations."""
 
     errors = result.stderr.decode("utf-8").split("\n")
+
     for error in errors:
         error = error.strip()
 
-        if not error:
+        if not error or ":" not in error:
             continue
 
         level, header, message, line, char, info = error.split(":", 5)
