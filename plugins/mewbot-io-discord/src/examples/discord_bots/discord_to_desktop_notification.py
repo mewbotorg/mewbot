@@ -16,7 +16,7 @@ is detected in any of the channels which this bot has access to.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Set, Type
+from typing import Any, AsyncIterable, Dict, Set, Type
 
 import logging
 
@@ -123,7 +123,9 @@ class DiscordMessageToNotificationAction(Action):
     def message(self, message: str) -> None:
         self._message = str(message)
 
-    async def act(self, event: InputEvent, state: Dict[str, Any]) -> None:
+    async def act(
+        self, event: InputEvent, state: Dict[str, Any]
+    ) -> AsyncIterable[OutputEvent]:
         """
         Construct a DiscordOutputEvent with the result of performing the calculation.
         """
@@ -137,4 +139,4 @@ class DiscordMessageToNotificationAction(Action):
         )
         self._logger.info("Triggering DesktopNotification %s", test_event)
 
-        await self.send(test_event)
+        yield test_event

@@ -23,16 +23,13 @@ from __future__ import annotations
 
 from typing import (
     Any,
-    Dict,
-    List,
     Protocol,
-    Sequence,
-    Set,
-    Type,
-    Union,
     TypedDict,
+    Union,
     runtime_checkable,
 )
+
+from collections.abc import Iterable, AsyncIterable
 
 import asyncio
 import enum
@@ -90,7 +87,7 @@ class IOConfigInterface(Protocol):
     they are passed to the bot via the `get_inputs` and `get_outputs` methods.
     """
 
-    def get_inputs(self) -> Sequence[InputInterface]:
+    def get_inputs(self) -> Iterable[InputInterface]:
         """
         Gets the Inputs that are used to read events from the service.
 
@@ -100,7 +97,7 @@ class IOConfigInterface(Protocol):
         :return: The Inputs that are used to read events from the service (if any)
         """
 
-    def get_outputs(self) -> Sequence[OutputInterface]:
+    def get_outputs(self) -> Iterable[OutputInterface]:
         """
         Gets the Outputs that are used to send events to the service.
 
@@ -121,7 +118,7 @@ class InputInterface(Protocol):
     """
 
     @staticmethod
-    def produces_inputs() -> Set[Type[InputEvent]]:
+    def produces_inputs() -> set[type[InputEvent]]:
         """List the types of Events this Input class could produce."""
 
     def bind(self, queue: InputQueue) -> None:
@@ -152,7 +149,7 @@ class OutputInterface(Protocol):
     """
 
     @staticmethod
-    def consumes_outputs() -> Set[Type[OutputEvent]]:
+    def consumes_outputs() -> set[type[OutputEvent]]:
         """Defines the types of Event that this Output class can send."""
 
     async def output(self, event: OutputEvent) -> bool:
@@ -176,7 +173,7 @@ class TriggerInterface(Protocol):
     """
 
     @staticmethod
-    def consumes_inputs() -> Set[Type[InputEvent]]:
+    def consumes_inputs() -> set[type[InputEvent]]:
         """
         The subtypes of InputEvent that this component accepts.
 
@@ -204,7 +201,7 @@ class ConditionInterface(Protocol):
     """
 
     @staticmethod
-    def consumes_inputs() -> Set[Type[InputEvent]]:
+    def consumes_inputs() -> set[type[InputEvent]]:
         """
         The subtypes of InputEvent that this component accepts.
 
@@ -228,7 +225,7 @@ class ActionInterface(Protocol):
     """
 
     @staticmethod
-    def consumes_inputs() -> Set[Type[InputEvent]]:
+    def consumes_inputs() -> set[type[InputEvent]]:
         """
         The subtypes of InputEvent that this component accepts.
 
@@ -237,7 +234,7 @@ class ActionInterface(Protocol):
         """
 
     @staticmethod
-    def produces_outputs() -> Set[Type[OutputEvent]]:
+    def produces_outputs() -> set[type[OutputEvent]]:
         """
         The subtypes of OutputEvent that this component could generate.
 
@@ -246,15 +243,9 @@ class ActionInterface(Protocol):
         outputs to function as intended.
         """
 
-    def bind(self, queue: OutputQueue) -> None:
-        """
-        Attaches the output to the bot's output queue.
-
-        A queue processor will distribute output events put on this queue
-        to the outputs that are able to process them.
-        """
-
-    async def act(self, event: InputEvent, state: Dict[str, Any]) -> None:
+    async def act(
+        self, event: InputEvent, state: dict[str, Any]
+    ) -> AsyncIterable[OutputEvent | None]:
         """
         Performs the action.
 
@@ -263,6 +254,7 @@ class ActionInterface(Protocol):
         `state` will be available for any further actions that process this event.
         No functionality is provided to prevent processing more actions.
         """
+        yield OutputEvent()  # pragma: no cover (not reachable)
 
 
 @runtime_checkable
@@ -277,16 +269,14 @@ class BehaviourInterface(Protocol):
     order, which can read from or write to DataStores, and emit OutputEvents.
     """
 
-    def add(
-        self, component: Union[TriggerInterface, ConditionInterface, ActionInterface]
-    ) -> None:
+    def add(self, component: TriggerInterface | ConditionInterface | ActionInterface) -> None:
         """
         Adds a component to the behaviour which is one or more of a Tigger, Condition, or Action.
 
         Note that the order of Actions being added must be preserved.
         """
 
-    def consumes_inputs(self) -> Set[Type[InputEvent]]:
+    def consumes_inputs(self) -> set[type[InputEvent]]:
         """
         The set of InputEvents which are acceptable to one or more triggers.
 
@@ -298,14 +288,7 @@ class BehaviourInterface(Protocol):
         type without having to invoke the matching methods, which may be complex.
         """
 
-    def bind_output(self, output: OutputQueue) -> None:
-        """
-        Wrapper to bind the output queue to all actions in this behaviour.
-
-        See :meth:`mewbot.core.ActionInterface:bind_output`
-        """
-
-    async def process(self, event: InputEvent) -> None:
+    async def process(self, event: InputEvent) -> AsyncIterable[OutputEvent]:
         """
         Processes an InputEvent.
 
@@ -315,6 +298,7 @@ class BehaviourInterface(Protocol):
         If both of the above succeed, a state object is created, and the Event
         is passed to each action in turn, updating state and emitting any outputs.
         """
+        yield OutputEvent()  # pragma: no cover (not reachable)
 
 
 Component = Union[
@@ -345,16 +329,16 @@ class ComponentKind(str, enum.Enum):
     DataSource = "DataSource"
 
     @classmethod
-    def values(cls) -> List[str]:
+    def values(cls) -> list[str]:
         """List of named values."""
 
         return list(e for e in cls)
 
     @classmethod
-    def interface(cls, value: ComponentKind) -> Type[Component]:
+    def interface(cls, value: ComponentKind) -> type[Component]:
         """Maps a value in this enum to the Interface for that component type."""
 
-        _map: Dict[ComponentKind, Type[Component]] = {
+        _map: dict[ComponentKind, type[Component]] = {
             cls.Behaviour: BehaviourInterface,
             cls.Trigger: TriggerInterface,
             cls.Condition: ConditionInterface,
@@ -374,15 +358,15 @@ class ConfigBlock(TypedDict):
     kind: str
     implementation: str
     uuid: str
-    properties: Dict[str, Any]
+    properties: dict[str, Any]
 
 
 class BehaviourConfigBlock(ConfigBlock):
     """YAML block for a behaviour, which includes the subcomponents."""
 
-    triggers: List[ConfigBlock]
-    conditions: List[ConfigBlock]
-    actions: List[ConfigBlock]
+    triggers: list[ConfigBlock]
+    conditions: list[ConfigBlock]
+    actions: list[ConfigBlock]
 
 
 __all__ = [

@@ -18,12 +18,12 @@ properties:
   name: 'Echo Inputs'
 triggers:
   - kind: Trigger
-    implementation: mewbot.demo.AllEventTrigger
+    implementation: mewbot.io.common.AllEventTrigger
     uuid: aaaaaaaa-aaaa-4aaa-0002-aaaaaaaaaa02
     properties: { }
 conditions: []
 actions:
   - kind: Action
-    implementation: mewbot.demo.PrintAction
+    implementation: mewbot.io.common.PrintAction
     uuid: aaaaaaaa-aaaa-4aaa-0002-aaaaaaaaaa03
     properties: { }
