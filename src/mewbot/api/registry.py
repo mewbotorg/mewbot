@@ -214,7 +214,7 @@ class ComponentRegistry(abc.ABCMeta):
 
         distribution: importlib_metadata.Distribution
 
-        for distribution in importlib_metadata.distributions():  # type: ignore
+        for distribution in importlib_metadata.distributions():
             for entry_point in distribution.entry_points:
                 if entry_point.group not in API_DISTRIBUTIONS:
                     continue
@@ -233,7 +233,7 @@ class ComponentRegistry(abc.ABCMeta):
         """
 
         distribution: importlib_metadata.Distribution
-        distribution = importlib_metadata.distribution(name)  # type: ignore
+        distribution = importlib_metadata.distribution(name)
 
         for entry_point in distribution.entry_points:
             if entry_point.group in API_DISTRIBUTIONS:
