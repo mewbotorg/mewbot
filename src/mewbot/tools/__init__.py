@@ -11,6 +11,7 @@ from __future__ import annotations
 import abc
 import asyncio
 import dataclasses
+import json
 import os
 import subprocess
 import sys
@@ -32,6 +33,7 @@ class Annotation:
     file: str
     line: int
     col: int
+    tool: str
     title: str
     message: str
 
@@ -41,7 +43,19 @@ class Annotation:
         mess = self.message.replace("\n", "%0A")
         return (
             f"::{self.level} file={self.file},line={self.line},"
-            f"col={self.col},title={self.title}::{mess}"
+            f"col={self.col},title={self.title.strip()}::{mess.strip()}"
+        )
+
+    def json(self) -> dict[str, str | int]:
+        """Output this object as a JSON-encodeable dictionary."""
+
+        return dataclasses.asdict(self)
+
+    def __hash__(self) -> int:
+        """Unique hash of this annotation."""
+
+        return hash(
+            (self.level, self.file, self.line, self.col, self.tool, self.title, self.message)
         )
 
     def __lt__(self, other: Annotation) -> bool:
@@ -98,8 +112,10 @@ class ToolChain(abc.ABC):
 
         issues = list(self.run())
 
-        if self.is_ci:
-            self.github_list(issues)
+        with open(
+            f"./reports/annotations-{self.__class__.__name__}.json", "w", encoding="utf-8"
+        ) as output:
+            json.dump([issue.json() for issue in issues], output, indent=2)
 
         sys.exit(not self.success or len(issues) > 0)
 
@@ -196,7 +212,10 @@ class ToolChain(abc.ABC):
         """
 
         # Print output header
-        print(f"::group::{name}" if self.is_ci else f"\n{name}\n{'=' * len(name)}")
+        sys.stdout.write(
+            f"::group::{name}\n" if self.is_ci else f"\n{name}\n{'=' * len(name)}\n"
+        )
+        sys.stdout.flush()
 
         env = env.copy()
         env.update(os.environ)
@@ -246,25 +265,10 @@ class ToolChain(abc.ABC):
         )
 
         if self.is_ci:
-            print("::endgroup::")
+            sys.stdout.write("::endgroup::\n")
+            sys.stdout.flush()
 
         return run
-
-    @staticmethod
-    def github_list(issues: list[Annotation]) -> None:
-        """
-        Outputs the annotations in the format for GitHub actions.
-
-        These are presented as group at the end of output as a work-around for
-        the limit of 10 annotations per check run actually being shown on a commit or merge.
-        """
-
-        print("::group::Annotations")
-        for issue in sorted(issues):
-            print(issue)
-        print("::endgroup::")
-
-        print("Total Issues:", len(issues))
 
 
 async def read_pipe(pipe: asyncio.StreamReader, *mirrors: BinaryIO) -> IO[bytes]:
