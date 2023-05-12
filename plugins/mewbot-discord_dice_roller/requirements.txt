@@ -2,5 +2,5 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
-mewbot.api
+mewbot-api
 d20
