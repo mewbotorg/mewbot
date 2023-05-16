@@ -420,7 +420,6 @@ class Behaviour(Component):
         If both of the above succeed, a state object is created, and the Event
         is passed to each action in turn, updating state and emitting any outputs.
         """
-
         if not any(True for trigger in self.triggers if trigger.matches(event)):
             return
 

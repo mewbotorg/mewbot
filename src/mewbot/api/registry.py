@@ -29,6 +29,8 @@ import importlib_metadata
 from mewbot.core import ComponentKind, Component
 
 
+# This is the magic string needed when defining the entry points to have components
+# declared in a plugin automatically registered at registry startup
 API_DISTRIBUTIONS = ["mewbot-v1"]
 
 

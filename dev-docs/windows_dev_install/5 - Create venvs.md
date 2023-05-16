@@ -175,7 +175,7 @@ This behavior is undocumented and may result in a non-functional system.
 Instead, create and add to a `.pth` file as described above, adding the line (in my case)
 
 ```shell
-C:\\mewbot_dev\\mewbot\plugins
+C:\mewbot_dev\mewbot\plugins
 ```
 
 to the file.
