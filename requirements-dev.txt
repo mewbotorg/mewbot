@@ -26,3 +26,6 @@ pydocstyle>=6.3.0
 # Type checking toolchain
 mypy>=0.991
 types-PyYAML~=6.0
+
+# Terminal colouring and formatting
+clint>=0.5.1

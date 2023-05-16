@@ -83,6 +83,7 @@ class ToolChain(abc.ABC):
     folders: set[str]
     is_ci: bool
     success: bool
+    run_success: dict[str, bool]
 
     timeout: int = 300
 
@@ -96,6 +97,7 @@ class ToolChain(abc.ABC):
         self.folders = set(folders)
         self.is_ci = in_ci
         self.success = True
+        self.run_success = {}
 
         self.loop = asyncio.get_event_loop()
 
@@ -189,6 +191,7 @@ class ToolChain(abc.ABC):
         assert isinstance(run_result, subprocess.CompletedProcess)
 
         self.success = self.success and (run_result.returncode == 0)
+        self.run_success[name] = run_result.returncode == 0
 
         return run_result
 
