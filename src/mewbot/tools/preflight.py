@@ -95,7 +95,7 @@ class PreflightToolChain:
 
             linter = LintToolchain(*paths, in_ci=False)
             for _ in linter.run():
-                pass
+                ...
 
             self.lint_success = linter.run_success
 

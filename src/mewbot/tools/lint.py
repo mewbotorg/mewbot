@@ -56,9 +56,7 @@ class LintToolchain(ToolChain):
             yield from self.lint_pydocstyle()
 
         if self.is_ci and self.fail_ci_run:
-            print(
-                f"Some of the tools reports having silently failed!\n" f"{self.run_success}"
-            )
+            print(f"Some of the tools reports having silently failed!\n{self.run_success}")
 
     def lint_black(self) -> Iterable[Annotation]:
         """

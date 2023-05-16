@@ -100,6 +100,4 @@ class ResultPrinter:
     @staticmethod
     def format_result_str(proc_name: str, proc_status: bool) -> str:
         """Get a formatted string for an individual result."""
-        return (
-            f"{proc_name}: " f"[{colored.green('Yes') if proc_status else colored.red('No')}]"
-        )
+        return f"{proc_name}: [{colored.green('Yes') if proc_status else colored.red('No')}]"
