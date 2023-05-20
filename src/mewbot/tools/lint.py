@@ -22,7 +22,8 @@ import os
 import subprocess
 import sys
 
-from mewbot.tools import Annotation, ToolChain, gather_paths
+from .path import gather_paths
+from .toolchain import ToolChain, Annotation
 
 
 LEVELS = frozenset({"notice", "warning", "error"})
@@ -57,7 +58,7 @@ class LintToolchain(ToolChain):
 
         args = ["black"]
 
-        if self.is_ci:
+        if self.in_ci:
             args.extend(["--diff", "--no-color", "--quiet"])
 
         result = self.run_tool("Black (Formatter)", *args)
@@ -99,7 +100,7 @@ class LintToolchain(ToolChain):
         args = ["mypy", "--strict", "--explicit-package-bases"]
         env = {}
 
-        if not self.is_ci:
+        if not self.in_ci:
             env["MYPY_FORCE_COLOR"] = "1"
             args.append("--pretty")
 
@@ -270,7 +271,7 @@ def parse_lint_options() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run code linters for mewbot")
     parser.add_argument(
         "--ci",
-        dest="is_ci",
+        dest="in_ci",
         action="store_true",
         default="GITHUB_ACTIONS" in os.environ,
         help="Run in GitHub actions mode",
@@ -296,5 +297,5 @@ if __name__ == "__main__":
     if not paths:
         paths = gather_paths("src", "tests") if options.tests else gather_paths("src")
 
-    linter = LintToolchain(*paths, in_ci=options.is_ci)
+    linter = LintToolchain(*paths, in_ci=options.in_ci)
     linter()
