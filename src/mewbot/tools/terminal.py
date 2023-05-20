@@ -14,7 +14,7 @@ from typing import Optional
 from clint.textui import colored  # type: ignore
 
 
-class CommandDeliminator:
+class CommandDelimiter:
     """Used to more cleanly separate one command in a run from another."""
 
     tool_name: Optional[str]

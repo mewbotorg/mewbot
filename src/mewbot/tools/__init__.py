@@ -22,7 +22,7 @@ from io import BytesIO
 from typing import IO, BinaryIO
 
 from .path import gather_paths
-from .terminal import CommandDeliminator, ResultPrinter
+from .terminal import CommandDelimiter, ResultPrinter
 
 
 @dataclasses.dataclass
@@ -218,7 +218,7 @@ class ToolChain(abc.ABC):
         """
 
         # Print output header
-        with CommandDeliminator(name):
+        with CommandDelimiter(name):
             env = env.copy()
             env.update(os.environ)
 
