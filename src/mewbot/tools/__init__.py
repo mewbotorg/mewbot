@@ -84,7 +84,6 @@ class ToolChain(abc.ABC):
 
     folders: set[str]
     in_ci: bool
-    success: bool
     run_success: dict[str, bool]
 
     timeout: int = 300
@@ -98,7 +97,6 @@ class ToolChain(abc.ABC):
         """
         self.folders = set(folders)
         self.in_ci = in_ci
-        self.success = True
         self.run_success = {}
 
         self.loop = asyncio.get_event_loop()
@@ -123,6 +121,12 @@ class ToolChain(abc.ABC):
 
         self._output_state()
         sys.exit(not self.success or len(issues) > 0)
+
+    @property
+    def success(self) -> bool:
+        """Returns whether all tool calls have been successful."""
+
+        return all(self.run_success.values())
 
     @abc.abstractmethod
     def run(self) -> Iterable[Annotation]:
@@ -193,7 +197,6 @@ class ToolChain(abc.ABC):
         run_result = await self._run_utility(name, arg_list, env)
         assert isinstance(run_result, subprocess.CompletedProcess)
 
-        self.success = self.success and (run_result.returncode == 0)
         self.run_success[name] = run_result.returncode == 0
 
         return run_result
@@ -239,7 +242,9 @@ class ToolChain(abc.ABC):
                 task_out = self.loop.create_task(
                     read_pipe(process.stdout, sys.stdout.buffer, log_file)
                 )
-                task_err = self.loop.create_task(read_pipe(process.stderr, sys.stderr.buffer))
+                task_err = self.loop.create_task(
+                    read_pipe(process.stderr, sys.stderr.buffer)
+                )
 
                 # This is trimmed down version of subprocess.run().
                 try:
@@ -269,7 +274,7 @@ class ToolChain(abc.ABC):
         return run
 
     def _output_state(self) -> None:
-        ResultPrinter(self.run_success).result_print()
+        ResultPrinter(self.run_success).result_print(sys.stdout)
 
 
 async def read_pipe(pipe: asyncio.StreamReader, *mirrors: BinaryIO) -> IO[bytes]:
