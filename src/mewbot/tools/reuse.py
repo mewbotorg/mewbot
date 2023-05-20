@@ -40,6 +40,13 @@ class ReuseToolchain(ToolChain):
 
         self.run_tool("Reuse Annotate", *args)
 
+        args = [
+            "reuse",
+            "lint",
+        ]
+
+        self.run_tool("Reuse Lint", *args, folders=set())
+
         return []
 
 
