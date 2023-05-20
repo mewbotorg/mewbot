@@ -38,8 +38,6 @@ class LintToolchain(ToolChain):
     module or any installed plugins - are linted.
     """
 
-    fail_ci_run: bool = True
-
     def run(self) -> Iterable[Annotation]:
         """Runs the linting tools in sequence."""
 
@@ -48,9 +46,6 @@ class LintToolchain(ToolChain):
         yield from self.lint_mypy()
         yield from self.lint_pylint()
         yield from self.lint_pydocstyle()
-
-        if self.in_ci and self.fail_ci_run:
-            print(f"Some of the tools reports having silently failed!\n{self.run_success}")
 
     def lint_black(self) -> Iterable[Annotation]:
         """
