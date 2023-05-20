@@ -53,7 +53,7 @@ class PreflightToolChain(ToolChain):
 
         :return:
         """
-        with CommandDelimiter("Starting reuse run"):
+        with CommandDelimiter("Starting reuse run", False):
             reuse_tool = ReuseToolchain(*self.folders, in_ci=self.in_ci)
 
             for _ in reuse_tool.run():
@@ -67,7 +67,7 @@ class PreflightToolChain(ToolChain):
 
         :return:
         """
-        with CommandDelimiter("Starting linting run"):
+        with CommandDelimiter("Starting linting run", False):
             target_paths = gather_paths("src", "tests")
             linter = LintToolchain(*target_paths, in_ci=False)
 
@@ -78,7 +78,7 @@ class PreflightToolChain(ToolChain):
 
     def run_test(self) -> None:
         """Run the test suite - store the results."""
-        with CommandDelimiter("Starting testing run"):
+        with CommandDelimiter("Starting testing run", False):
             paths = list(gather_paths("tests"))
             tester = TestToolchain(*paths, in_ci=False)
 

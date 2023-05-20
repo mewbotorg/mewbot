@@ -221,7 +221,7 @@ class ToolChain(abc.ABC):
         """
 
         # Print output header
-        with CommandDelimiter(name):
+        with CommandDelimiter(name, self.in_ci):
             env = env.copy()
             env.update(os.environ)
 
