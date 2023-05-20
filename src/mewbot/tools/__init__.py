@@ -15,12 +15,14 @@ import json
 import os
 import subprocess
 import sys
+
 from collections.abc import Iterable
 from io import BytesIO
 
 from typing import IO, BinaryIO
 
 from .path import gather_paths
+from .terminal import CommandDeliminator, ResultPrinter
 
 
 @dataclasses.dataclass
@@ -119,6 +121,7 @@ class ToolChain(abc.ABC):
         ) as output:
             json.dump([issue.json() for issue in issues], output, indent=2)
 
+        self._output_state()
         sys.exit(not self.success or len(issues) > 0)
 
     @abc.abstractmethod
@@ -185,7 +188,7 @@ class ToolChain(abc.ABC):
         """
 
         arg_list = list(args)
-        arg_list.extend(folders or self.folders)
+        arg_list.extend(folders if folders is not None else self.folders)
 
         run_result = await self._run_utility(name, arg_list, env)
         assert isinstance(run_result, subprocess.CompletedProcess)
@@ -215,63 +218,58 @@ class ToolChain(abc.ABC):
         """
 
         # Print output header
-        sys.stdout.write(
-            f"::group::{name}\n" if self.in_ci else f"\n{name}\n{'=' * len(name)}\n"
-        )
-        sys.stdout.flush()
+        with CommandDeliminator(name):
+            env = env.copy()
+            env.update(os.environ)
 
-        env = env.copy()
-        env.update(os.environ)
-
-        process = await asyncio.create_subprocess_exec(
-            *arg_list,
-            stdin=subprocess.DEVNULL,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            env=env,
-        )
-
-        # MyPy validation trick -- ensure the pipes are defined (they will be).
-        if not process.stdout or not process.stderr:
-            raise ValueError(f"pipes for process {name} not created")
-
-        with open(f"reports/{name}.txt", "wb") as log_file:
-            # Set up the mirroring readers on the two output pipes.
-            task_out = self.loop.create_task(
-                read_pipe(process.stdout, sys.stdout.buffer, log_file)
+            process = await asyncio.create_subprocess_exec(
+                *arg_list,
+                stdin=subprocess.DEVNULL,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                env=env,
             )
-            task_err = self.loop.create_task(read_pipe(process.stderr, sys.stderr.buffer))
 
-            # This is trimmed down version of subprocess.run().
-            try:
-                await asyncio.wait_for(process.wait(), timeout=self.timeout)
-            except TimeoutError:
-                process.kill()
-                # run uses communicate() on windows. May be needed.
-                # However, as we are running the pipes manually, it may not be.
-                # Seems not to be
-                await process.wait()
-            # Re-raise all non-timeout exceptions.
-            except:  # noqa: E722
-                process.kill()
-                await process.wait()
-                raise
-            finally:  # Ensure the other co-routines complete.
-                stdout_buffer = await task_out
-                stderr_buffer = await task_err
+            # MyPy validation trick -- ensure the pipes are defined (they will be).
+            if not process.stdout or not process.stderr:
+                raise ValueError(f"pipes for process {name} not created")
 
-        return_code = process.returncode
-        return_code = return_code if return_code is not None else 1
+            with open(f"reports/{name}.txt", "wb") as log_file:
+                # Set up the mirroring readers on the two output pipes.
+                task_out = self.loop.create_task(
+                    read_pipe(process.stdout, sys.stdout.buffer, log_file)
+                )
+                task_err = self.loop.create_task(read_pipe(process.stderr, sys.stderr.buffer))
 
-        run = subprocess.CompletedProcess(
-            arg_list, return_code, stdout_buffer.read(), stderr_buffer.read()
-        )
+                # This is trimmed down version of subprocess.run().
+                try:
+                    await asyncio.wait_for(process.wait(), timeout=self.timeout)
+                except TimeoutError:
+                    process.kill()
+                    # run uses communicate() on windows. May be needed.
+                    # However, as we are running the pipes manually, it may not be.
+                    # Seems not to be
+                    await process.wait()
+                # Re-raise all non-timeout exceptions.
+                except:  # noqa: E722
+                    process.kill()
+                    await process.wait()
+                    raise
+                finally:  # Ensure the other co-routines complete.
+                    stdout_buffer = await task_out
+                    stderr_buffer = await task_err
 
-        if self.in_ci:
-            sys.stdout.write("::endgroup::\n")
-            sys.stdout.flush()
+            return_code = process.returncode
+            return_code = return_code if return_code is not None else 1
+
+            run = subprocess.CompletedProcess(
+                arg_list, return_code, stdout_buffer.read(), stderr_buffer.read()
+            )
 
         return run
+
+    def _output_state(self) -> None:
+        ResultPrinter(self.run_success).result_print()
 
 
 async def read_pipe(pipe: asyncio.StreamReader, *mirrors: BinaryIO) -> IO[bytes]:
