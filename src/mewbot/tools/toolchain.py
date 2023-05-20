@@ -2,6 +2,10 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Support classes for running a series of tools across the codebase.
+"""
+
 from __future__ import annotations
 
 import abc

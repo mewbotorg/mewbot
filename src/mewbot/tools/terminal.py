@@ -66,6 +66,7 @@ class CommandDelimiter:
                     bold=True,
                 ).color_str
             )
+        sys.stdout.flush()
 
     def __exit__(
         self,
