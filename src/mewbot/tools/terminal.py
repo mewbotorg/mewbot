@@ -6,10 +6,12 @@
 Set of basic tools to improve command line readability.
 """
 
-import shutil
-from types import TracebackType
+from __future__ import annotations
 
-from typing import Optional
+import shutil
+
+from types import TracebackType
+from typing import IO, Optional
 
 from clint.textui import colored  # type: ignore
 
@@ -64,7 +66,7 @@ class CommandDelimiter:
 
 
 class ResultPrinter:
-    """Formats the given results dicsts into a final output string."""
+    """Formats the given results dicts into a final output string."""
 
     results: dict[str, bool]
 
@@ -79,25 +81,22 @@ class ResultPrinter:
         for result in results:
             self.results.update(result)
 
-    def result_print(self) -> None:
+    def result_print(self, output: IO[str]) -> None:
         """Print the collected results."""
-        result_strs: list[str] = []
+        all_successful: bool = True
 
-        can_upload: bool = True
-        for run_name, run_status in self.results.items():
-            if can_upload and not run_status:
-                can_upload = False
-            result_strs.append(self.format_result_str(run_name, run_status))
+        for run_name, run_succeeded in self.results.items():
+            all_successful = all_successful and run_succeeded
+            output.write(self.format_result_str(run_name, run_succeeded))
 
-        print(
-            "\n".join(result_strs)
-            + f"\nCongratulations! {colored.green('Proceed to Upload')}"
-            if can_upload
-            else "\n".join(result_strs)
-            + f"\nBad news! {colored.red('At least one failure!')}"
-        )
+        if all_successful:
+            output.write(f"Congratulations! {colored.green('Proceed to Upload')}\n")
+        else:
+            output.write(f"\nBad news! {colored.red('At least one failure!')}\n")
 
     @staticmethod
     def format_result_str(proc_name: str, proc_status: bool) -> str:
         """Get a formatted string for an individual result."""
-        return f"{proc_name}: [{colored.green('Yes') if proc_status else colored.red('No')}]"
+        return (
+            f"[{colored.green('PASS') if proc_status else colored.red('FAIL')}] {proc_name}\n"
+        )
