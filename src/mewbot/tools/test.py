@@ -19,7 +19,8 @@ import os
 
 from collections.abc import Iterable
 
-from mewbot.tools import ToolChain, Annotation, gather_paths
+from .path import gather_paths
+from .toolchain import ToolChain, Annotation
 
 
 class TestToolchain(ToolChain):

@@ -17,7 +17,7 @@ All tools which should be run before submission will be run.
 This script is intended to be run locally.
 """
 
-from . import ToolChain, Annotation
+from .toolchain import ToolChain, Annotation
 from .path import gather_paths
 from .lint import LintToolchain
 from .reuse import ReuseToolchain

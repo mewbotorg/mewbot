@@ -22,7 +22,7 @@ from collections.abc import Iterable
 
 import os
 
-from . import Annotation, ToolChain
+from .toolchain import ToolChain, Annotation
 
 
 class Annotate(ToolChain):

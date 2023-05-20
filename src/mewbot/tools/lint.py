@@ -22,7 +22,8 @@ import os
 import subprocess
 import sys
 
-from mewbot.tools import Annotation, ToolChain, gather_paths
+from .path import gather_paths
+from .toolchain import ToolChain, Annotation
 
 
 LEVELS = frozenset({"notice", "warning", "error"})
