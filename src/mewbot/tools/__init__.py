@@ -81,7 +81,7 @@ class ToolChain(abc.ABC):
     """
 
     folders: set[str]
-    is_ci: bool
+    in_ci: bool
     success: bool
     run_success: dict[str, bool]
 
@@ -95,7 +95,7 @@ class ToolChain(abc.ABC):
         :param in_ci: Whether this is a run being called from a CI pipeline
         """
         self.folders = set(folders)
-        self.is_ci = in_ci
+        self.in_ci = in_ci
         self.success = True
         self.run_success = {}
 
@@ -216,7 +216,7 @@ class ToolChain(abc.ABC):
 
         # Print output header
         sys.stdout.write(
-            f"::group::{name}\n" if self.is_ci else f"\n{name}\n{'=' * len(name)}\n"
+            f"::group::{name}\n" if self.in_ci else f"\n{name}\n{'=' * len(name)}\n"
         )
         sys.stdout.flush()
 
@@ -267,7 +267,7 @@ class ToolChain(abc.ABC):
             arg_list, return_code, stdout_buffer.read(), stderr_buffer.read()
         )
 
-        if self.is_ci:
+        if self.in_ci:
             sys.stdout.write("::endgroup::\n")
             sys.stdout.flush()
 
