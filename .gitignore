@@ -19,6 +19,7 @@ venv/
 # - Including all the environments in plugins
 *.egg-info/
 build/
+docs_build/
 dist/
 
 # Secrets and local configuration
