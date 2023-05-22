@@ -4,6 +4,8 @@
 
 """
 Tests the modules which load mewbot components from yaml configurations.
+
+Also serves an example of how to construct these sort of tests.
 """
 
 from __future__ import annotations
@@ -123,10 +125,11 @@ class TestLoaderHttpsPost(BaseTestClassWithConfig[HTTPServlet]):
         """
         Test loading a component has correct set properties.
 
-        :param self.component: has been loaded from the test yaml, (currently
-        "trivial_http_post.yaml").
         Check that the :param self.component.host: and :param self.componentport: values are as set
         in the example yaml file.
+        :param self.component: has been loaded from the test yaml, (currently
+                               "trivial_http_post.yaml").
+
         :return:
         """
         assert self.component.host == "localhost"
@@ -140,7 +143,8 @@ class TestLoaderHttpsPost(BaseTestClassWithConfig[HTTPServlet]):
         "trivial_http_post.yaml").
         Check that the internal variables which underlie :param self.component.host: and
         :param self.componentport: values are as set in the example yaml file.
-        :return:
+
+        :return None:
         """
         # Protected access overridden here to inspect variables ONLY
         assert self.component._host == "localhost"  # pylint: disable="protected-access"
@@ -155,6 +159,7 @@ class TestLoaderHttpsPost(BaseTestClassWithConfig[HTTPServlet]):
         Change the "kind" variable of this config to an invalid entry - "NULL".
         Then attempt to load_component from this - now invalid - config.
         This should always fail with ValueError.
+
         :return:
         """
         # Change the kind of this config, to break it
@@ -179,6 +184,7 @@ class TestLoaderBehaviourHttpPost(BaseTestClassWithConfig[Behaviour]):
 
         The Behavior config should have been isolated in :param self.config:.
         Testing that this has occurred and the yaml block contains the expected entries.
+
         :return:
         """
         assert "triggers" in self.config
@@ -192,6 +198,7 @@ class TestLoaderBehaviourHttpPost(BaseTestClassWithConfig[Behaviour]):
 
         Attempt to load the config in :param self.config: - which should correspond to an instance
         of the class set as :param self.implementation:.
+
         :return:
         """
         component = load_behaviour(self.config)  # type: ignore

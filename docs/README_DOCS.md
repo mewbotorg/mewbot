@@ -28,6 +28,17 @@ The translation can introduce weirdness and tends to be less than semantically p
 
 # How do I build this documentation?
 
+## If you want to use mewbot's internal tooling (RECOMMENDED)
+
+1) Make sure you've run `pip install -r requirements-dev.txt` sometime recently.
+2) make sure you have your mewbot `venv` activated
+3) Run `sh tool/build-docs`
+4) (Support for just running `python -m mewbot.tools.docs` - for simpler running on Windows - is coming)
+
+## If you want to build it manually (NOT RECOMMENDED)
+
+(Included here so you know what the tool in `mewbot.tools.docs` does - in outline)
+
 1) Make sure you've run `pip install -r requirements-dev.txt` sometime recently.
 2) This will install `sphinx` and the plugins it needs to build
 3) `cd` into `./docs` (the folder containing this file)

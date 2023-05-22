@@ -4,7 +4,6 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
-# FIXME: this should be a part of the `mewbot.tools` package
-# And we should pick a good documentation package for python
-# FIXME: Create an issue to track the documentation situation.
-pydeps -o mewbot.svg --no-show --cluster --reverse --rankdir TB --rmprefix mewbot -xx mewbot.api -x 'mewbot.tools.*' 'mewbot.test' -- src/mewbot
+. "${0%/*}/path"
+
+exec "$PYTHON" -m mewbot.tools.docs
