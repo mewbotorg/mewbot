@@ -8,7 +8,7 @@
 -r requirements-test.txt
 
 # Installation toolchain
-setuptools~=67.7
+setuptools~=67.8
 
 # Copyright linting toolchain
 reuse~=1.1
