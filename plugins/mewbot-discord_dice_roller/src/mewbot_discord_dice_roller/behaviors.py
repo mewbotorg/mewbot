@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-This Behavior brings all the componets for the Discord Dice roller together in one place.
+This Behavior brings all the components for the Discord Dice roller together in one place.
 """
 
 

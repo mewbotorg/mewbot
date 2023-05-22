@@ -16,7 +16,7 @@ It's designed to take yaml files, load them, and turn them into bots which can i
 While it does have some basic capabilities, the majority of its capabilities come from plugins
 (either plugins already bundled with the program or plugins written for it.)
 
-Thus, if you want to extend the capabilities of the _framework itself_ you probably want to write a **mewbot framework plugin**.
+If you want to extend the capabilities of the _framework itself_ you want to write a **mewbot framework plugin**.
 
 On a technical level this will take the form of a namespace plugin which will use the `mewbot_framework_plugin_template`.
 
@@ -25,9 +25,21 @@ I will write a plugin which will present a new IOConfig in `mewbot.io`
 
 For further information on how to write namespace plugins, please see the python core documentation - [python namespace plugin docs](https://packaging.python.org/en/latest/guides/packaging-namespace-packages/).
 
+Your plugin will be used by installing your module and then calling the IOConfig using something like
+
+```yaml
+kind: IOConfig
+implementation: mewbot.io.mastadon.MastadonIO
+uuid: aaaaaaaa-aaaa-4aaa-0000-aaaaaaaaaa00
+properties:
+  token: "[your mastadon token goes here]"
+
+---
+```
+
 #### 2) Creating tools for bots
 
-If, on the other hand, you want to write some tools which bots _themselves_ will use, then you probably want to write a **mewbot bot plugin**.
+If, on the other hand, you want to write some tools which bots _themselves_ will use, then you may want to write a **mewbot bot plugin**.
 
 This would be a plugin for mewbot which does not add to the core module namespace.
 It might include detailed Triggers, Conditions and Actions that you will use to build your bot via yaml.
@@ -45,30 +57,30 @@ As a rule of thumb
 
 E.g.
 
-#### Example 1
+#### Example 1 - "I want to allow mewbot to talk to mastadon."
 
-"I want to allow mewbot to talk to mastadon"
-
-Probably write a **framework** plugin.
+Write a **framework** plugin.
 
 In fact, please do!
 That would really be very helpful.
 
 Your generic IOConfig will take the form of a namespace plugin.
-It will be used by importing it using something like
+It will be used by importing it from the wider mewbot namespace via something like this
 
 ```python
 from mewbot.io.mastadon import MastadonIOConfig
 ```
 
-#### Example 2
+It will, to all intents and purposes, serve as part of mewbot itself.
 
-"I've written a discord dice roller! I'd like to distribute it."
+#### Example 2 - "I've written a discord dice roller! I'd like to distribute it."
 
-Probably write a **bot** plugin.
+Write a **bot** plugin.
 
-Structure it how you like.
-Use the components by having lines such as 
+Structure it how you like - it matters a lot less for this sort of plugin than a namespace plugin.
+(Though there is an example in plugins under `mewbot-discord_dice_roller` which should serve to get you started).
+
+Use the components in your bot by having lines such as
 
 ```yaml
 kind: Behaviour
@@ -94,13 +106,27 @@ actions:
 
 ```
 
+in your yaml files.
+
 (descriptive names are preferred for this sort of plugin as the yaml is intended to be highly human readable).
 
-#### Example 3
+#### Example 3 - "I've written some awesome conditions. I want to distribute them."
 
-"I've written some awesome conditions. I want to distribute them."
-
-You probably want a **bot** plugin.
+You may want a **bot** plugin.
 But, if they are _extremely_ generic, they might be candidates for inclusion in `mewbot.io.common`.
 This will, however, be fairly rare.
 To keep the core framework as light weight as possible.
+
+#### Example 4 - "I want to help out by writing a plugin. What sort of plugin should I write?"
+
+As a rule of thumb
+ - **framework** plugins are harder to write, but more helpful
+ - **bot** plugins are easier to write, but less helpful
+
+Framework plugins allow mewbot bots to talk to more services.
+Which, for every service, vastly increases the number of useful bots than can be written.
+
+Bot components allow the bots to do more things.
+They provide capabilities, and allow each bot written for mewbot to do more.
+
+Both are very helpful!
