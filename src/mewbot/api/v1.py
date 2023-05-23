@@ -19,10 +19,12 @@ by bots, and have components states be preserved during a bot restart.
 
 from __future__ import annotations
 
+import types
 from collections.abc import AsyncIterable, Iterable
-from typing import Any
+from typing import Any, Callable, TypeVar, Union, get_args, get_origin, get_type_hints
 
 import abc
+import functools
 
 from mewbot.api.registry import ComponentRegistry
 from mewbot.core import (
@@ -492,6 +494,131 @@ class Behaviour(Component):
         }
 
 
+TypingComponent = TypeVar("TypingComponent", bound=Union[Trigger, Condition])
+TypingEvent = TypeVar("TypingEvent", bound=InputEvent)
+
+
+def pre_filter_non_matching_events(
+    wrapped: Callable[[TypingComponent, TypingEvent], bool]
+) -> Callable[[TypingComponent, InputEvent], bool]:
+    """
+        Check an input event against the valid event types declared in the signature.
+
+        Introspects the function to determine the types of InputEvent should be passed to it.
+        Uses a decorator to check that the event being passed in is one of those.
+            - If it is, the function is run
+            - If it is not, False is returned
+
+        Type guard exists to provide methods for run time typing validation.
+
+    E.g. a decorator which checks that an InputEvent being passed to a function is of appropriate
+         type.
+
+    The intent of the tools here is to provide a more elegant alternative to constructs like
+
+    .. code-block:: python
+
+        def matches(self, event: InputEvent) -> bool:
+            if not isinstance(event, DiscordMessageCreationEvent):
+                return False
+            [Function body]
+
+    which could be found in a Trigger.
+
+    Instead, using one of the decorators provided in this module, you might write
+
+
+    .. code-block:: python
+
+        @pre_filter_non_matching_events
+        def matches(self, event: InputEvent) -> bool:
+            [Function body]
+
+    Or, as a more full example
+
+    .. code-block:: python
+
+        # Demo Code
+
+        from mewbot.io.discord import DiscordInputEvent, DiscordUserJoinInputEvent
+        from mewbot.io.http import IncomingWebhookEvent
+
+        class A(Trigger):
+
+            @staticmethod
+            def consumes_inputs() -> set[type[InputEvent]]:
+                return {DiscordInputEvent, IncomingWebhookEvent}
+
+            @pre_filter_non_matching_events
+            def matches(self, event: DiscordInputEvent | IncomingWebhookEvent) -> bool:
+                return True
+
+        print(A.matches) # <function A.matches at 0x7f6e703f4a40>
+        print(A.matches.__doc__) # <function A.matches at 0x7f6e703f4a40>
+        print(A().matches(InputEvent())) # False
+        print(A().matches(DiscordInputEvent())) # True
+        print(A().matches(DiscordUserJoinInputEvent("[some text]"))) # True
+
+        :param wrapped:
+        :return:
+    """
+    func_types = get_type_hints(wrapped)
+    if "event" not in func_types:
+        raise TypeError("Received function without 'event' parameter")
+
+    # Flatten the type signature down to the unique InputEvent subclasses.
+    event_types: tuple[type[TypingEvent]] = flatten_types(func_types["event"])
+
+    bad_types = [
+        t for t in event_types if not (isinstance(t, type) and issubclass(t, InputEvent))
+    ]
+    if bad_types:
+        raise TypeError(
+            (
+                f"{wrapped.__qualname__}: "
+                "Can not add filter for non-event type(s): "
+                f"{' '.join([str(x) for x in bad_types])}"
+            )
+        )
+
+    @functools.wraps(wrapped)
+    def match_with_type_check(self: TypingComponent, event: InputEvent) -> bool:
+        # noinspection PyTypeHints
+        if not isinstance(event, event_types):
+            return False
+
+        return wrapped(self, event)
+
+    return match_with_type_check
+
+
+def flatten_types(event_types: type[TypingEvent]) -> tuple[type[TypingEvent]]:
+    """
+    Flattens a possible union of InputEvent types into a tuple of types.
+
+    This is a helper method for pre_filter_non_matching_events.
+
+    The types in the tuple are expected (but not guaranteed) to be InputEvent subtypes.
+    This tuple can be safely used with isinstance() on all supported versions of Python.
+    It can also be iterated to confirm all the types are actually InputEvents.
+    """
+
+    events: tuple[type[TypingEvent]]
+
+    if isinstance(event_types, type):
+        events = (event_types,)
+    elif get_origin(event_types) is Union:
+        events = get_args(event_types)
+    elif isinstance(event_types, getattr(types, "UnionType")):
+        events = get_args(event_types)
+    else:  # pragma: no cover
+        raise ValueError(
+            "Got weird type from type hinting: " + event_types
+        )  # pragma: no cover
+
+    return events
+
+
 __all__ = [
     "IOConfig",
     "Input",
@@ -504,4 +631,5 @@ __all__ = [
     "OutputEvent",
     "InputQueue",
     "OutputQueue",
+    "pre_filter_non_matching_events",
 ]
