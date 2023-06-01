@@ -302,10 +302,12 @@ class BotRunner:
                 if not isinstance(event, event_type):
                     continue
 
-                await asyncio.gather(
+                async_tasks = [
                     self._process_event_for_behaviour(behaviour, event)
                     for behaviour in self.behaviours[event_type]
-                )
+                ]
+
+                await asyncio.gather(*async_tasks)
 
     async def _process_event_for_behaviour(
         self, behaviour: BehaviourInterface, event: InputEvent
