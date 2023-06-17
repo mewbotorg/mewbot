@@ -308,7 +308,7 @@ class Action(Component):
         `state` will be available for any further actions that process this event.
         No functionality is provided to prevent processing more actions.
         """
-        yield None
+        yield None  # pragma: nocover
 
 
 @ComponentRegistry.register_api_version(ComponentKind.Behaviour, "v1")
@@ -323,25 +323,59 @@ class Behaviour(Component):
     order, which can read from or write to DataStores, and emit OutputEvents.
     """
 
-    name: str
-    active: bool
+    # pylint: disable=too-many-instance-attributes
+    # PyLint counts the private version (_name) and the getter (@property name) separately.
+    # This causes it to see 9 attributes where there are only practically 6.
+
+    _name: str = ""
+    _active: bool = True
+    _interests: set[type[InputEvent]]
 
     triggers: list[TriggerInterface]
     conditions: list[ConditionInterface]
     actions: list[ActionInterface]
 
-    interests: set[type[InputEvent]]
-
-    def __init__(self, name: str, active: bool = True) -> None:
+    def __init__(self) -> None:
         """Initialises a new Behaviour."""
-
-        self.name = name
-        self.active = active
-
-        self.interests = set()
+        self._interests = set()
         self.triggers = []
         self.conditions = []
         self.actions = []
+
+    @property
+    def name(self) -> str:
+        """
+        Returns the host this IOConfig will listen on.
+
+        The port this IOConfig will listen is given by :meth port:.
+        :return:
+        """
+        return self._name
+
+    @name.setter
+    def name(self, name: str) -> None:
+        self._name = str(name)
+
+    @property
+    def active(self) -> bool:
+        """
+        Returns the host this IOConfig will listen on.
+
+        The port this IOConfig will listen is given by :meth port:.
+        :return:
+        """
+        return self._active
+
+    @active.setter
+    def active(self, active: bool) -> None:
+        self._active = bool(active)
+
+    @property
+    def interests(self) -> frozenset[type[InputEvent]]:
+        """
+        Returns the set of InputEvent types this behaviour is interested in.
+        """
+        return frozenset(self._interests)
 
     def add(self, component: TriggerInterface | ConditionInterface | ActionInterface) -> None:
         """
@@ -374,12 +408,12 @@ class Behaviour(Component):
         """
 
         for possible_new_input in trigger.consumes_inputs():
-            if possible_new_input in self.interests:
+            if possible_new_input in self._interests:
                 continue
 
             removals = set()
 
-            for existing_interest in self.interests:
+            for existing_interest in self._interests:
                 # If the new class is a subclass of an existing interest,
                 # it is already part of our interests.
                 if issubclass(possible_new_input, existing_interest):
@@ -393,8 +427,8 @@ class Behaviour(Component):
 
             # If the new class is not in our current set, add it.
             else:
-                self.interests = self.interests.difference(removals)
-                self.interests.add(possible_new_input)
+                self._interests = self._interests.difference(removals)
+                self._interests.add(possible_new_input)
 
     def consumes_inputs(self) -> set[type[InputEvent]]:
         """
@@ -408,7 +442,7 @@ class Behaviour(Component):
         type without having to invoke the matching methods, which may be complex.
         """
 
-        return self.interests
+        return self._interests
 
     async def process(self, event: InputEvent) -> AsyncIterable[OutputEvent]:
         """
@@ -420,10 +454,10 @@ class Behaviour(Component):
         If both of the above succeed, a state object is created, and the Event
         is passed to each action in turn, updating state and emitting any outputs.
         """
-        if not any(True for trigger in self.triggers if trigger.matches(event)):
+        if not any(trigger.matches(event) for trigger in self.triggers):
             return
 
-        if not all(True for condition in self.conditions if condition.allows(event)):
+        if not all(condition.allows(event) for condition in self.conditions):
             return
 
         state: dict[str, Any] = {}
