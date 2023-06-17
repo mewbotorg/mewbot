@@ -7,7 +7,7 @@ SPDX-License-Identifier: BSD-2-Clause
 # Quickstart for experience developers on Windows
 
 1) Clone the `src` somewhere sensible
-2) Install the earliest version of python `mewbot` supports. The linters, tests e.t.c on the remote host run on the earliest version of python supported by mewbot - at present `3.9`. So we suggest using this for dev.
+2) Install the earliest version of python `mewbot` supports - at present `3.10`. We suggest using the oldest version to avoid developing with features that do not exist in `3.10`.
 3) As ever, we recommend using a `venv`, but it's up to you. If you do, activate it now.
 4) `cd` into the cloned `mewbot` repo
 5) Install requirements for the main program with `pip install -r requirements-dev.txt` (or `python -m pip install -r requirements-dev.txt` if you don't have `pip` on the path)

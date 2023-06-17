@@ -69,7 +69,7 @@ raise NotImplementedError("Still under development.")
 #     # The key for the entry point should always be "mewbot"
 #     # The value should be a string of the form "{prefix less name} = {py_modules name}"
 #     # The "py_modules name" should match one of the py_modules declared below
-#     python_requires=">=3.9",  # Might be relaxed later
+#     python_requires=">=3.10",  # Might be relaxed later
 #     py_modules=["mewbot_discord_dice_roller"],
 # )
 #

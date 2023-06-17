@@ -65,7 +65,7 @@ def main() -> None:
         "description": "Lightweight, YAML-driven, text based, generic irc Bot framework",
         "license_files": ["LICENSE.md"],
         "url": "https://github.com/mewler/mewbot",
-        "python_requires": ">=3.9",
+        "python_requires": ">=3.10",
         "classifiers": [
             "Programming Language :: Python :: 3",
             "Operating System :: OS Independent",

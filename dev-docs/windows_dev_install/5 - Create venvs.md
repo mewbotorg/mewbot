@@ -7,7 +7,7 @@ SPDX-License-Identifier: BSD-2-Clause
 ## prepare venvs
 
 (Perhaps for all the versions of mewbot we're targeting.
-Perhaps just for `3.9` - it's sorta up to you.)
+Perhaps just for `3.10` - it's sorta up to you.)
 
 A `venv` is a `virtual environment` - a copy of your python interpreter which can operate independently of the installed python.
 It's all contained in a single folder - which can be removed and recreated if anything goes awry.
@@ -93,8 +93,7 @@ My command precall file, at this stage of the install process, ended up looking 
 
 ```shell
 @echo off
-doskey activate_mewbot_venv=C:\mewbot_dev\mewbot_venv_39\Scripts\activate
-doskey activate_mewbot_venv_39=C:\mewbot_dev\mewbot_venv_39\Scripts\activate
+doskey activate_mewbot_venv=C:\mewbot_dev\mewbot_venv_310\Scripts\activate
 doskey activate_mewbot_venv_310=C:\mewbot_dev\mewbot_venv_310\Scripts\activate
 doskey activate_mewbot_venv_311=C:\mewbot_dev\mewbot_venv_311\Scripts\activate
 DOSKEY python3 = C:\\Python310\\python.exe $*
@@ -102,7 +101,7 @@ DOSKEY ls=dir /B $*
 :END
 ```
 
-With `venvs` for pythons `3.9`, `3.10` and `3.11`.
+With `venvs` for pythons `3.10` and `3.11`.
 
 This allows me to now, from where ever I am on the system, activate the venv with "activate_mewbot_venv" ... deactivation is left as an exercise to the reader.
 
