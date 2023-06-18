@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
 """
 Provides Components to allow you to create a discord dice roller.
 
