@@ -147,7 +147,7 @@ Note that the path to get to the script uses  `tools/lint` _not_ `tools\lint` - 
 
 If you've gotten it the wrong way round, you should get an error something like this
 ```shell
-(mewbot_venv_39) C:\mewbot_dev\mewbot>sh tools\lint
+(mewbot_venv_310) C:\mewbot_dev\mewbot>sh tools\lint
 tools\lint: line 7: tools\lint/path: Not a directory
 tools\lint: line 9: exec: : not found
 ```

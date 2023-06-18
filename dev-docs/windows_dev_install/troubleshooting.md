@@ -8,9 +8,12 @@ SPDX-License-Identifier: BSD-2-Clause
 
 ### Are you running the right version of python?
 
-Github - when running a testing or linting script - uses the lowest version of python the package supports.
-In our case, this is `python3.9`.
-If you are not running `python3.9` then repeat the setup steps with it as your main python interpreter/venv and see if the error persists.
+GitHub - when running a testing or linting script - shows the version of python it is running under.
+When looks at these issues, check what version of python you are using (`python --version`).
+If the error shows for a different version of python, try again using a matching version of python. 
+
+Note: we generally recommend developing mewbot with the lowest version of python we target (currently `3.10`).
+This prevents accidentally developing using features that do not exist in all targeted versions. 
 
 ## I'm making changes to the mewbot files, and they're not showing up
 

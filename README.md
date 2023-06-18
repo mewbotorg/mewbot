@@ -52,7 +52,7 @@ enforce the code style and linting requirements of this project.
 
 #### Setting up project for local development
 
-The recommended way to set this project up is using python 3.9 (or higher) with
+The recommended way to set this project up is using python 3.10 (or higher) with
 a standard `venv` setup.
 The project uses a "src-dir" layout; for Python to be able to locate the modules, 
 you will need to set up the `PYTHONPATH` environment variable with at least the `src/` directory.

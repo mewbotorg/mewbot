@@ -34,13 +34,13 @@ This is just what I do - your setup is allowed to look very different.
 
 1) Install all the software I need
    1) `git` - which I use mostly through `github desktop` on windows
-   2) `python` - versions `3.9`, `3.10` and `3.11`
+   2) `python` - versions `3.10` and `3.11`
 2) Make a folder in the root of - `C:\mewbot_dev`
 3) Clone the repo into it - so the files will be at `C:\mewbot_dev\mewbot`
 4) Set up a command precall `.bat` file - which I use for alias'd commands and shortcuts.
         This process is intimidating, but the added utility is significant.
 5) Set up a `venv` for each version of python
-6) Add alias to the command precall file so I can activate each `venv` easily (e.g. the command `activate_mewbot_venv_39` will activate the `venv` for `python3.9`)
+6) Add alias to the command precall file so I can activate each `venv` easily (e.g. the command `activate_mewbot_venv_310` will activate the `venv` for `python3.10`)
 7) I will usually add other utility shortcuts to make dev easier at this time - e.g. aliasing `dir` to `ls`
 8) For each `venv` I
    1) activate it

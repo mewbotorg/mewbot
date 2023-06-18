@@ -20,30 +20,17 @@ Installation media should be obtained directly from [the python downloads page][
 
 #### But which version of python?
 
-Mewbot currently targets python 3.9, 3.10 and 3.11 - as of March 2023.
+Mewbot currently targets python 3.10, 3.11 - as of June 2023.
 We will continue to target new versions as they release.
-We are currently working with python 3.9 - and these steps have been tested as working with 3.10 and 3.11
 
-It is, often, useful to have all the versions of python which mewbot targets on your local machine.
+You can develop using any supported version of python.
+These steps have been tested as working with 3.10 and 3.11.
 
-However, you should _mostly_ use python 3.9.
-
-The reason is that Mewbot uses several tools called linters to ensure code consistency and quality.
-Linters statically analyse the code to determine if it meets certain requirements.
-They should be run - and pass - before you issue a pull request to ask us to include your code in mewbot.
-When such a request is issued on github, they are run automatically to check the code over.
-Code which does not pass linting _cannot_ be merged.
-
-Github runs the linters through the lowest version of python which a project targets - in this case `python3.9`.
-As such, the linters will be run remotely against the code using `python3.9`.
-Different versions of python have - slightly - different linting behavior.
-Thus code which passes linting on `python3.9` _may_ or _may not_ pass linting by the same tool on `python3.10`.
-(Is this annoying? Immensely!)
-
-We _do not_ run linting on every version of python we target.
-But we do run testing against every version of python we target.
-So it's often useful to have all the versions of python we target on hand for testing purposes.
-Thus, you might want to install pythons `3.9`, `3.10` and `3.11`.
+The CI jobs (both linting and tests) are run against all targeted versions of Python.
+Code which does not pass linting and tests _cannot_ be merged.
+It can, therefore, be useful to have all the versions of targeted versions of Python
+available on your local machine, so you can investigate any issues that the CI jobs
+are reporting.
 
 #### Which linters do you use and how do I install them?
 
@@ -73,7 +60,7 @@ During python installation
 * Selecting "Add Python to environment variables" is a useful addition - but one you might want to avoid if you already have another version of python already installed. As this may cause confusion. 
       In this case you probably want to install without this ticked and use the full path to your python executable in all that follows (once you have the venv setup, this should cease to be necessary).
 * The default install location is somewhat buried in the file structure. 
-      I personally prefer to change it to something like "C:\Python39\" - but this is a taste thing. It shouldn't affect subsequent steps. However, it's arguably better to keep the path to the python executable short. As it cuts down on typing and potential error.
+      I personally prefer to change it to something like "C:\Python310\" - but this is a taste thing. It shouldn't affect subsequent steps. However, it's arguably better to keep the path to the python executable short. As it cuts down on typing and potential error.
 
 ### 2) Install git
 
