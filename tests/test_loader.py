@@ -198,3 +198,12 @@ class TestLoaderBehaviourHttpPost(BaseTestClassWithConfig[Behaviour]):
         """
         component = load_behaviour(self.config)  # type: ignore
         assert isinstance(component, Behaviour)
+
+    @staticmethod
+    def test_resetting_uuid() -> None:
+        """Test attempting to change UUID of a component."""
+        error = "Can not set the ID of a component outside of creation"
+        # pylint: disable=unexpected-keyword-arg
+        behaviour = Behaviour(name="Test")  # type: ignore
+        with pytest.raises(AttributeError, match=error):
+            behaviour.uuid = "0"
