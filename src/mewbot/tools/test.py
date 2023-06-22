@@ -14,13 +14,13 @@ By default, all test declared to be part of mewbot test suite (either core or pl
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+
 import argparse
 import os
 
-from collections.abc import Iterable
-
 from .path import gather_paths
-from .toolchain import ToolChain, Annotation
+from .toolchain import Annotation, ToolChain
 
 
 class TestToolchain(ToolChain):

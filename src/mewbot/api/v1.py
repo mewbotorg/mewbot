@@ -19,23 +19,23 @@ by bots, and have components states be preserved during a bot restart.
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterable, Iterable
 from typing import Any
-from collections.abc import Iterable, AsyncIterable
 
 import abc
 
 from mewbot.api.registry import ComponentRegistry
 from mewbot.core import (
+    ActionInterface,
+    BehaviourConfigBlock,
+    ComponentKind,
+    ConditionInterface,
+    ConfigBlock,
     InputEvent,
     InputQueue,
     OutputEvent,
     OutputQueue,
-    ComponentKind,
     TriggerInterface,
-    ConditionInterface,
-    ActionInterface,
-    ConfigBlock,
-    BehaviourConfigBlock,
 )
 
 

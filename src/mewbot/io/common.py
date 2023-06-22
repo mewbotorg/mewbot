@@ -10,13 +10,13 @@ This common elements are often used in various of the examples.
 
 from __future__ import annotations
 
-import abc
-
 from collections.abc import AsyncIterable
-from string import Template
 from typing import Any
 
-from mewbot.api.v1 import Trigger, Action, InputEvent, OutputEvent
+import abc
+from string import Template
+
+from mewbot.api.v1 import Action, InputEvent, OutputEvent, Trigger
 
 
 class AllEventTrigger(Trigger):

@@ -14,11 +14,10 @@ from typing import Type
 
 import copy
 
-from mewbot.test import BaseTestClassWithConfig
-
+from mewbot.api.v1 import IOConfig
 from mewbot.io.http import HTTPServlet
 from mewbot.io.socket import SocketIO
-from mewbot.api.v1 import IOConfig
+from mewbot.test import BaseTestClassWithConfig
 
 # pylint: disable=R0903
 #  Disable "too few public methods" for test cases - most test files will be classes used for

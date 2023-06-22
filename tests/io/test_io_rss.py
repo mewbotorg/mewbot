@@ -9,13 +9,13 @@ Tests for the RSS IO configuration.
 from typing import Type
 
 import asyncio
+
 import pytest
 
-from mewbot.test import BaseTestClassWithConfig
-
+from mewbot.api.v1 import IOConfig
 from mewbot.core import InputEvent, InputQueue
 from mewbot.io.rss import RSSIO, RSSInput, RSSInputState
-from mewbot.api.v1 import IOConfig
+from mewbot.test import BaseTestClassWithConfig
 
 
 class TestRSSIO(BaseTestClassWithConfig[RSSIO]):

@@ -13,8 +13,8 @@ from typing import Any
 
 from mewbot.api.v1 import Behaviour
 
-from .triggers import DiscordDiceRollCommandTrigger
 from .actions import DiscordRollTextResponse
+from .triggers import DiscordDiceRollCommandTrigger
 
 
 class DiscordDiceRollerBehavior(Behaviour):

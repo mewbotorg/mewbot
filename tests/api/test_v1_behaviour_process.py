@@ -9,15 +9,10 @@ Test cases for the process() logic of the API v1 Behaviour class.
 from __future__ import annotations
 
 from typing import Any, AsyncIterable
+
 import dataclasses
 
-from mewbot.api.v1 import (
-    Trigger,
-    Behaviour,
-    Condition,
-    Action,
-    InputEvent,
-)
+from mewbot.api.v1 import Action, Behaviour, Condition, InputEvent, Trigger
 from mewbot.core import OutputEvent
 from mewbot.io.common import EventWithReplyMixIn, ReplyAction
 

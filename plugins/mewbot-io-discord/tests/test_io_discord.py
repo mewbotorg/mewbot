@@ -8,10 +8,9 @@ from __future__ import annotations
 
 from typing import Type
 
-from mewbot.test import BaseTestClassWithConfig
-
-from mewbot.io.discord import DiscordIO
 from mewbot.api.v1 import IOConfig
+from mewbot.io.discord import DiscordIO
+from mewbot.test import BaseTestClassWithConfig
 
 # pylint: disable=R0903
 #  Disable "too few public methods" for test cases - most test files will be classes used for

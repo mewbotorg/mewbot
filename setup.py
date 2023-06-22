@@ -25,13 +25,12 @@ However, doing so may cause weird dependency issues if a copy of mewbot-core
 with the same version is not installed.
 """
 
-from typing import Dict, List, Set, Union
-
 import os.path
 import sys
 
-import setuptools
+from typing import Dict, List, Set, Union
 
+import setuptools
 
 PACKAGES: Set[str] = {"", "io", "core", "api", "test"}
 

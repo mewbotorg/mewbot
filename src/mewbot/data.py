@@ -13,7 +13,7 @@ time to construct responses to InputEvents.
 
 from __future__ import annotations
 
-from typing import Union, Generic, Sequence, TypeVar
+from typing import Generic, Sequence, TypeVar, Union
 
 import abc
 import dataclasses

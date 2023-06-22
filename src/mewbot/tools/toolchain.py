@@ -8,6 +8,8 @@ Support classes for running a series of tools across the codebase.
 
 from __future__ import annotations
 
+from typing import IO, BinaryIO, Iterable
+
 import abc
 import asyncio
 import dataclasses
@@ -15,9 +17,7 @@ import json
 import os
 import subprocess
 import sys
-
 from io import BytesIO
-from typing import Iterable, BinaryIO, IO
 
 from .terminal import CommandDelimiter, ResultPrinter
 

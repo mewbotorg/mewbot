@@ -14,14 +14,13 @@ from __future__ import annotations
 import pytest
 
 from mewbot.core import (
-    ComponentKind,
-    BehaviourInterface,
-    TriggerInterface,
-    ConditionInterface,
     ActionInterface,
+    BehaviourInterface,
+    ComponentKind,
+    ConditionInterface,
     IOConfigInterface,
+    TriggerInterface,
 )
-
 
 # pragma pylint: disable=R0903
 #  Disable "too few public methods" for test cases - most test files will be classes used for

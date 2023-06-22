@@ -16,7 +16,7 @@ It parses the incoming string, uses it in d20, and produces a result.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Set, Type, AsyncIterable
+from typing import Any, AsyncIterable, Dict, Set, Type
 
 import logging
 

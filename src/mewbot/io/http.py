@@ -24,7 +24,7 @@ import time
 from aiohttp import web
 
 from mewbot.api.v1 import InputEvent
-from mewbot.io.socket import SocketIO, SocketInput
+from mewbot.io.socket import SocketInput, SocketIO
 
 
 @dataclasses.dataclass  # Needed for pycharm linting

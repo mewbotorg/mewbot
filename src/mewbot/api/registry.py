@@ -26,8 +26,7 @@ import uuid
 
 import importlib_metadata
 
-from mewbot.core import ComponentKind, Component
-
+from mewbot.core import Component, ComponentKind
 
 # This is the magic string needed when defining the entry points to have components
 # declared in a plugin automatically registered at registry startup
