@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import os
 
-from .toolchain import ToolChain, Annotation
+from .toolchain import Annotation, ToolChain
 
 COPYRIGHT: str = "Mewbot Developers <mewbot@quicksilver.london>"
 LICENSE: str = "BSD-2-Clause"

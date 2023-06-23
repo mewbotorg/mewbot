@@ -15,7 +15,12 @@ import pytest
 
 from mewbot.api.v1 import InputEvent
 from mewbot.core import OutputEvent
-from mewbot.io.common import AllEventTrigger, EventWithReplyMixIn, ReplyAction, PrintAction
+from mewbot.io.common import (
+    AllEventTrigger,
+    EventWithReplyMixIn,
+    PrintAction,
+    ReplyAction,
+)
 
 
 class TestCommonIO:

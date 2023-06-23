@@ -13,23 +13,23 @@ the outside world.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Set, Type, Callable
+from typing import Any, Callable, Dict, List, Optional, Set, Type
 
 import asyncio
 import logging
 import signal
 
-from mewbot.data import DataSource
 from mewbot.core import (
     BehaviourInterface,
-    IOConfigInterface,
-    InputInterface,
     InputEvent,
-    OutputInterface,
-    OutputEvent,
+    InputInterface,
     InputQueue,
+    IOConfigInterface,
+    OutputEvent,
+    OutputInterface,
     OutputQueue,
 )
+from mewbot.data import DataSource
 
 logging.basicConfig(level=logging.INFO)
 

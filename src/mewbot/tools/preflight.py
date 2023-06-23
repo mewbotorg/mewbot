@@ -17,12 +17,12 @@ All tools which should be run before submission will be run.
 This script is intended to be run locally.
 """
 
-from .toolchain import ToolChain, Annotation
-from .path import gather_paths
 from .lint import LintToolchain
+from .path import gather_paths
 from .reuse import ReuseToolchain
-from .test import TestToolchain
 from .terminal import CommandDelimiter
+from .test import TestToolchain
+from .toolchain import Annotation, ToolChain
 
 
 class PreflightToolChain(ToolChain):

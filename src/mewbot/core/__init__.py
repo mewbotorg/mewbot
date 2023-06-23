@@ -21,19 +21,12 @@ This module contains:
 
 from __future__ import annotations
 
-from typing import (
-    Any,
-    Protocol,
-    TypedDict,
-    Union,
-    runtime_checkable,
-)
-
-from collections.abc import Iterable, AsyncIterable
+from collections.abc import AsyncIterable, Iterable
+from typing import Any, Protocol, TypedDict, Union, runtime_checkable
 
 import asyncio
-import enum
 import dataclasses
+import enum
 
 
 @dataclasses.dataclass

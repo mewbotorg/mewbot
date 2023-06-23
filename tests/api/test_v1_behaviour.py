@@ -14,7 +14,7 @@ from typing import Any, AsyncIterable
 
 import pytest
 
-from mewbot.api.v1 import Action, Behaviour, Condition, Trigger, InputEvent, OutputEvent
+from mewbot.api.v1 import Action, Behaviour, Condition, InputEvent, OutputEvent, Trigger
 
 
 class EventAlpha(InputEvent):

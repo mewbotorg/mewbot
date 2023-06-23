@@ -11,18 +11,16 @@ from __future__ import annotations
 from typing import Type
 
 import copy
+
 import pytest
 import yaml
 
-from mewbot.test import BaseTestClassWithConfig
-
-from mewbot.loader import configure_bot, load_behaviour, load_component
-
+from mewbot.api.v1 import Behaviour, IOConfig
 from mewbot.bot import Bot
 from mewbot.core import ConfigBlock
 from mewbot.io.http import HTTPServlet
-from mewbot.api.v1 import IOConfig, Behaviour
-
+from mewbot.loader import configure_bot, load_behaviour, load_component
+from mewbot.test import BaseTestClassWithConfig
 
 CONFIG_YAML = "examples/trivial_http_post.yaml"
 

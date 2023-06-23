@@ -14,21 +14,21 @@ from typing import Any, TextIO, Type
 
 import importlib
 import sys
+
 import yaml
 
 from mewbot.bot import Bot
 from mewbot.core import (
+    ActionInterface,
+    BehaviourConfigBlock,
+    BehaviourInterface,
     Component,
     ComponentKind,
-    IOConfigInterface,
-    BehaviourInterface,
-    TriggerInterface,
     ConditionInterface,
-    ActionInterface,
     ConfigBlock,
-    BehaviourConfigBlock,
+    IOConfigInterface,
+    TriggerInterface,
 )
-
 
 _REQUIRED_KEYS = set(ConfigBlock.__annotations__.keys())  # pylint: disable=no-member
 

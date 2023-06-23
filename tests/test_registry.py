@@ -10,14 +10,15 @@ A system-wide, abc based class registration system.
 
 from __future__ import annotations
 
-import abc
 from typing import Any, Type
+
+import abc
 
 import pytest
 
-from mewbot.core import ComponentKind
 from mewbot.api.registry import ComponentRegistry
 from mewbot.api.v1 import Condition, InputEvent
+from mewbot.core import ComponentKind
 
 
 class TestRegistry:

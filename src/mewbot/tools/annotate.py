@@ -15,14 +15,14 @@ with problems.
 
 from __future__ import annotations
 
-import json
-import pathlib
-import textwrap
 from collections.abc import Iterable
 
+import json
 import os
+import pathlib
+import textwrap
 
-from .toolchain import ToolChain, Annotation
+from .toolchain import Annotation, ToolChain
 
 
 class Annotate(ToolChain):

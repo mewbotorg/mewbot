@@ -10,14 +10,14 @@ Provides an IOConfig for listening to and responding to discord message channels
 
 from __future__ import annotations
 
-from typing import Optional, Set, Sequence, Type, List
+from typing import List, Optional, Sequence, Set, Type
 
 import dataclasses
 import logging
 
 import discord
 
-from mewbot.api.v1 import IOConfig, Input, Output, InputEvent, OutputEvent, InputQueue
+from mewbot.api.v1 import Input, InputEvent, InputQueue, IOConfig, Output, OutputEvent
 
 
 @dataclasses.dataclass

@@ -20,10 +20,10 @@ from typing import Any, AsyncIterable, Dict, Set, Type
 
 import logging
 
-from mewbot.api.v1 import Trigger, Action
+from mewbot.api.v1 import Action, Trigger
 from mewbot.core import InputEvent, OutputEvent, OutputQueue
-from mewbot.io.discord import DiscordMessageCreationEvent
 from mewbot.io.desktop_notification import DesktopNotificationOutputEvent
+from mewbot.io.discord import DiscordMessageCreationEvent
 
 
 class DiscordTextCommandTrigger(Trigger):

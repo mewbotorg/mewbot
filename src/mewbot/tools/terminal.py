@@ -8,11 +8,11 @@ Set of basic tools to improve command line readability.
 
 from __future__ import annotations
 
-import shutil
-import sys
-
 from types import TracebackType
 from typing import IO
+
+import shutil
+import sys
 
 from clint.textui import colored  # type: ignore
 
