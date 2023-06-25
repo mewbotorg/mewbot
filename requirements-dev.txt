@@ -24,6 +24,9 @@ pytest-github-actions-annotate-failures>=0.1.7
 pydocstyle>=6.3.0
 isort>=5.12.0
 
+# Security Analysis toolchain
+bandit~=1.7.5
+
 # Type checking toolchain
 mypy>=0.991
 types-PyYAML~=6.0
