@@ -53,3 +53,5 @@ Run metrics:
 Files skipped (0):
 
 ```
+
+The aim is to have a "passing" (no medium or high errors) on each branch.
