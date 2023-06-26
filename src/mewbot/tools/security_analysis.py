@@ -26,8 +26,7 @@ import re
 import subprocess
 
 from .path import gather_paths
-from .toolchain import ToolChain, Annotation
-
+from .toolchain import Annotation, ToolChain
 
 LEVELS = frozenset({"notice", "warning", "error"})
 
