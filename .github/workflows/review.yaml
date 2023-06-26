@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: ["lint", "test"]
+        name: ["lint", "test", "security-analysis""]
         os: ["ubuntu", "macos", "windows"]
         version: ["3.10", "3.11"]
         exclude:
