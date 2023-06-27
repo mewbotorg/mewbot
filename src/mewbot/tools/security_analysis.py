@@ -31,20 +31,12 @@ from .toolchain import Annotation, ToolChain
 LEVELS = frozenset({"notice", "warning", "error"})
 
 
-class SecurityAnalysisToolchain(ToolChain):
+class BanditMixin(ToolChain):
     """
-    Wrapper class for running security analysis tools.
-
-    The output of these tools will be emitted as GitHub annotations (in CI)
-    or default human output (otherwise).
-    By default, all paths declared to be part of mewbot source - either of the main
-    module or any installed plugins - are linted.
+    Helper class to include bandit function in other tool chains.
     """
 
-    def run(self) -> Iterable[Annotation]:
-        """Runs the linting tools in sequence."""
-
-        yield from self.lint_bandit()
+    in_ci: bool
 
     def lint_bandit(self) -> Iterable[Annotation]:
         """
@@ -65,6 +57,22 @@ class SecurityAnalysisToolchain(ToolChain):
         result = self.run_tool("Bandit (Security Analysis)", *args)
 
         yield from lint_bandit_output(result)
+
+
+class SecurityAnalysisToolchain(BanditMixin):
+    """
+    Wrapper class for running security analysis tools.
+
+    The output of these tools will be emitted as GitHub annotations (in CI)
+    or default human output (otherwise).
+    By default, all paths declared to be part of mewbot source - either of the main
+    module or any installed plugins - are linted.
+    """
+
+    def run(self) -> Iterable[Annotation]:
+        """Runs the linting tools in sequence."""
+
+        yield from self.lint_bandit()
 
 
 def lint_bandit_output(

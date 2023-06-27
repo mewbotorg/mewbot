@@ -23,12 +23,13 @@ import subprocess
 import sys
 
 from .path import gather_paths
-from .toolchain import Annotation, ToolChain
+from .security_analysis import BanditMixin
+from .toolchain import Annotation
 
 LEVELS = frozenset({"notice", "warning", "error"})
 
 
-class LintToolchain(ToolChain):
+class LintToolchain(BanditMixin):
     """
     Wrapper class for running linting tools.
 
@@ -47,6 +48,7 @@ class LintToolchain(ToolChain):
         yield from self.lint_mypy()
         yield from self.lint_pylint()
         yield from self.lint_pydocstyle()
+        yield from self.lint_bandit()
 
     def lint_isort(self) -> Iterable[Annotation]:
         """

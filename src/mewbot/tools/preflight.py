@@ -20,7 +20,6 @@ This script is intended to be run locally.
 from .lint import LintToolchain
 from .path import gather_paths
 from .reuse import ReuseToolchain
-from .security_analysis import SecurityAnalysisToolchain
 from .terminal import CommandDelimiter
 from .test import TestToolchain
 from .toolchain import Annotation, ToolChain
@@ -45,7 +44,6 @@ class PreflightToolChain(ToolChain):
         self.run_reuse()
         self.run_lint()
         self.run_test()
-        self.run_security_analysis()
 
         return []
 
@@ -88,17 +86,6 @@ class PreflightToolChain(ToolChain):
                 ...
 
             self.run_success.update(tester.run_success)
-
-    def run_security_analysis(self) -> None:
-        """Run the security analysis toolchain - store the results."""
-        with CommandDelimiter("Starting security analysis run", False):
-            target_paths = gather_paths("src", "tests")
-            security_analysis = SecurityAnalysisToolchain(*target_paths, in_ci=False)
-
-            for _ in security_analysis.run():
-                ...
-
-            self.run_success.update(security_analysis.run_success)
 
 
 if __name__ == "__main__":
