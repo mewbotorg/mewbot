@@ -24,6 +24,7 @@ from collections.abc import AsyncIterable, Iterable
 from typing import (
     Any,
     Callable,
+    Generic,
     Sequence,
     TypeVar,
     Union,
@@ -628,8 +629,11 @@ def flatten_types(event_types: type[TypingEvent]) -> tuple[type[TypingEvent]]:
     return events
 
 
+DataType = TypeVar("DataType")  # pylint: disable=invalid-name
+
+
 @ComponentRegistry.register_api_version(ComponentKind.DataSource, "v1")
-class DataSource(Component):
+class DataSource(Component, Generic[DataType]):
     """
     DataSources are read-only sources of data.
 
@@ -648,7 +652,7 @@ class DataSource(Component):
     """
 
     @abc.abstractmethod
-    def get(self) -> Any:
+    def get(self) -> DataType:
         """
         Returns an item in this Source.
 
@@ -670,7 +674,7 @@ class DataSource(Component):
         """
         return -1
 
-    def __getitem__(self, key: Union[int, str]) -> Any:
+    def __getitem__(self, key: Union[int, str]) -> DataType:
         """
         Allows access to a value in this DataStore via a key.
 
@@ -690,7 +694,7 @@ class DataSource(Component):
         raise NotImplementedError(f"keys not supported for this DataSource")
 
     @abc.abstractmethod
-    def random(self) -> Any:
+    def random(self) -> DataType:
         """
         Gets a random item from this source.
         """

@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2023 Mewbot Developers <mewbot@quicksilver.london>
+
+SPDX-License-Identifier: BSD-2-Clause
+-->
 
 _Very_ occasionally it might be necessary to add new component types to mewbot.
 These would be new fundamental objects on the same level as the IOConfigs, Inputs, e.t.c.
