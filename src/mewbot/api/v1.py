@@ -700,6 +700,74 @@ class DataSource(Component, Generic[DataType]):
         """
 
 
+@ComponentRegistry.register_api_version(ComponentKind.DataSource2, "v1")
+class DataSource2(Component, Generic[DataType]):
+    """
+    DataSources are read-only sources of data.
+
+    They can be used by `Triggers`, `Conditions`, and `Actions` to provide configuration values
+    that are not stored as part of the configuration.
+    E.g. Common, static valued which are shared between these objects.
+
+    A data source can contain any number of items with a common primitive type.
+
+    The source can be accessed as if it is an array, dictionary, or single value;
+    each subclass must support one of these, but may support any combination thereof.
+
+    Note:
+     - if you have an array, every element must be of that generic type.
+     - if you have a dict all the values must be of that generic type.
+    """
+
+    @abc.abstractmethod
+    def get(self) -> DataType:
+        """
+        Returns an item in this Source.
+
+        The source can choose if this is the first item, a random item, or the next in the
+        iteration of this source (or any other semantics that make sense for the source).
+
+        This function may raise an IOException if there is a problem communicating with the backing
+        store for this source, or a DataSourceEmpty exception if there is no data to return.
+        """
+
+    def __len__(self) -> int:
+        """
+        Returns the number of items in this DataSource.
+
+        This may return -1 to indicate that the length is unknown, otherwise it should return a
+        usable value that matches the length of .keys()
+        (for sources that work like dictionary) or the maximum slice value
+        (for sources that work like a sequence).
+        """
+        return -1
+
+    def __getitem__(self, key: Union[int, str]) -> DataType:
+        """
+        Allows access to a value in this DataStore via a key.
+
+        If key is of an inappropriate type, TypeError may be raised; this includes if this source
+        is a single value.
+        If the value is outside the index range, IndexError should be raised.
+        For mapping types, if key is missing (not in the container), KeyError should be raised.
+        """
+        raise NotImplementedError("Key access not supported for this DataStore")
+
+    def keys(self) -> Sequence[str]:
+        """
+        All the keys for a dictionary accessed source.
+
+        raise NotImplementedError otherwise.
+        """
+        raise NotImplementedError(f"keys not supported for this DataSource")
+
+    @abc.abstractmethod
+    def random(self) -> DataType:
+        """
+        Gets a random item from this source.
+        """
+
+
 __all__ = [
     "IOConfig",
     "Input",

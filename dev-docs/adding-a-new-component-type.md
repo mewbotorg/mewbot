@@ -110,7 +110,11 @@ Decorate the class methods as appropriate with abc.abstractmethod.
 
 Here is the place to include additional logic which will be common to all instances of the new component.
 
-# Stage 7 - Wrapup
+# Stage 7 - Declare the new component for export
+
+Add your new component to __all__ in the api which you have updated, e.g. `v1.py`.
+
+# Stage 8 - Wrapup
 
 Run mypy to check that it reports no errors with the class installation.
 
