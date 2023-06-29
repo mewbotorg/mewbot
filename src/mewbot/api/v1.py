@@ -789,7 +789,7 @@ class DataStore(Component, Generic[DataType]):
         raise NotImplementedError("keys not supported for this DataSource")
 
     @abc.abstractmethod
-    def random(self) -> Any:
+    def random(self) -> DataType:
         """
         Gets a random item from this source.
         """
