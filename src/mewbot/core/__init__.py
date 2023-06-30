@@ -361,22 +361,19 @@ class DataSourceInterface(Protocol[S_co]):
 
 
 @runtime_checkable
-class DataSourceInterface2(Protocol[S_co]):
+class DataStoreInterface(Protocol[S_co]):
     """
-    DataSources are read-only sources of data.
+    A DataStore is a DataSource which allows data to be modified.
 
-    They can be used by `Triggers`, `Conditions`, and `Actions` to provide configuration values
-    that are not stored as part of the configuration.
-    E.g. Common, static valued which are shared between these objects.
+    A `DataStore` extends a `DataSource` by allowing the bot to add, update, replace, or delete
+    data at runtime. This allows the bot to have 'memory'.
 
-    A data source can contain any number of items with a common primitive type.
+    All records in a `DataStore` have associated metadata, including a moderation status, an
+    updated timestamp, and information on where the value was created from.
 
-    The source can be accessed as if it is an array, dictionary, or single value;
-    each subclass must support one of these, but may support any combination thereof.
-
-    Note:
-     - if you have an array, every element must be of that generic type.
-     - if you have a dict all the values must be of that generic type.
+    Functions which are inherited from `DataSource` will not return the metadata in order to
+    maintain compatibility. They must not return records in the REJECTED moderation state, and the
+    store may choose to also exclude pending items from these functions.
     """
 
     def get(self) -> S_co:
@@ -386,8 +383,34 @@ class DataSourceInterface2(Protocol[S_co]):
         The source can choose if this is the first item, a random item, or the next in the
         iteration of this source (or any other semantics that make sense for the source).
 
-        This function may raise an IOException if there is a problem communicating with the backing
-        store for this source, or a DataSourceEmpty exception if there is no data to return.
+        It may be that you end up not implementing this, in cases where it doesn't make sense,
+        and implementing more sensible ones.
+
+        BEWARE - It is not defined in the spec if this method returns
+         - a ref to a variable held in the store which may mutate without warning
+         - a copy of a value which will not mutate, and thus not update
+         When designing and using DataStores you MUST consider these issues.
+         It's a good idea to make this behavior explicit in your doc strings.
+        """
+
+    # see https://github.com/python/mypy/issues/7049
+    # I'm not sure if there is a good way to do this generically without risking breaking the type
+    # guarantees
+    # Can institute type checking in the api
+    def set(
+        self, value: Any, source: str, key: Union[str, int] = "", action: str = "replace"
+    ) -> bool:
+        """
+        Generic set method for a value in the datastore.
+
+        :param value: The value will be added to the store with the given action
+        :param source: Where did the modification to the datastore come from?
+        :param key: Not every Datastore will have the concept of a key.
+                    E.g. single value stores.
+        :param action: There's enough choices that a string seems the correct solution.
+                       What actions are supported - and what they do - is up to the individual
+                       datasource.
+        :return:
         """
 
     def __len__(self) -> int:
@@ -430,7 +453,7 @@ Component = Union[
     ActionInterface,
     BehaviourInterface,
     DataSourceInterface,
-    DataSourceInterface2,
+    DataStoreInterface,
 ]
 
 
@@ -451,7 +474,7 @@ class ComponentKind(str, enum.Enum):
     IOConfig = "IOConfig"
     Template = "Template"
     DataSource = "DataSource"
-    DataSource2 = "DataSource2"
+    DataStore = "DataStore"
 
     @classmethod
     def values(cls) -> list[str]:
@@ -470,7 +493,7 @@ class ComponentKind(str, enum.Enum):
             cls.Action: ActionInterface,
             cls.IOConfig: IOConfigInterface,
             cls.DataSource: DataSourceInterface,
-            cls.DataSource2: DataSourceInterface2,
+            cls.DataStore: DataStoreInterface,
         }
 
         if value in _map:
@@ -507,7 +530,7 @@ __all__ = [
     "ConditionInterface",
     "ActionInterface",
     "DataSourceInterface",
-    "DataSourceInterface2",
+    "DataStoreInterface",
     "InputEvent",
     "OutputEvent",
     "InputQueue",

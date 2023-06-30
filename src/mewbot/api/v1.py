@@ -700,8 +700,8 @@ class DataSource(Component, Generic[DataType]):
         """
 
 
-@ComponentRegistry.register_api_version(ComponentKind.DataSource2, "v1")
-class DataSource2(Component, Generic[DataType]):
+@ComponentRegistry.register_api_version(ComponentKind.DataStore, "v1")
+class DataStore(Component, Generic[DataType]):
     """
     DataSources are read-only sources of data.
 
@@ -731,6 +731,28 @@ class DataSource2(Component, Generic[DataType]):
         store for this source, or a DataSourceEmpty exception if there is no data to return.
         """
 
+    # see https://github.com/python/mypy/issues/7049
+    # I'm not sure if there is a good way to do this generically without risking breaking the type
+    # guarantees
+    # Can institute type checking in the api
+    @abc.abstractmethod
+    def set(
+        self, value: Any, source: str, key: Union[str, int] = "", action: str = "replace"
+    ) -> bool:
+        """
+        Generic set method for a value in the datastore.
+
+        :param value: The value will be added to the store with the given action
+        :param source: Where did the modification to the datastore come from?
+        :param key: Not every Datastore will have the concept of a key.
+                    E.g. single value stores.
+        :param action: There's enough choices that a string seems the correct solution.
+                       What actions are supported - and what they do - is up to the individual
+                       datasource.
+        :return:
+        """
+
+    @abc.abstractmethod
     def __len__(self) -> int:
         """
         Returns the number of items in this DataSource.
@@ -742,6 +764,7 @@ class DataSource2(Component, Generic[DataType]):
         """
         return -1
 
+    @abc.abstractmethod
     def __getitem__(self, key: Union[int, str]) -> DataType:
         """
         Allows access to a value in this DataStore via a key.
@@ -753,6 +776,7 @@ class DataSource2(Component, Generic[DataType]):
         """
         raise NotImplementedError("Key access not supported for this DataStore")
 
+    @abc.abstractmethod
     def keys(self) -> Sequence[str]:
         """
         All the keys for a dictionary accessed source.
