@@ -807,5 +807,7 @@ __all__ = [
     "OutputEvent",
     "InputQueue",
     "OutputQueue",
+    "DataSource",
+    "DataStore",
     "pre_filter_non_matching_events",
 ]

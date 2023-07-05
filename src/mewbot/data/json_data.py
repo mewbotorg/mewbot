@@ -15,11 +15,11 @@ Thus, even for the json backed datastores, they may use an intermediary such as 
 the data is ultimately written out to disc.
 """
 
-from typing import Any, Callable, Iterable, Optional, Sequence, TypeVar, Union
+from typing import Any, Callable, Iterable, Optional, TypeVar
 
 import json
-import secrets
-from pathlib import Path
+import os
+import random
 
 from mewbot.api.v1 import DataSource
 from mewbot.data import DataStoreEmptyException
@@ -75,18 +75,6 @@ class JsonStringDataSourceSingleValue(DataSource[DataType]):
         """
         return self.stored_val
 
-    def __getitem__(self, key: Union[int, str]) -> DataType:
-        """
-        Placeholder.
-        """
-        raise NotImplementedError("Key access not supported for this DataStore")
-
-    def keys(self) -> Sequence[str]:
-        """
-        Placeholder.
-        """
-        raise NotImplementedError(f"keys not supported for {type(self)}")
-
 
 class JsonFileDataSourceSingleValue(DataSource[DataType]):
     """
@@ -95,7 +83,7 @@ class JsonFileDataSourceSingleValue(DataSource[DataType]):
     Reloading data from disk is not supported.
     """
 
-    json_file_path: Optional[Union[str, Path]]
+    json_file_path: Optional[os.PathLike[str]]
     stored_val: DataType
     # A map to turn any value into an instance of the datatype
     data_type_mapper: Callable[
@@ -107,7 +95,7 @@ class JsonFileDataSourceSingleValue(DataSource[DataType]):
 
     def __init__(
         self,
-        json_file_path: Union[str, Path],
+        json_file_path: os.PathLike[str],
         data_type_mapper: Callable[
             [
                 Any,
@@ -143,12 +131,6 @@ class JsonFileDataSourceSingleValue(DataSource[DataType]):
         """
         return self.stored_val
 
-    def keys(self) -> Sequence[str]:
-        """
-        Placeholder.
-        """
-        raise NotImplementedError(f"keys not supported for class {type(self)}")
-
 
 class JsonStringDataSourceIterableValues(DataSource[DataType]):
     """
@@ -176,16 +158,12 @@ class JsonStringDataSourceIterableValues(DataSource[DataType]):
         In this case, the first value from the iterator.
         :return:
         """
-        rtn_val = None
-        for val in self.stored_val:
-            rtn_val = val
-            break
+        if not self.stored_val:
+            raise DataStoreEmptyException(
+                f"{self.stored_val = } did not contain a value to return"
+            )
 
-        if rtn_val:
-            return rtn_val
-        if self.stored_val:
-            raise ValueError("Could not get Value.")
-        raise DataStoreEmptyException("DataSource seems to be empty.")
+        return self.stored_val.__next__()
 
     def __len__(self) -> int:
         """
@@ -205,21 +183,7 @@ class JsonStringDataSourceIterableValues(DataSource[DataType]):
         If there is a more efficient way for the interator you want, subclass it and use it.
         :return:
         """
-        return self.data_type_mapper(secrets.choice(list(self.stored_val)))
-
-    def __getitem__(self, key: Union[int, str]) -> DataType:
-        """
-        Provides a list-like comprehension.
-        """
-        if isinstance(key, int):
-            return self.data_type_mapper(list(self.stored_val)[key])
-        raise NotImplementedError(f"string key {key = } not supported for this class.")
-
-    def keys(self) -> Sequence[str]:
-        """
-        Placeholder.
-        """
-        raise NotImplementedError(f"keys not supported for class {type(self)}")
+        return random.choice([_ for _ in self.stored_val])
 
 
 class JsonStringDataSourceListValues(JsonStringDataSourceIterableValues[DataType]):
@@ -284,10 +248,4 @@ class JsonStringDataSourceListValues(JsonStringDataSourceIterableValues[DataType
 
         :return:
         """
-        return secrets.choice(self.stored_val)
-
-    def keys(self) -> Sequence[str]:
-        """
-        Placeholder.
-        """
-        raise NotImplementedError(f"keys is not a sensible concept for {type(self)}")
+        return random.choice(self.stored_val)

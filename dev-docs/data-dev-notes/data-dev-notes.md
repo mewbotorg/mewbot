@@ -27,6 +27,10 @@ checking code to validate the structure as it's loaded/accessed/modified by the 
 
 ## 2 - Typing structures loaded out of yaml
 
+DSSs are unlike the other components, in that they have more divergent interfaces.
+Probably the best way, if an Action/Trigger e.t.c. requires a certain DataStore, is to ship protocols for each of the 
+base types of DataStore - people can then use these in place of _specific_ DSSs to make their code more portable.
+
 Just going to have to declare the protocols (which will probably be a generic protocol with a specific type) the DSS
 follows when it's declared or used.
 (Be nice if it could be included in the yaml in some way, but that's not looking super possible - the yaml would have
