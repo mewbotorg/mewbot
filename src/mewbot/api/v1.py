@@ -737,11 +737,14 @@ class DataStore(Component, Generic[DataType]):
     # Can institute type checking in the api
     @abc.abstractmethod
     def set(
-        self, value: Any, source: str, key: Union[str, int] = "", action: str = "replace"
+        self, value: DataType, source: str, key: Union[str, int] = "", action: str = "replace"
     ) -> bool:
         """
         Generic set method for a value in the datastore.
 
+        Note - depending on the design of this datastore, setting a variable may or may not affect
+        all other variables produced by this store.
+        It's a good idea to think about the data flow.
         :param value: The value will be added to the store with the given action
         :param source: Where did the modification to the datastore come from?
         :param key: Not every Datastore will have the concept of a key.

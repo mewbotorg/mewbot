@@ -108,3 +108,9 @@ class DataStore(Generic[DataType], DataSource[DataRecord[DataType]]):
     """
     A wrapped DataSource(s) which can be queried.
     """
+
+
+class DataStoreEmptyException(Exception):
+    """
+    Raised when a DataStore doesn't have a value to return.
+    """

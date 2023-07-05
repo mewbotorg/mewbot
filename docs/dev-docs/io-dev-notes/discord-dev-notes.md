@@ -98,5 +98,4 @@ Enable the scope for the token via the developer portal and things should start 
 ### Pycord is not seeing events I expect it to
 
 If you have enabled the appropriate scope for your bot via the developer token, and you are still not getting input events, you may need to update the intents in the __init__ of DiscordInput.
-Currently they are set to `all` - but something might have altered here.
-
+Currently, they are set to `all` - but something might have altered here.
