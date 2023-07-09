@@ -12,7 +12,7 @@ from typing import Any, AsyncIterable, Dict, Set, Type
 
 import logging
 
-from mewbot.api.v1 import Action, Condition, DataSource
+from mewbot.api.v1 import Action, DataSource
 from mewbot.core import InputEvent, OutputEvent, OutputQueue
 from mewbot.io.discord import DiscordMessageCreationEvent, DiscordOutputEvent
 
@@ -84,28 +84,3 @@ class RollDiceAction(Action):
         )
 
         yield test_event
-
-
-class ExampleCondition(Condition):
-    """
-    A condition which passes on messages starting with "!" and filters others.
-    """
-
-    @staticmethod
-    def consumes_inputs() -> set[type[InputEvent]]:
-        """
-        The subtypes of InputEvent that this component accepts.
-
-        This is used to save computational overhead by skipping events of the wrong type.
-        Subclasses of the events specified here will also be processed.
-        """
-        return {
-            InputEvent,
-        }
-
-    def allows(self, event: InputEvent) -> bool:
-        """Whether the event is retained after passing through this filter."""
-        if hasattr(event, "message"):
-            if str(event.message.content).startswith("!"):
-                return True
-        return False
