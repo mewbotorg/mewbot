@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: CC-BY-4.0
+# An _absolutely_ awful example of using DataSources in mewbot actions.
+
+kind: DataSource
+name: vals_for_d6
+implementation: mewbot.data.json_data.JsonStringDataSourceListValues
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa00
+datatype: int
+properties:
+  json_string: '[1, 2, 3, 4, 5, 6]'
+
+---
+
+kind: IOConfig
+implementation: mewbot.io.discord.DiscordIO
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa00
+properties:
+  token: "[token-goes-here]"
+
+---
+
+kind: Behaviour
+implementation: mewbot.api.v1.Behaviour
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa01
+properties:
+  name: 'Echo Inputs'
+triggers:
+  - kind: Trigger
+    implementation: examples.discord_bots.trivial_discord_bot.DiscordTextCommandTrigger
+    uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa02
+    properties:
+      command: "!dice"
+conditions: []
+actions:
+  - kind: Action
+    implementation: examples.discord_bots.data_sources.RollDiceAction
+    uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa04
+    properties:
+      datasource: vals_for_d6

@@ -511,6 +511,12 @@ class ConfigBlock(TypedDict):
     properties: dict[str, Any]
 
 
+class DataConfigBlock(ConfigBlock):
+    """YAML Block for data based components."""
+
+    datatype: str
+
+
 class BehaviourConfigBlock(ConfigBlock):
     """YAML block for a behaviour, which includes the subcomponents."""
 

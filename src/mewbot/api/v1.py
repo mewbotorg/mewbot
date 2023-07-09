@@ -663,7 +663,7 @@ class DataSource(Component, Generic[DataType]):
         store for this source, or a DataSourceEmpty exception if there is no data to return.
         """
 
-    def __len__(self) -> int:
+    def __len__(self) -> int:  # pylint: disable=invalid-length-returned
         """
         Returns the number of items in this DataSource.
 
@@ -691,7 +691,7 @@ class DataSource(Component, Generic[DataType]):
 
         raise NotImplementedError otherwise.
         """
-        raise NotImplementedError(f"keys not supported for this DataSource")
+        raise NotImplementedError("keys not supported for this DataSource")
 
     @abc.abstractmethod
     def random(self) -> DataType:
@@ -756,7 +756,7 @@ class DataStore(Component, Generic[DataType]):
         """
 
     @abc.abstractmethod
-    def __len__(self) -> int:
+    def __len__(self) -> int:  # pylint: disable=invalid-length-returned
         """
         Returns the number of items in this DataSource.
 
@@ -786,7 +786,7 @@ class DataStore(Component, Generic[DataType]):
 
         raise NotImplementedError otherwise.
         """
-        raise NotImplementedError(f"keys not supported for this DataSource")
+        raise NotImplementedError("keys not supported for this DataSource")
 
     @abc.abstractmethod
     def random(self) -> DataType:

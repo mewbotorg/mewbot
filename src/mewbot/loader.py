@@ -10,7 +10,7 @@ Provides functions to load mewbot components from YAML.
 
 from __future__ import annotations
 
-from typing import Any, TextIO, Type
+from typing import Any, Optional, TextIO, Type
 
 import importlib
 import sys
@@ -18,7 +18,7 @@ import sys
 import yaml
 
 from mewbot.bot import Bot
-from mewbot.core import (
+from mewbot.core import (  # DataStoreInterface,
     ActionInterface,
     BehaviourConfigBlock,
     BehaviourInterface,
@@ -26,6 +26,8 @@ from mewbot.core import (
     ComponentKind,
     ConditionInterface,
     ConfigBlock,
+    DataConfigBlock,
+    DataSourceInterface,
     IOConfigInterface,
     TriggerInterface,
 )
@@ -56,6 +58,9 @@ def configure_bot(name: str, stream: TextIO) -> Bot:
     bot = Bot(name)
     number = 0
 
+    data_sources: dict[str, DataSourceInterface[Any]] = {}
+    # data_stores: dict[str, DataStoreInterface[Any]] = {}
+
     for document in yaml.load_all(stream, Loader=yaml.CSafeLoader):
         number += 1
 
@@ -64,12 +69,20 @@ def configure_bot(name: str, stream: TextIO) -> Bot:
                 f"Document {number} missing some keys: {_REQUIRED_KEYS.difference(document.keys())}"
             )
 
-        if document["kind"] == ComponentKind.Behaviour:
-            bot.add_behaviour(load_behaviour(document))
         if document["kind"] == ComponentKind.DataSource:
+            data_component = load_data_source(document)
+            # Want the user to be able to refer to DataSources by their name or their uuid
+            data_sources[document["name"]] = data_component
+            data_sources[document["uuid"]] = data_component
+
+        if document["kind"] == ComponentKind.DataStore:
             ...
+
+        if document["kind"] == ComponentKind.Behaviour:
+            bot.add_behaviour(load_behaviour(document, data_sources=data_sources))
+
         if document["kind"] == ComponentKind.IOConfig:
-            component = load_component(document)
+            component = load_component(document, data_sources=data_sources)
             assert isinstance(component, IOConfigInterface), assert_message(
                 component, IOConfigInterface
             )
@@ -78,37 +91,48 @@ def configure_bot(name: str, stream: TextIO) -> Bot:
     return bot
 
 
-def load_behaviour(config: BehaviourConfigBlock) -> BehaviourInterface:
+def load_behaviour(
+    config: BehaviourConfigBlock,
+    data_sources: Optional[dict[str, DataSourceInterface[Any]]] = None,
+) -> BehaviourInterface:
     """Creates a behaviour and its components based on a configuration block."""
 
-    behaviour = load_component(config)
+    if data_sources is None:
+        data_sources = {}
+
+    behaviour = load_component(config, data_sources=data_sources)
 
     assert isinstance(behaviour, BehaviourInterface)
 
     for trigger_definition in config["triggers"]:
-        trigger = load_component(trigger_definition)
+        trigger = load_component(trigger_definition, data_sources=data_sources)
         assert isinstance(trigger, TriggerInterface), assert_message(
             trigger, TriggerInterface
         )
         behaviour.add(trigger)
 
     for condition_definition in config["conditions"]:
-        condition = load_component(condition_definition)
+        condition = load_component(condition_definition, data_sources=data_sources)
         assert isinstance(condition, ConditionInterface), assert_message(
             condition, ConditionInterface
         )
         behaviour.add(condition)
 
     for action_definition in config["actions"]:
-        action = load_component(action_definition)
+        action = load_component(action_definition, data_sources=data_sources)
         assert isinstance(action, ActionInterface), assert_message(action, ActionInterface)
         behaviour.add(action)
 
     return behaviour
 
 
-def load_component(config: ConfigBlock) -> Component:
+def load_component(
+    config: ConfigBlock, data_sources: Optional[dict[str, DataSourceInterface[Any]]] = None
+) -> Component:
     """Creates a component based on a configuration block."""
+
+    if data_sources is None:
+        data_sources = {}
 
     # Ensure that the object we have been passed contains all required fields.
     if not _REQUIRED_KEYS.issubset(config.keys()):
@@ -133,6 +157,11 @@ def load_component(config: ConfigBlock) -> Component:
             f"Class {target_class} does not implement {interface}, requested by {config}"
         )
 
+    # Scan the properties' section of the config - loading requests DataSources
+    if "datasource" in config["properties"].keys():
+        target_datasource = config["properties"]["datasource"]
+        config["properties"]["datasource"] = data_sources[target_datasource]
+
     # Create the class instance, passing in the properties.
     component = target_class(uid=config["uuid"], **config["properties"])
 
@@ -148,6 +177,66 @@ def load_component(config: ConfigBlock) -> Component:
             ConditionInterface,
             ActionInterface,
         ),
+    )
+
+    return component
+
+
+def load_data_source(config: DataConfigBlock) -> DataSourceInterface[Any]:
+    """
+    Creates a DataSource based on a configuration block.
+
+    Why is this a separate method to load_component?
+    Given the number of commonalities.
+    DataStores have more flexibility than most other components.
+    In particular, there's a need to set up their typing information.
+    """
+
+    # Ensure that the object we have been passed contains all required fields.
+    if not _REQUIRED_KEYS.issubset(config.keys()):
+        raise ValueError(
+            f"Config missing some keys: {_REQUIRED_KEYS.difference(config.keys())}"
+        )
+
+    # Identify the kind of component we should be loading, and the interface that implies.
+    try:
+        kind = ComponentKind[config["kind"]]
+        interface = ComponentKind.interface(kind)
+    except KeyError as err:
+        raise ValueError(f"Invalid component kind {config['kind']}") from err
+
+    # Read the datatype for the datasource
+    datatype_str = config["datatype"]
+
+    # Map the datatype to data properties
+    if datatype_str == "int":
+        class_type = int
+        data_type_mapper = int
+    else:
+        raise NotImplementedError(
+            f"datatype = {datatype_str} is not known and cannot be handled"
+        )
+
+    # Locate the implementation class to be loaded
+    target_class = get_implementation(config["implementation"])
+
+    # Verify that the implementation class matches the interface we got from
+    # the `kind:` hint.
+    if not issubclass(target_class, interface):
+        raise TypeError(
+            f"Class {target_class} does not implement {interface}, requested by {config}"
+        )
+
+    # Create the class instance, passing in the properties.
+    config["properties"]["data_type_mapper"] = data_type_mapper
+    component = target_class[class_type](uid=config["uuid"], **config["properties"])
+
+    # Verify the instance implements a valid interface.
+    # The second call is to reassure the linter that the types are correct.
+    assert isinstance(component, interface), assert_message(component, interface)
+    assert isinstance(
+        component,
+        (DataSourceInterface,),
     )
 
     return component
