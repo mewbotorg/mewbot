@@ -13,7 +13,7 @@ the outside world.
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Optional, Set, Type
+from typing import Any, Callable, Dict, List, Optional, Set, Type, Union
 
 import asyncio
 import logging
@@ -21,6 +21,8 @@ import signal
 
 from mewbot.core import (
     BehaviourInterface,
+    DataSourceInterface,
+    DataStoreInterface,
     InputEvent,
     InputInterface,
     InputQueue,
@@ -29,7 +31,6 @@ from mewbot.core import (
     OutputInterface,
     OutputQueue,
 )
-from mewbot.data import DataSource
 
 logging.basicConfig(level=logging.INFO)
 
@@ -46,7 +47,9 @@ class Bot:
     name: str  # The bot's name
     _io_configs: List[IOConfigInterface]  # Connections to bot makes to other services
     _behaviours: List[BehaviourInterface]  # All the things the bot does
-    _datastores: Dict[str, DataSource[Any]]  # Data sources and stores for this bot
+    _datastores: Dict[
+        str, Union[DataStoreInterface[Any], DataSourceInterface[Any]]
+    ]  # Data sources and stores for this bot
 
     def __init__(self, name: str) -> None:
         """
@@ -98,7 +101,9 @@ class Bot:
         """
         self._behaviours.append(behaviour)
 
-    def get_data_source(self, name: str) -> Optional[DataSource[Any]]:
+    def get_data_source(
+        self, name: str
+    ) -> Optional[Union[DataSourceInterface[Any], DataSourceInterface[Any]]]:
         """
         Retrieve a :class DataSource: - by name - from the Bot's internal stores.
 
