@@ -62,6 +62,10 @@ def configure_bot(name: str, stream: TextIO) -> Bot:
     # data_stores: dict[str, DataStoreInterface[Any]] = {}
 
     for document in yaml.load_all(stream, Loader=yaml.CSafeLoader):
+        # Deal with (slightly) malformed yaml
+        if document is None:
+            continue
+
         number += 1
 
         if not _REQUIRED_KEYS.issubset(document.keys()):
