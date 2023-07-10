@@ -19,7 +19,7 @@ from typing import Any, Callable, Iterable, Optional, Sequence, TypeVar, Union
 
 import json
 import os
-import random
+import secrets
 
 from mewbot.api.v1 import DataSource
 from mewbot.data import DataStoreEmptyException
@@ -208,7 +208,7 @@ class JsonStringDataSourceIterableValues(DataSource[DataType]):
         If there is a more efficient way for the interator you want, subclass it and use it.
         :return:
         """
-        return self.data_type_mapper(random.choice(list(self.stored_val)))
+        return self.data_type_mapper(secrets.choice(list(self.stored_val)))
 
     def __getitem__(self, key: Union[int, str]) -> DataType:
         """
@@ -287,7 +287,7 @@ class JsonStringDataSourceListValues(JsonStringDataSourceIterableValues[DataType
 
         :return:
         """
-        return random.choice(self.stored_val)
+        return secrets.choice(self.stored_val)
 
     def keys(self) -> Sequence[str]:
         """
