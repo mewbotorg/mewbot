@@ -22,13 +22,14 @@ import os
 import subprocess
 import sys
 
-from mewbot.tools import Annotation, ToolChain, gather_paths
-
+from .path import gather_paths
+from .security_analysis import BanditMixin
+from .toolchain import Annotation
 
 LEVELS = frozenset({"notice", "warning", "error"})
 
 
-class LintToolchain(ToolChain):
+class LintToolchain(BanditMixin):
     """
     Wrapper class for running linting tools.
 
@@ -41,11 +42,30 @@ class LintToolchain(ToolChain):
     def run(self) -> Iterable[Annotation]:
         """Runs the linting tools in sequence."""
 
+        yield from self.lint_isort()
         yield from self.lint_black()
         yield from self.lint_flake8()
         yield from self.lint_mypy()
         yield from self.lint_pylint()
         yield from self.lint_pydocstyle()
+        yield from self.lint_bandit()
+
+    def lint_isort(self) -> Iterable[Annotation]:
+        """
+        Run 'isort', an automatic import ordering tool.
+
+        Black handles most formatting updates automatically, maintaining
+        readability and code style compliance.
+        """
+
+        args = ["isort"]
+
+        if self.in_ci:
+            args.extend(["--diff", "--quiet"])
+
+        result = self.run_tool("isort (Imports Orderer)", *args)
+
+        yield from lint_isort_diffs(result)
 
     def lint_black(self) -> Iterable[Annotation]:
         """
@@ -57,7 +77,7 @@ class LintToolchain(ToolChain):
 
         args = ["black"]
 
-        if self.is_ci:
+        if self.in_ci:
             args.extend(["--diff", "--no-color", "--quiet"])
 
         result = self.run_tool("Black (Formatter)", *args)
@@ -82,7 +102,9 @@ class LintToolchain(ToolChain):
 
             try:
                 file, line_no, col, error = line.strip().split(":", 3)
-                yield Annotation("error", file, int(line_no), int(col), "", error.strip())
+                yield Annotation(
+                    "error", file, int(line_no), int(col), "flake8", "", error.strip()
+                )
             except ValueError:
                 pass
 
@@ -95,8 +117,10 @@ class LintToolchain(ToolChain):
         """
 
         args = ["mypy", "--strict", "--explicit-package-bases"]
+        env = {}
 
-        if not self.is_ci:
+        if not self.in_ci:
+            env["MYPY_FORCE_COLOR"] = "1"
             args.append("--pretty")
 
         # MyPy does not use the stock import engine for doing its analysis,
@@ -106,17 +130,14 @@ class LintToolchain(ToolChain):
         #
         # There are two steps to this:
         #  - We set MYPYPATH equivalent to PYTHONPATH
-        os.putenv("MYPYPATH", os.pathsep.join(gather_paths("src")))
+        env["MYPYPATH"] = os.pathsep.join(gather_paths("src"))
+
         #  - We alter the folder list such that, in src-dir folders, we pass the
         #    folder of the actual pacakge (i.e. ./src/mewbot rather than ./src)
-        folder_backup = self.folders
-        self.folders = set(get_module_paths(*self.folders))
+        folders = set(get_module_paths(*self.folders))
 
         # Run mypy
-        result = self.run_tool("MyPy (type checker)", *args)
-
-        # Reset the folders list.
-        self.folders = folder_backup
+        result = self.run_tool("MyPy (type checker)", *args, env=env, folders=folders)
 
         for line in result.stdout.decode("utf-8").split("\n"):
             if ":" not in line:
@@ -131,7 +152,7 @@ class LintToolchain(ToolChain):
 
                 level = level if level in LEVELS else "error"
 
-                yield Annotation(level, file, int(line_no), 1, "", error.strip())
+                yield Annotation(level, file, int(line_no), 1, "mypy", "", error.strip())
             except ValueError:
                 pass
 
@@ -152,7 +173,7 @@ class LintToolchain(ToolChain):
 
             try:
                 file, line_no, col, error = line.strip().split(":", 3)
-                yield Annotation("error", file, int(line_no), int(col), "", error)
+                yield Annotation("error", file, int(line_no), int(col), "pylint", "", error)
             except ValueError:
                 pass
 
@@ -177,7 +198,7 @@ class LintToolchain(ToolChain):
                 file, line_no = header.split(" ", 1)[0].split(":")
                 error = next(lines).strip()
 
-                yield Annotation("error", file, int(line_no), 1, "", error)
+                yield Annotation("error", file, int(line_no), 1, "pydocstyle", "", error)
             except ValueError:
                 pass
             except StopIteration:
@@ -190,10 +211,11 @@ def lint_black_errors(
     """Processes 'blacks' output in to annotations."""
 
     errors = result.stderr.decode("utf-8").split("\n")
+
     for error in errors:
         error = error.strip()
 
-        if not error:
+        if not error or ":" not in error:
             continue
 
         level, header, message, line, char, info = error.split(":", 5)
@@ -201,7 +223,43 @@ def lint_black_errors(
 
         level = level.strip() if level.strip() in LEVELS else "error"
 
-        yield Annotation(level, file, int(line), int(char), message.strip(), info.strip())
+        yield Annotation(
+            level, file, int(line), int(char), "black", message.strip(), info.strip()
+        )
+
+
+def lint_isort_diffs(
+    result: subprocess.CompletedProcess[bytes],
+) -> Iterable[Annotation]:
+    """Processes 'blacks' output in to annotations."""
+
+    file = ""
+    line = 0
+    buffer = ""
+
+    for diff_line in result.stdout.decode("utf-8").split("\n"):
+        if diff_line.startswith("+++ "):
+            continue
+
+        if diff_line.startswith("--- "):
+            if file and buffer:
+                yield Annotation("error", file, line, 1, "isort", "isort alteration", buffer)
+
+            buffer = ""
+            file, _ = diff_line[4:].split("\t")
+            continue
+
+        if diff_line.startswith("@@"):
+            if file and buffer:
+                yield Annotation("error", file, line, 1, "isort", "isort altteration", buffer)
+
+            _, start, _, _ = diff_line.split(" ")
+            _line, _ = start.split(",")
+            line = abs(int(_line))
+            buffer = ""
+            continue
+
+        buffer += diff_line + "\n"
 
 
 def lint_black_diffs(
@@ -219,7 +277,7 @@ def lint_black_diffs(
 
         if diff_line.startswith("--- "):
             if file and buffer:
-                yield Annotation("error", file, line, 1, "Black alteration", buffer)
+                yield Annotation("error", file, line, 1, "black", "Black alteration", buffer)
 
             buffer = ""
             file, _ = diff_line[4:].split("\t")
@@ -227,7 +285,7 @@ def lint_black_diffs(
 
         if diff_line.startswith("@@"):
             if file and buffer:
-                yield Annotation("error", file, line, 1, "Black alteration", buffer)
+                yield Annotation("error", file, line, 1, "black", "Black alteration", buffer)
 
             _, start, _, _ = diff_line.split(" ")
             _line, _ = start.split(",")
@@ -266,7 +324,7 @@ def parse_lint_options() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run code linters for mewbot")
     parser.add_argument(
         "--ci",
-        dest="is_ci",
+        dest="in_ci",
         action="store_true",
         default="GITHUB_ACTIONS" in os.environ,
         help="Run in GitHub actions mode",
@@ -292,5 +350,5 @@ if __name__ == "__main__":
     if not paths:
         paths = gather_paths("src", "tests") if options.tests else gather_paths("src")
 
-    linter = LintToolchain(*paths, in_ci=options.is_ci)
+    linter = LintToolchain(*paths, in_ci=options.in_ci)
     linter()

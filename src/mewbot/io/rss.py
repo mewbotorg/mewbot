@@ -13,20 +13,19 @@ Currently, can only read from a list of RSS feeds which it regularly polls.
 from __future__ import annotations
 
 from typing import (
-    Optional,
-    Set,
-    Sequence,
-    Type,
     Any,
-    Union,
-    List,
-    SupportsInt,
     Iterable,
+    List,
     Mapping,
+    Optional,
+    Sequence,
+    Set,
+    SupportsInt,
+    Type,
+    Union,
 )
 
 import asyncio
-
 import dataclasses
 import logging
 import pprint
@@ -35,7 +34,7 @@ from itertools import cycle
 import aiohttp
 import feedparser  # type: ignore
 
-from mewbot.api.v1 import IOConfig, Input, Output, InputEvent
+from mewbot.api.v1 import Input, InputEvent, IOConfig, Output
 
 # rss input operates on a polling loop
 # feed read attempts are spread out over the interval

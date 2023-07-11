@@ -10,14 +10,14 @@ Provides an IOConfig with the capability to produce desktop notifications.
 
 from __future__ import annotations
 
-from typing import Optional, Set, Sequence, Type, Any
+from typing import Any, Optional, Sequence, Set, Type
 
 import dataclasses
 import logging
-import sys
 import subprocess
+import sys
 
-from mewbot.api.v1 import IOConfig, Input, Output, OutputEvent
+from mewbot.api.v1 import Input, IOConfig, Output, OutputEvent
 
 try:
     from win10toast import ToastNotifier  # type: ignore

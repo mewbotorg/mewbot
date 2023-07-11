@@ -19,11 +19,11 @@ Note - would be nice to set a number per channel as well as a global number.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Set, Type
+from typing import Any, AsyncIterable, Dict, Set, Type
 
 import logging
 
-from mewbot.api.v1 import Trigger, Action
+from mewbot.api.v1 import Action, Trigger
 from mewbot.core import InputEvent, OutputEvent, OutputQueue
 from mewbot.io.discord import (
     DiscordInputEvent,
@@ -116,8 +116,9 @@ class DiscordPrintAction(Action):
     def message(self, message: str) -> None:
         self._message = str(message)
 
-    async def act(self, event: InputEvent, state: Dict[str, Any]) -> None:
+    async def act(self, event: InputEvent, state: Dict[str, Any]) -> AsyncIterable[None]:
         """
         Construct a DiscordOutputEvent with the result of performing the calculation.
         """
         print(event)
+        yield None

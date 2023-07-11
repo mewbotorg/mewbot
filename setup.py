@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+# SPDX-FileCopyrightText: 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
 """
 Custom setup.py to install some, or all, mewbot pckages.
 
@@ -21,13 +25,12 @@ However, doing so may cause weird dependency issues if a copy of mewbot-core
 with the same version is not installed.
 """
 
-from typing import Dict, List, Set, Union
-
 import os.path
 import sys
 
-import setuptools
+from typing import Dict, List, Set, Union
 
+import setuptools
 
 PACKAGES: Set[str] = {"", "io", "core", "api", "test"}
 
@@ -61,7 +64,7 @@ def main() -> None:
         "description": "Lightweight, YAML-driven, text based, generic irc Bot framework",
         "license_files": ["LICENSE.md"],
         "url": "https://github.com/mewler/mewbot",
-        "python_requires": ">=3.9",
+        "python_requires": ">=3.10",
         "classifiers": [
             "Programming Language :: Python :: 3",
             "Operating System :: OS Independent",

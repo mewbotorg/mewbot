@@ -14,12 +14,13 @@ By default, all test declared to be part of mewbot test suite (either core or pl
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+
 import argparse
 import os
 
-from collections.abc import Iterable
-
-from mewbot.tools import ToolChain, Annotation, gather_paths
+from .path import gather_paths
+from .toolchain import Annotation, ToolChain
 
 
 class TestToolchain(ToolChain):
@@ -42,7 +43,7 @@ class TestToolchain(ToolChain):
         result = self.run_tool("PyTest (Testing Framework)", *args)
 
         if result.returncode < 0:
-            yield Annotation("error", "tools/test.py", 1, 1, "Tests Failed", "")
+            yield Annotation("error", "tools/test.py", 1, 1, "pytest", "Tests Failed", "")
 
     def build_pytest_args(self) -> list[str]:
         """
@@ -74,7 +75,7 @@ class TestToolchain(ToolChain):
 
         args.append("--cov-report=xml:reports/coverage.xml")  # Record coverage summary in XML
 
-        if self.is_ci:
+        if self.in_ci:
             # Simple terminal output
             args.append("--cov-report=term")
         else:
@@ -92,7 +93,7 @@ def parse_test_options() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run tests for mewbot")
     parser.add_argument(
         "--ci",
-        dest="is_ci",
+        dest="in_ci",
         action="store_true",
         help="Run test in GitHub actions mode",
         default="GITHUB_ACTIONS" in os.environ,
@@ -121,10 +122,10 @@ if __name__ == "__main__":
     options = parse_test_options()
     paths = options.path or list(gather_paths("tests"))
 
-    testing = TestToolchain(*paths, in_ci=options.is_ci)
+    testing = TestToolchain(*paths, in_ci=options.in_ci)
 
     # Set up coverage, if requested
-    testing.coverage = options.coverage or options.covering
+    testing.coverage = options.coverage or options.covering or options.in_ci
     testing.covering = options.covering or list(gather_paths("src"))
 
     testing()

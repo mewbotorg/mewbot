@@ -40,3 +40,11 @@ fail_under=40.0
 [tool.coverage.html]
 
 show_contexts=true
+
+[tool.isort]
+profile = "black"
+py_version=310
+sections = ['FUTURE', 'TYPING', 'STDLIB', 'THIRDPARTY', 'FIRSTPARTY', 'LOCALFOLDER']
+known_typing = ["typing", "types", "collections.abc"]
+# 9 is black compatible, bu does not look great
+multi_line_output = 3

@@ -17,49 +17,25 @@ concurrency:
 
 env:
   # Which version of the reports Sonar receives.
-  DEFAULT_OS: ubuntu-latest
-  DEFAULT_PYTHON: 3.9
+  DEFAULT_OS: ubuntu
+  DEFAULT_PYTHON: "3.10"
 
 jobs:
-  lint:
-    name: Lint Python code
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup Python ${{ env.DEFAULT_PYTHON }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.DEFAULT_PYTHON }}
-          cache: pip
-          cache-dependency-path: |
-            requirements.txt
-            requirements-dev.txt
-
-      - name: Install dependencies
-        run: ./tools/install-deps
-
-      - name: Run Linters
-        run: ./tools/lint
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: lint-results
-          path: reports
-
   test:
-    name: Test Python code
-    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.name }} Python code (${{ matrix.os }}/py${{ matrix.version }})
+    runs-on: ${{ matrix.os }}-latest
 
     strategy:
-      matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        version: ["3.9", "3.10", "3.11"]
       fail-fast: false
+      matrix:
+        name: ["lint", "test"]
+        os: ["ubuntu", "macos", "windows"]
+        version: ["3.10", "3.11"]
+        exclude:
+          - name: Lint
+            os: macos
+          - name: Lint
+            os: windows
 
     steps:
       - name: Checkout
@@ -80,13 +56,13 @@ jobs:
 
       - name: Run Tests
         shell: bash
-        run: ./tools/test --cov
+        run: ./tools/${{ matrix.name }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         if: always()
         with:
-          name: test-results-${{ matrix.os }}-${{ matrix.version }}
+          name: ${{ matrix.name }}-results-${{ matrix.os }}-${{ matrix.version }}
           path: reports
 
   tests-passed:
@@ -100,6 +76,42 @@ jobs:
       - name: Mark all test runs as successful
         run: /bin/true
 
+  annotate:
+    name: Output Annotations
+    runs-on: ubuntu-latest
+
+    needs:
+      - test
+
+    if: always()
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python ${{ matrix.version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.version }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        if: always()
+        with:
+          path: reports
+
+      - name: Install dependencies
+        shell: bash
+        run: ./tools/install-deps
+
+      - name: Output Annotations
+        shell: bash
+        run: ./tools/annotate
+
   sonarcloud:
     name: SonarCloud
     runs-on: ubuntu-latest
@@ -107,7 +119,6 @@ jobs:
     if: always()
 
     needs:
-      - lint
       - test
 
     steps:
@@ -119,7 +130,7 @@ jobs:
         uses: actions/download-artifact@v3
         if: always()
         with:
-          name: lint-results
+          name: lint-results-${{ env.DEFAULT_OS }}-${{ env.DEFAULT_PYTHON }}
           path: reports
 
       - name: Download Artifacts

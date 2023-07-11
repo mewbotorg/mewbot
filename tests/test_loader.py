@@ -11,18 +11,16 @@ from __future__ import annotations
 from typing import Type
 
 import copy
+
 import pytest
 import yaml
 
-from mewbot.test import BaseTestClassWithConfig
-
-from mewbot.loader import configure_bot, load_behaviour, load_component
-
+from mewbot.api.v1 import Behaviour, IOConfig
 from mewbot.bot import Bot
 from mewbot.core import ConfigBlock
 from mewbot.io.http import HTTPServlet
-from mewbot.api.v1 import IOConfig, Behaviour
-
+from mewbot.loader import configure_bot, load_behaviour, load_component
+from mewbot.test import BaseTestClassWithConfig
 
 CONFIG_YAML = "examples/trivial_http_post.yaml"
 
@@ -198,3 +196,12 @@ class TestLoaderBehaviourHttpPost(BaseTestClassWithConfig[Behaviour]):
         """
         component = load_behaviour(self.config)  # type: ignore
         assert isinstance(component, Behaviour)
+
+    @staticmethod
+    def test_resetting_uuid() -> None:
+        """Test attempting to change UUID of a component."""
+        error = "Can not set the ID of a component outside of creation"
+        # pylint: disable=unexpected-keyword-arg
+        behaviour = Behaviour(name="Test")  # type: ignore
+        with pytest.raises(AttributeError, match=error):
+            behaviour.uuid = "0"

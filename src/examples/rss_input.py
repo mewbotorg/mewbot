@@ -15,7 +15,7 @@ Utility methods to support the rss_input example.
 An IOConfig for driving behavior based off RSS feeds.
 """
 
-from typing import Any, Dict, Set, Type
+from typing import Any, AsyncIterable, Dict, Set, Type
 
 from mewbot.api.v1 import Action
 from mewbot.core import InputEvent, OutputEvent
@@ -41,7 +41,7 @@ class RSSPrintAction(Action):
         """
         return set()
 
-    async def act(self, event: InputEvent, state: Dict[str, Any]) -> None:
+    async def act(self, event: InputEvent, state: Dict[str, Any]) -> AsyncIterable[None]:
         """
         Acts on events pulled from the queue.
 
@@ -57,3 +57,4 @@ class RSSPrintAction(Action):
         rss_output_str.append(f"New event ... event - \n{event}")
 
         print("\n".join(rss_output_str))
+        yield None

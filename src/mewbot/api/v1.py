@@ -19,31 +19,23 @@ by bots, and have components states be preserved during a bot restart.
 
 from __future__ import annotations
 
-from typing import (
-    Any,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Union,
-    Type,
-)
+from collections.abc import AsyncIterable, Iterable
+from typing import Any
 
 import abc
 
 from mewbot.api.registry import ComponentRegistry
 from mewbot.core import (
+    ActionInterface,
+    BehaviourConfigBlock,
+    ComponentKind,
+    ConditionInterface,
+    ConfigBlock,
     InputEvent,
     InputQueue,
     OutputEvent,
     OutputQueue,
-    ComponentKind,
     TriggerInterface,
-    ConditionInterface,
-    ActionInterface,
-    ConfigBlock,
-    BehaviourConfigBlock,
 )
 
 
@@ -129,7 +121,7 @@ class IOConfig(Component):
     """
 
     @abc.abstractmethod
-    def get_inputs(self) -> Sequence[Input]:
+    def get_inputs(self) -> Iterable[Input]:
         """
         Gets the Inputs that are used to read events from the service.
 
@@ -140,7 +132,7 @@ class IOConfig(Component):
         """
 
     @abc.abstractmethod
-    def get_outputs(self) -> Sequence[Output]:
+    def get_outputs(self) -> Iterable[Output]:
         """
         Gets the Outputs that are used to send events to the service.
 
@@ -159,14 +151,14 @@ class Input:
     into the bot's input event queue for processing.
     """
 
-    queue: Optional[InputQueue]
+    queue: InputQueue | None
 
     def __init__(self) -> None:
         self.queue = None
 
     @staticmethod
     @abc.abstractmethod
-    def produces_inputs() -> Set[Type[InputEvent]]:
+    def produces_inputs() -> set[type[InputEvent]]:
         """List the types of Events this Input class could produce."""
 
     def bind(self, queue: InputQueue) -> None:
@@ -199,7 +191,7 @@ class Output:
 
     @staticmethod
     @abc.abstractmethod
-    def consumes_outputs() -> Set[Type[OutputEvent]]:
+    def consumes_outputs() -> set[type[OutputEvent]]:
         """
         Defines the set of output events that this Output class can consume.
 
@@ -229,7 +221,7 @@ class Trigger(Component):
 
     @staticmethod
     @abc.abstractmethod
-    def consumes_inputs() -> Set[Type[InputEvent]]:
+    def consumes_inputs() -> set[type[InputEvent]]:
         """
         The subtypes of InputEvent that this component accepts.
 
@@ -259,7 +251,7 @@ class Condition(Component):
 
     @staticmethod
     @abc.abstractmethod
-    def consumes_inputs() -> Set[Type[InputEvent]]:
+    def consumes_inputs() -> set[type[InputEvent]]:
         """
         The subtypes of InputEvent that this component accepts.
 
@@ -285,7 +277,7 @@ class Action(Component):
 
     @staticmethod
     @abc.abstractmethod
-    def consumes_inputs() -> Set[Type[InputEvent]]:
+    def consumes_inputs() -> set[type[InputEvent]]:
         """
         The subtypes of InputEvent that this component accepts.
 
@@ -295,7 +287,7 @@ class Action(Component):
 
     @staticmethod
     @abc.abstractmethod
-    def produces_outputs() -> Set[Type[OutputEvent]]:
+    def produces_outputs() -> set[type[OutputEvent]]:
         """
         The subtypes of OutputEvent that this component could generate.
 
@@ -304,31 +296,10 @@ class Action(Component):
         outputs to function as intended.
         """
 
-    _queue: Optional[OutputQueue]
-
-    def __init__(self) -> None:
-        self._queue = None
-
-    def bind(self, queue: OutputQueue) -> None:
-        """
-        Attaches the output to the bot's output queue.
-
-        A queue processor will distribute output events put on this queue
-        to the outputs that are able to process them.
-        """
-
-        self._queue = queue
-
-    async def send(self, event: OutputEvent) -> None:
-        """Helper method to send an event to the queue."""
-
-        if not self._queue:
-            raise RuntimeError("Can not sent events before queue initialisation")
-
-        await self._queue.put(event)
-
     @abc.abstractmethod
-    async def act(self, event: InputEvent, state: Dict[str, Any]) -> None:
+    async def act(
+        self, event: InputEvent, state: dict[str, Any]
+    ) -> AsyncIterable[OutputEvent | None]:
         """
         Performs the action.
 
@@ -337,6 +308,7 @@ class Action(Component):
         `state` will be available for any further actions that process this event.
         No functionality is provided to prevent processing more actions.
         """
+        yield None  # pragma: nocover
 
 
 @ComponentRegistry.register_api_version(ComponentKind.Behaviour, "v1")
@@ -351,29 +323,61 @@ class Behaviour(Component):
     order, which can read from or write to DataStores, and emit OutputEvents.
     """
 
-    name: str
-    active: bool
+    # pylint: disable=too-many-instance-attributes
+    # PyLint counts the private version (_name) and the getter (@property name) separately.
+    # This causes it to see 9 attributes where there are only practically 6.
 
-    triggers: List[TriggerInterface]
-    conditions: List[ConditionInterface]
-    actions: List[ActionInterface]
+    _name: str = ""
+    _active: bool = True
+    _interests: set[type[InputEvent]]
 
-    interests: Set[Type[InputEvent]]
+    triggers: list[TriggerInterface]
+    conditions: list[ConditionInterface]
+    actions: list[ActionInterface]
 
-    def __init__(self, name: str, active: bool = True) -> None:
+    def __init__(self) -> None:
         """Initialises a new Behaviour."""
-
-        self.name = name
-        self.active = active
-
-        self.interests = set()
+        self._interests = set()
         self.triggers = []
         self.conditions = []
         self.actions = []
 
-    def add(
-        self, component: Union[TriggerInterface, ConditionInterface, ActionInterface]
-    ) -> None:
+    @property
+    def name(self) -> str:
+        """
+        Returns the host this IOConfig will listen on.
+
+        The port this IOConfig will listen is given by :meth port:.
+        :return:
+        """
+        return self._name
+
+    @name.setter
+    def name(self, name: str) -> None:
+        self._name = str(name)
+
+    @property
+    def active(self) -> bool:
+        """
+        Returns the host this IOConfig will listen on.
+
+        The port this IOConfig will listen is given by :meth port:.
+        :return:
+        """
+        return self._active
+
+    @active.setter
+    def active(self, active: bool) -> None:
+        self._active = bool(active)
+
+    @property
+    def interests(self) -> frozenset[type[InputEvent]]:
+        """
+        Returns the set of InputEvent types this behaviour is interested in.
+        """
+        return frozenset(self._interests)
+
+    def add(self, component: TriggerInterface | ConditionInterface | ActionInterface) -> None:
         """
         Adds a component to the behaviour which is one or more of a Tigger, Condition, or Action.
 
@@ -404,12 +408,12 @@ class Behaviour(Component):
         """
 
         for possible_new_input in trigger.consumes_inputs():
-            if possible_new_input in self.interests:
+            if possible_new_input in self._interests:
                 continue
 
             removals = set()
 
-            for existing_interest in self.interests:
+            for existing_interest in self._interests:
                 # If the new class is a subclass of an existing interest,
                 # it is already part of our interests.
                 if issubclass(possible_new_input, existing_interest):
@@ -423,10 +427,10 @@ class Behaviour(Component):
 
             # If the new class is not in our current set, add it.
             else:
-                self.interests = self.interests.difference(removals)
-                self.interests.add(possible_new_input)
+                self._interests = self._interests.difference(removals)
+                self._interests.add(possible_new_input)
 
-    def consumes_inputs(self) -> Set[Type[InputEvent]]:
+    def consumes_inputs(self) -> set[type[InputEvent]]:
         """
         The set of InputEvents which are acceptable to one or more triggers.
 
@@ -438,19 +442,9 @@ class Behaviour(Component):
         type without having to invoke the matching methods, which may be complex.
         """
 
-        return self.interests
+        return self._interests
 
-    def bind_output(self, output: OutputQueue) -> None:
-        """
-        Wrapper to bind the output queue to all actions in this behaviour.
-
-        See :meth:`mewbot.core.ActionInterface:bind_output`
-        """
-
-        for action in self.actions:
-            action.bind(output)
-
-    async def process(self, event: InputEvent) -> None:
+    async def process(self, event: InputEvent) -> AsyncIterable[OutputEvent]:
         """
         Processes an InputEvent.
 
@@ -460,17 +454,18 @@ class Behaviour(Component):
         If both of the above succeed, a state object is created, and the Event
         is passed to each action in turn, updating state and emitting any outputs.
         """
-
-        if not any(True for trigger in self.triggers if trigger.matches(event)):
+        if not any(trigger.matches(event) for trigger in self.triggers):
             return
 
-        if not all(True for condition in self.conditions if condition.allows(event)):
+        if not all(condition.allows(event) for condition in self.conditions):
             return
 
-        state: Dict[str, Any] = {}
+        state: dict[str, Any] = {}
 
         for action in self.actions:
-            await action.act(event, state)
+            async for output in action.act(event, state):
+                if output:
+                    yield output
 
     def serialise(self) -> BehaviourConfigBlock:
         """
