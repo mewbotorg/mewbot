@@ -18,8 +18,8 @@ the data is ultimately written out to disc.
 from typing import Any, Callable, Iterable, Optional, Sequence, TypeVar, Union
 
 import json
-import os
 import secrets
+from pathlib import Path
 
 from mewbot.api.v1 import DataSource
 from mewbot.data import DataStoreEmptyException
@@ -95,7 +95,7 @@ class JsonFileDataSourceSingleValue(DataSource[DataType]):
     Reloading data from disk is not supported.
     """
 
-    json_file_path: Optional[os.PathLike[str]]
+    json_file_path: Optional[Union[str, Path]]
     stored_val: DataType
     # A map to turn any value into an instance of the datatype
     data_type_mapper: Callable[
@@ -107,7 +107,7 @@ class JsonFileDataSourceSingleValue(DataSource[DataType]):
 
     def __init__(
         self,
-        json_file_path: os.PathLike[str],
+        json_file_path: Union[str, Path],
         data_type_mapper: Callable[
             [
                 Any,
@@ -123,6 +123,9 @@ class JsonFileDataSourceSingleValue(DataSource[DataType]):
         self.json_file_path = json_file_path
 
         self.data_type_mapper = data_type_mapper
+
+        with open(self.json_file_path, "r", encoding="utf-8") as json_file_in:
+            self.stored_val = self.data_type_mapper(json.load(json_file_in))
 
     def get(self) -> DataType:
         """
@@ -174,18 +177,15 @@ class JsonStringDataSourceIterableValues(DataSource[DataType]):
         :return:
         """
         rtn_val = None
-        try:
-            for val in self.stored_val:
-                rtn_val = val
-                break
-        except IndexError as exp:
-            raise DataStoreEmptyException(
-                f"{self.stored_val = } did not contain a value to return"
-            ) from exp
+        for val in self.stored_val:
+            rtn_val = val
+            break
 
         if rtn_val:
             return rtn_val
-        raise ValueError("Could not get Value.")
+        if self.stored_val:
+            raise ValueError("Could not get Value.")
+        raise DataStoreEmptyException("DataSource seems to be empty.")
 
     def __len__(self) -> int:
         """
@@ -269,21 +269,6 @@ class JsonStringDataSourceListValues(JsonStringDataSourceIterableValues[DataType
                 raise NotImplementedError(
                     f"{val = } is not a valid instance of {data_type_mapper = }"
                 ) from exp
-
-    def get(self) -> DataType:
-        """
-        Returns the first element from the datasource.
-
-        (except in the instance where the loaded list is empty - in which case, raises
-        a DataSourceEmptyException).
-        :return:
-        """
-        try:
-            return self.stored_val[0]
-        except IndexError as exp:
-            raise DataStoreEmptyException(
-                f"{self.stored_val = } did not contain a value to return"
-            ) from exp
 
     def __len__(self) -> int:
         """
