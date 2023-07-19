@@ -218,6 +218,9 @@ def severity_to_level(severity: str) -> str:
     if severity.lower() == "low":
         return "notice"
 
+    if severity.lower() == "high":
+        return "error"
+
     raise NotImplementedError(f"severity {severity} not recognized!")
 
 
