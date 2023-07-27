@@ -2,6 +2,12 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Monitoring a directory for changes and monitoring a file for changes are very different processes.
+
+As such, different classes are used for each of them.
+"""
+
 from __future__ import annotations
 
 from typing import Any, Optional, Set, Union
@@ -19,14 +25,13 @@ from watchdog.observers import Observer  # type: ignore
 
 from mewbot.core import InputEvent
 from mewbot.io.file_system_monitor.fs_events import (
-    DirCreatedAtWatchLocationFSInputEvent,
     DirCreatedWithinWatchedDirFSInputEvent,
     DirDeletedFromWatchedDirFSInputEvent,
     DirDeletedFromWatchLocationFSInputEvent,
     DirMovedOutOfWatchedDirFSInputEvent,
     DirMovedWithinWatchedDirFSInputEvent,
+    DirUpdatedAtWatchLocationFSInputEvent,
     DirUpdatedWithinWatchedDirFSInputEvent,
-    FileCreatedAtWatchLocationFSInputEvent,
     FileCreatedWithinWatchedDirFSInputEvent,
     FileDeletedWithinWatchedDirFSInputEvent,
     FileMovedOutsideWatchedDirFSInputEvent,
@@ -112,40 +117,6 @@ class BaseObserver(abc.ABC):
             return False
         return True
 
-    async def _input_path_created_task(self, target_async_path: aiopath.AsyncPath) -> None:
-        """
-        Called when _monitor_file detects that there's now something at the input_path location.
-
-        Spun off into a separate method because want to get into starting the watch as fast as
-        possible.
-        """
-        if self._input_path is None:
-            self._logger.warning(
-                "Unexpected call to _input_path_created_task - _input_path is None!"
-            )
-            return
-
-        str_path: str = self._input_path
-
-        if await target_async_path.is_dir():
-            self._logger.info('New asset at "%s" detected as dir', self._input_path)
-
-            await self.send(
-                DirCreatedAtWatchLocationFSInputEvent(path=str_path, base_event=None)
-            )
-
-        elif await target_async_path.is_file():
-            self._logger.info('New asset at "%s" detected as file', self._input_path)
-
-            await self.send(
-                FileCreatedAtWatchLocationFSInputEvent(path=str_path, base_event=None)
-            )
-
-        else:
-            self._logger.warning(
-                "Unexpected case in _input_path_created_task - %s", target_async_path
-            )
-
     async def send(self, event: FSInputEvent) -> None:
         """
         Responsible for putting events on the wire.
@@ -177,6 +148,7 @@ class BaseObserver(abc.ABC):
             ),
         ):
             await self._process_file_event_from_within_dir(event)
+
         elif isinstance(
             event,
             (
@@ -283,12 +255,24 @@ class BaseObserver(abc.ABC):
             )
 
         elif isinstance(event, watchdog.events.DirModifiedEvent):
-            await self.send(
-                DirUpdatedWithinWatchedDirFSInputEvent(
-                    path=event.src_path,
-                    base_event=event,
+            # If the path is the same as the monitored path, then the folder we're watching itself
+            # has been modified
+            if pathlib.Path(event.src_path).samefile(
+                pathlib.Path(self._input_path).resolve()
+            ):
+                await self.send(
+                    DirUpdatedAtWatchLocationFSInputEvent(
+                        path=event.src_path,
+                        base_event=event,
+                    )
                 )
-            )
+            else:
+                await self.send(
+                    DirUpdatedWithinWatchedDirFSInputEvent(
+                        path=event.src_path,
+                        base_event=event,
+                    )
+                )
 
         elif isinstance(event, watchdog.events.DirMovedEvent):
             # Check to see of the directory has been moved within or out of the dir
@@ -348,6 +332,12 @@ class WindowsFileSystemObserver(BaseObserver):
     def __init__(
         self, output_queue: Optional[asyncio.Queue[InputEvent]], input_path: str
     ) -> None:
+        """
+        Prepare to monitor a directory.
+
+        :param output_queue:
+        :param input_path:
+        """
         self._output_queue = output_queue
         self._input_path = input_path
 
@@ -445,7 +435,7 @@ class WindowsFileSystemObserver(BaseObserver):
             dir_path = os.path.split(event.src_path)[0]
 
             await self.send(
-                DirUpdatedWithinWatchedDirFSInputEvent(
+                DirUpdatedAtWatchLocationFSInputEvent(
                     path=dir_path,
                     base_event=None,
                 )
@@ -499,7 +489,6 @@ class WindowsFileSystemObserver(BaseObserver):
         :param event:
         :return:
         """
-        # Todo: Need to deal with files being moved out of the watched dir
         if isinstance(event, watchdog.events.FileSystemMovedEvent):
             self._logger.info("System moved a file %s", str(event))
 
@@ -647,16 +636,15 @@ class WindowsFileSystemObserver(BaseObserver):
                 )
                 return
 
-            else:
-                await self.send(
-                    DirMovedOutOfWatchedDirFSInputEvent(
-                        path=event.src_path,
-                        dir_src_path=event.src_path,
-                        dir_dst_path=event.dest_path,
-                        base_event=event,
-                    )
+            await self.send(
+                DirMovedOutOfWatchedDirFSInputEvent(
+                    path=event.src_path,
+                    dir_src_path=event.src_path,
+                    dir_dst_path=event.dest_path,
+                    base_event=event,
                 )
-                return
+            )
+            return
 
         if isinstance(event, watchdog.events.DirDeletedEvent):
             # Not that I think you'll ever actually see one of these events
@@ -669,18 +657,7 @@ class WindowsFileSystemObserver(BaseObserver):
                     base_event=event,
                 )
             )
-
-    def start_watchdog_on_dir(self) -> None:
-        """
-        Use watchdog in a separate thread to watch a dir for changes.
-        """
-        handler = _EventHandler(queue=self._internal_queue, loop=asyncio.get_event_loop())
-
-        self._watchdog_observer = Observer()
-        self._watchdog_observer.schedule(
-            event_handler=handler, path=self._input_path, recursive=True
-        )
-        self._watchdog_observer.start()
+            return
 
 
 class LinuxFileSystemObserver(BaseObserver):
@@ -751,6 +728,9 @@ class LinuxFileSystemObserver(BaseObserver):
         :param event:
         :return:
         """
+        if self._input_path is None:
+            raise NotImplementedError("self._input_path unexpectedly None.")
+
         monitored_dir_path = pathlib.Path(self._input_path)
         dir_dst_path = pathlib.Path(event.dest_path)
         if dir_dst_path.resolve().is_relative_to(monitored_dir_path):

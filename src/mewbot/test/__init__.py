@@ -51,7 +51,12 @@ class BaseTestClassWithConfig(ABC, Generic[T_co]):
                     for document in yaml.load_all(config, Loader=yaml.CSafeLoader)
                     if document["implementation"] == impl
                 ]
-                self._config = _docs[0]
+                try:
+                    self._config = _docs[0]
+                except IndexError as exp:
+                    raise IndexError(
+                        f"_docs was empty - {impl = } may not have been found in doc?"
+                    ) from exp
 
         return self._config
 

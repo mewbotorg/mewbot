@@ -4,6 +4,10 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Contains the various input classes which are actually used to parse events from the file system.
+"""
+
 from __future__ import annotations
 
 from typing import Any, AsyncGenerator, Optional, Set, Tuple, Type, Union
@@ -37,9 +41,7 @@ from mewbot.io.file_system_monitor.fs_events import (
     FileCreatedWithinWatchedDirFSInputEvent,
     FileDeletedFromWatchLocationFSInputEvent,
     FileDeletedWithinWatchedDirFSInputEvent,
-    FileMovedFromWatchLocationFSInputEvent,
     FileMovedOutsideWatchedDirFSInputEvent,
-    FileMovedToWatchLocationFSInputEvent,
     FileMovedWithinWatchedDirFSInputEvent,
     FileUpdatedAtWatchLocationFSInputEvent,
     FileUpdatedWithinWatchedDirFSInputEvent,
@@ -109,45 +111,8 @@ class FileTypeFSInput(Input, BaseFileMonitorMixin):
         return {
             FileCreatedAtWatchLocationFSInputEvent,  # A file is created at the monitored point
             FileUpdatedAtWatchLocationFSInputEvent,  # The monitored file is updated
-            FileMovedToWatchLocationFSInputEvent,
-            FileMovedFromWatchLocationFSInputEvent,
             FileDeletedFromWatchLocationFSInputEvent,  # The monitored file is deleted
         }
-
-    @property
-    def input_path(self) -> Optional[str]:
-        """
-        The path being watched by the file type monitor.
-
-        :return:
-        """
-        return self._input_path
-
-    @input_path.setter
-    def input_path(self, new_input_path: Optional[str]) -> None:
-        """
-        Set the path to be watched.
-
-        :param new_input_path:
-        :return:
-        """
-        self._input_path = new_input_path
-
-    @property
-    def input_path_exists(self) -> bool:
-        """
-        Checks to see if the input path is registered as exists.
-
-        :return:
-        """
-        return self._input_path_exists
-
-    @input_path_exists.setter
-    def input_path_exists(self, value: Any) -> None:
-        """
-        Input path is determined internally using some variant of os.path.
-        """
-        raise AttributeError("input_path_exists cannot be externally set")
 
     async def run(self) -> None:
         """
@@ -171,8 +136,8 @@ class FileTypeFSInput(Input, BaseFileMonitorMixin):
             )
 
         while True:
-            await self._monitor_input_path()
-            await self._monitor_file_watcher()
+            await self.monitor_input_path()
+            await self.monitor_file_watcher()
 
     async def send(self, event: FSInputEvent) -> None:
         """
@@ -198,6 +163,8 @@ class DirTypeFSInput(Input):
     _input_path_exists: bool = False  # Was a something found at this location?
 
     _polling_interval: float = 0.5
+
+    file_system_observer: Union[WindowsFileSystemObserver, LinuxFileSystemObserver]
 
     def __init__(self, input_path: Optional[str] = None) -> None:
         """
@@ -316,27 +283,33 @@ class DirTypeFSInput(Input):
             )
 
         while True:
-            # We#re waiting for the thing we're monitoring to exist
-            await self._monitor_input_path()
+            # We're waiting for the thing we're monitoring to exist
+            await self.monitor_input_path()
 
             assert self.input_path is not None
 
             # There's something at the location - it should be a dir - activate the watcher
-            file_system_observer: Union[WindowsFileSystemObserver, LinuxFileSystemObserver]
+            self.file_system_observer: Union[
+                WindowsFileSystemObserver, LinuxFileSystemObserver
+            ]
             if self._platform_str == "win32":
-                file_system_observer = WindowsFileSystemObserver(
+                self.file_system_observer = WindowsFileSystemObserver(
                     output_queue=self.queue, input_path=self.input_path
                 )
 
-                self._input_path_exists = await file_system_observer.monitor_dir_watcher()
+                self._input_path_exists = (
+                    await self.file_system_observer.monitor_dir_watcher()
+                )
             else:
-                file_system_observer = LinuxFileSystemObserver(
+                self.file_system_observer = LinuxFileSystemObserver(
                     output_queue=self.queue, input_path=self.input_path
                 )
 
-                self._input_path_exists = await file_system_observer.monitor_dir_watcher()
+                self._input_path_exists = (
+                    await self.file_system_observer.monitor_dir_watcher()
+                )
 
-    async def _monitor_input_path(self) -> None:
+    async def monitor_input_path(self) -> None:
         """
         Preforms a check on the file - updating if needed.
         """
@@ -357,16 +330,16 @@ class DirTypeFSInput(Input):
                 continue
 
             target_async_path: aiopath.AsyncPath = aiopath.AsyncPath(self._input_path)
-            target_exists: bool = await target_async_path.exists()
-            is_target_file: bool = await target_async_path.is_file()
 
-            if target_exists and is_target_file:
+            target_exists: bool = await target_async_path.exists()
+            if not target_exists:
                 await asyncio.sleep(
                     self._polling_interval
                 )  # Give the rest of the loop a chance to do something
                 continue
 
-            if not target_exists:
+            is_target_file: bool = await target_async_path.is_file()
+            if target_exists and is_target_file:
                 await asyncio.sleep(
                     self._polling_interval
                 )  # Give the rest of the loop a chance to do something
@@ -413,7 +386,7 @@ class DirTypeFSInput(Input):
             self._logger.info('New asset at "%s" detected as dir', self._input_path)
 
             await self.send(
-                FileCreatedAtWatchLocationFSInputEvent(path=str_path, base_event=None)
+                DirCreatedAtWatchLocationFSInputEvent(path=str_path, base_event=None)
             )
 
         else:
