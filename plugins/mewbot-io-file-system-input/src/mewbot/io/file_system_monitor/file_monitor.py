@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import Any, AsyncGenerator, Optional, Set, Tuple
 
 import asyncio
+import dataclasses
 import logging
 
 import aiopath  # type: ignore
@@ -26,6 +27,38 @@ from mewbot.io.file_system_monitor.fs_events import (
 )
 
 
+@dataclasses.dataclass
+class InputState:
+    """
+    Stores a path to the object we're watching and some basic information about it.
+    """
+
+    input_path: Optional[str] = None
+    input_path_exists: bool = False
+    _input_path_type: Optional[str] = None
+
+    @property
+    def input_path_type(self) -> Optional[str]:
+        """
+        Allows some access control on the input_path_type.
+
+        :return:
+        """
+        return self._input_path_type
+
+    @input_path_type.setter
+    def input_path_type(self, value: Optional[str]) -> None:
+        """
+        Preforms validation and sets the input path type.
+
+        :param value:
+        :return:
+        """
+        if value not in (None, "dir", "file"):
+            raise AttributeError(f"Cannot set input_path_type to {value} - not valid")
+        self._input_path_type = value
+
+
 class BaseFileMonitorMixin:
     """
     Provides tools to watch a file for changes to it.
@@ -33,9 +66,7 @@ class BaseFileMonitorMixin:
 
     _logger: logging.Logger
 
-    _input_path: Optional[str] = None  # A location on the file system to monitor
-    _input_path_exists: bool = False
-    _input_path_type: Optional[str] = None
+    _input_path_state: InputState = InputState()
 
     _polling_interval: float = 0.5
 
@@ -50,7 +81,7 @@ class BaseFileMonitorMixin:
 
         :return:
         """
-        return self._input_path
+        return self._input_path_state.input_path
 
     @input_path.setter
     def input_path(self, new_input_path: Optional[str]) -> None:
@@ -60,7 +91,7 @@ class BaseFileMonitorMixin:
         :param new_input_path:
         :return:
         """
-        self._input_path = new_input_path
+        self._input_path_state.input_path = new_input_path
 
     @property
     def input_path_exists(self) -> bool:
@@ -69,7 +100,7 @@ class BaseFileMonitorMixin:
 
         :return:
         """
-        return self._input_path_exists
+        return self._input_path_state.input_path_exists
 
     @input_path_exists.setter
     def input_path_exists(self, value: Any) -> None:
@@ -99,25 +130,25 @@ class BaseFileMonitorMixin:
         Spun off into a separate method because want to get into starting the watch as fast as
         possible.
         """
-        if self._input_path is None:
+        if self._input_path_state.input_path is None:
             self._logger.warning(
                 "Unexpected call to _input_path_file_created_task - _input_path is None!"
             )
             return
 
-        if self._input_path is not None and self._input_path_type == "dir":
+        if self._input_path_state.input_path is not None and self._input_path_state.input_path_type == "dir":
             self._logger.warning(
                 "Unexpected call to _input_path_file_created_task - "
                 "_input_path is not None but _input_path_type is dir"
             )
 
-        str_path: str = self._input_path
+        str_path: str = self._input_path_state.input_path
 
         if await target_async_path.is_dir():
-            self._logger.info('New asset at "%s" detected as dir', self._input_path)
+            self._logger.info('New asset at "%s" detected as dir', self._input_path_state.input_path)
 
         elif await target_async_path.is_file():
-            self._logger.info('New asset at "%s" detected as file', self._input_path)
+            self._logger.info('New asset at "%s" detected as file', self._input_path_state.input_path)
 
             await self.send(
                 FileCreatedAtWatchLocationFSInputEvent(path=str_path, base_event=None)
@@ -153,7 +184,7 @@ class BaseFileMonitorMixin:
                 # (or folder - in which case this will do nothing more)
                 # - (Putting an event to indicate this on the wire should have happened elsewhere)
                 self.watcher = None
-                self._input_path_exists = False
+                self._input_path_state.input_path_exists = False
 
                 return
 
@@ -226,23 +257,23 @@ class BaseFileMonitorMixin:
 
         Several properties are cached.
         """
-        if self._input_path_exists and self._input_path_type == "file":
+        if self._input_path_state.input_path_exists and self._input_path_state.input_path_type == "file":
             return
 
         self._logger.info(
             "The provided input path will be monitored until a file appears - %s - %s",
-            self._input_path,
-            self._input_path_type,
+            self._input_path_state.input_path,
+            self._input_path_state.input_path_type,
         )
 
         while True:
-            if self._input_path is None:
+            if self._input_path_state.input_path is None:
                 await asyncio.sleep(
                     self._polling_interval
                 )  # Give the rest of the loop a chance to do something
                 continue
 
-            target_async_path: aiopath.AsyncPath = aiopath.AsyncPath(self._input_path)
+            target_async_path: aiopath.AsyncPath = aiopath.AsyncPath(self._input_path_state.input_path)
             target_exists: bool = await target_async_path.exists()
             is_target_dir: bool = await target_async_path.is_dir()
             if not target_exists:
@@ -259,7 +290,7 @@ class BaseFileMonitorMixin:
 
             # Something has come into existence since the last loop
             self._logger.info(
-                "Something has appeared at the input_path - %s", self._input_path
+                "Something has appeared at the input_path - %s", self._input_path_state.input_path
             )
 
             # All the logic which needs to be run when a file is created at the target location
@@ -269,6 +300,6 @@ class BaseFileMonitorMixin:
                 self.input_path_file_created_task(target_async_path)
             )
 
-            self.watcher = watchfiles.awatch(self._input_path)
-            self._input_path_exists = True
+            self.watcher = watchfiles.awatch(self._input_path_state.input_path)
+            self._input_path_state.input_path_exists = True
             return

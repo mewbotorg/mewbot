@@ -211,13 +211,13 @@ class BaseObserver(abc.ABC):
     async def _process_file_creation_event(
         self, event: watchdog.events.FileCreatedEvent
     ) -> None:
-        raise NotImplementedError("Cannot handle FileCreatedEvent")
+        ...
 
     @abc.abstractmethod
     async def _process_file_modified_event(
         self, event: watchdog.events.FileModifiedEvent
     ) -> None:
-        raise NotImplementedError("Cannot handle FileModifiedEvent")
+        ...
 
     @abc.abstractmethod
     async def _process_file_move_event(
@@ -226,15 +226,13 @@ class BaseObserver(abc.ABC):
             watchdog.events.FileSystemMovedEvent, watchdog.events.FileSystemMovedEvent
         ],
     ) -> None:
-        raise NotImplementedError(
-            "Cannot handle FileSystemMovedEvent or FileSystemMovedEvent"
-        )
+        ...
 
     @abc.abstractmethod
     async def _process_file_delete_event(
         self, event: watchdog.events.FileDeletedEvent
     ) -> None:
-        raise NotImplementedError("Cannot handle FileDeletedEvent")
+        ...
 
     async def _process_dir_event_from_within_dir(self, event: FileSystemEvent) -> None:
         """
