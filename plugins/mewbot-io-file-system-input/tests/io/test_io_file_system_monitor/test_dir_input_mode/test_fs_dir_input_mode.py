@@ -12,6 +12,7 @@ Tests the dir input - monitors a directory for changes.
 
 
 import asyncio
+import ctypes
 import os
 import shutil
 import sys
@@ -25,11 +26,11 @@ from mewbot.io.file_system_monitor.fs_events import (
     DirCreatedWithinWatchedDirFSInputEvent,
     DirDeletedFromWatchedDirFSInputEvent,
     DirDeletedFromWatchLocationFSInputEvent,
+    DirMovedWithinWatchedDirFSInputEvent,
     DirUpdatedAtWatchLocationFSInputEvent,
     DirUpdatedWithinWatchedDirFSInputEvent,
-DirMovedWithinWatchedDirFSInputEvent,
     FileCreatedWithinWatchedDirFSInputEvent,
-    FileDeletedWithinWatchedDirFSInputEvent,
+    FileMovedWithinWatchedDirFSInputEvent,
     FileUpdatedWithinWatchedDirFSInputEvent,
 )
 
@@ -44,15 +45,16 @@ from ..fs_test_utils import FileSystemTestUtilsDirEvents, FileSystemTestUtilsFil
 # linux, code has - inevitably - ended up very similar.
 # As such, this inspection has had to be disabled.
 
+# pylint: disable=protected-access
+# Need to access the internals of the classes to put them into pathological states.
+
 
 class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEvents):
     """
     Tests the DirTypeFSInput input type.
     """
 
-
     # - RUNNING TO DETECT DIR CHANGES
-
 
     @pytest.mark.asyncio
     async def testDirTypeFSInput_existing_dir_create_dir_del_dir(self) -> None:
@@ -251,12 +253,26 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
                 test_fs_input.file_system_observer.monitor_dir_watcher()
             )
 
+            run_task_5 = asyncio.get_running_loop().create_task(
+                test_fs_input.file_system_observer._process_event_from_watched_dir("nonsense")
+            )
+
+            test_fs_input.file_system_observer._input_path = None
+            run_task_6 = asyncio.get_running_loop().create_task(
+                test_fs_input.file_system_observer._process_file_move_event("nonsense")
+            )
+
             await self.cancel_task(run_task)
             await self.cancel_task(run_task_2)
             # The observer has been sabotaged. This should fail.
             try:
                 await self.cancel_task(run_task_4)  # type: ignore
             except NotImplementedError:
+                pass
+            await self.cancel_task(run_task_5)
+            try:
+                await self.cancel_task(run_task_6)
+            except (NotImplementedError, AttributeError):
                 pass
 
     @pytest.mark.asyncio
@@ -302,9 +318,7 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
         with tempfile.TemporaryDirectory() as tmp_dir_path:
             new_dir_path = os.path.join(tmp_dir_path, "text_file_delete_me.txt")
 
-            run_task, output_queue, test_fs_input = await self.get_DirTypeFSInput(
-                new_dir_path
-            )
+            _, output_queue, test_fs_input = await self.get_DirTypeFSInput(new_dir_path)
 
             # There's no path, so there is currently no observer
             assert not hasattr(test_fs_input, "file_system_observer")
@@ -360,6 +374,11 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
             except asyncio.exceptions.TimeoutError:
                 pass
 
+            try:
+                await self.cancel_task(run_task)
+            except NotImplementedError:
+                pass
+
     @pytest.mark.asyncio
     async def test_DirTypeFSInput_bad_event_in_output_queue(
         self,
@@ -400,7 +419,8 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
     @pytest.mark.skipif(sys.platform.startswith("win"), reason="Linux (like) only test")
     async def testDirTypeFSInput_existing_dir_cre_del_dir_windows(self) -> None:
         """
-        Check that we get the expected created signal from a dir created in a monitorbd dir
+        Check that we get the expected created signal from a dir created in a monitorbd dir.
+
         Followed by an attempt to update the file.
         """
         with tempfile.TemporaryDirectory() as tmp_dir_path:
@@ -484,8 +504,7 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
     @pytest.mark.skipif(sys.platform.startswith("win"), reason="Linux (like) only test")
     async def testDirTypeFSInput_existing_dir_create_move_dir_linux(self) -> None:
         """
-        Checks we get the expected created signal from a dir which is created in a monitored dir
-        Followed by moving the dir.
+        Create a dir in a monitored dir - then move it around - checking the output.
         """
 
         with tempfile.TemporaryDirectory() as tmp_dir_path:
@@ -522,10 +541,9 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
             await self.cancel_task(run_task)
 
     @pytest.mark.asyncio
-    async def testDirTypeFSInput_existing_dir_create_move_dir(self) -> None:
+    async def testDirTypeFSInput_existing_dir_create_move_dir_move_by_rename(self) -> None:
         """
-        Checks we get the expected created signal from a dir which is created in a monitored dir
-        Followed by moving the dir.
+        Create a dir in a monitored dir - then move it around via a rename.
         """
 
         with tempfile.TemporaryDirectory() as tmp_dir_path:
@@ -560,77 +578,286 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
 
             await self.cancel_task(run_task)
 
-    # @pytest.mark.asyncio
-    # @pytest.mark.skipif(sys.platform.startswith("win"), reason="Linux (like) only test")
-    # async def testDirTypeFSInput_existing_dir_create_move_dir_loop_linux(self) -> None:
-    #     """
-    #     Checks we get the expected created signal from a dir which is created in a monitored dir
-    #     Followed by moving the dir.
-    #     Repeated in a loop.
-    #     """
-    #     with tempfile.TemporaryDirectory() as tmp_dir_path:
-    #         new_subfolder_path = os.path.join(tmp_dir_path, "subfolder_1", "subfolder_2")
-    #         os.makedirs(new_subfolder_path)
-    #
-    #         run_task, output_queue = await self.get_DirTypeFSInput(tmp_dir_path)
-    #
-    #         for i in range(10):
-    #             # - Using blocking methods - this should still work
-    #             new_dir_path = os.path.join(new_subfolder_path, "text_file_delete_me.txt")
-    #
-    #             os.mkdir(new_dir_path)
-    #             if i == 0:
-    #                 await self.process_dir_event_queue_response(
-    #                     output_queue=output_queue,
-    #                     dir_path=new_dir_path,
-    #                     event_type=CreatedDirFSInputEvent,
-    #                 )
-    #             else:
-    #                 await self.process_dir_event_queue_response(
-    #                     output_queue=output_queue,
-    #                     dir_path=new_dir_path,
-    #                     event_type=CreatedDirFSInputEvent,
-    #                 )
-    #                 await self.process_dir_event_queue_response(
-    #                     output_queue=output_queue,
-    #                     dir_path=new_subfolder_path,
-    #                     event_type=UpdatedDirFSInputEvent,
-    #                 )
-    #
-    #             # Move a file to a different location
-    #             post_move_dir_path = os.path.join(
-    #                 new_subfolder_path, "moved_text_file_delete_me.txt"
-    #             )
-    #             os.rename(src=new_dir_path, dst=post_move_dir_path)
-    #
-    #             # I think this is a Windows problem - probably.
-    #             if i == 0:
-    #                 await self.process_dir_event_queue_response(
-    #                     output_queue=output_queue,
-    #                     dir_path=new_subfolder_path,
-    #                     event_type=UpdatedDirFSInputEvent,
-    #                 )
-    #             await self.process_file_move_queue_response(
-    #                 output_queue,
-    #                 file_src_parth=new_dir_path,
-    #                 file_dst_path=post_move_dir_path,
-    #             )
-    #             await self.process_dir_event_queue_response(
-    #                 output_queue=output_queue,
-    #                 dir_path=new_subfolder_path,
-    #                 event_type=UpdatedDirFSInputEvent,
-    #             )
-    #
-    #             shutil.rmtree(post_move_dir_path)
-    #             await self.process_dir_event_queue_response(
-    #                 output_queue=output_queue,
-    #                 dir_path=post_move_dir_path,
-    #                 event_type=DeletedDirFSInputEvent,
-    #             )
-    #             await self.process_dir_event_queue_response(
-    #                 output_queue=output_queue,
-    #                 dir_path=new_subfolder_path,
-    #                 event_type=UpdatedDirFSInputEvent,
-    #             )
-    #
-    #         await self.cancel_task(run_task)
+    @pytest.mark.asyncio
+    async def testDirTypeFSInput_existing_dir_create_move_dir_move_by_shutil_move(
+        self,
+    ) -> None:
+        """
+        Create a directory inside the monitored dir - then move it using shutil.
+        """
+
+        with tempfile.TemporaryDirectory() as tmp_dir_path:
+            run_task, output_queue, _ = await self.get_DirTypeFSInput(tmp_dir_path)
+
+            # - Using blocking methods - this should still work
+            new_dir_path = os.path.join(tmp_dir_path, "text_file_delete_me.txt")
+
+            os.mkdir(new_dir_path)
+            await self.process_dir_event_queue_response(
+                output_queue=output_queue,
+                dir_path=new_dir_path,
+                event_type=DirCreatedWithinWatchedDirFSInputEvent,
+            )
+
+            await asyncio.sleep(0.1)
+
+            # Move a file to a different location
+            post_move_dir_path = os.path.join(tmp_dir_path, "moved_text_file_delete_me.txt")
+            shutil.move(src=new_dir_path, dst=post_move_dir_path)
+
+            # This is an asymmetry between how files and folders handle delete
+            # left in while I try and think how to deal sanely with it
+            # await self.process_dir_deletion_response(output_queue, dir_path=new_dir_path)
+            await self.process_dir_event_queue_response(
+                output_queue=output_queue,
+                dir_path=tmp_dir_path,
+                event_type=DirMovedWithinWatchedDirFSInputEvent,
+            )
+
+            # Now create a new folder inside the
+
+            await self.cancel_task(run_task)
+
+    @pytest.mark.asyncio
+    async def testDirTypeFSInput_existing_dir_create_move_file(self) -> None:
+        """
+        Create a file in the monitored dir - then move it.
+        """
+
+        with tempfile.TemporaryDirectory() as tmp_dir_path:
+            run_task, output_queue, _ = await self.get_DirTypeFSInput(tmp_dir_path)
+
+            # - Using blocking methods - this should still work
+            new_dir_path = os.path.join(tmp_dir_path, "text_file_delete_me.txt")
+            with open(new_dir_path, "w", encoding="utf-8") as out_file:
+                out_file.write("test stuff")
+
+            await self.process_dir_event_queue_response(
+                output_queue=output_queue,
+                dir_path=new_dir_path,
+                event_type=FileCreatedWithinWatchedDirFSInputEvent,
+            )
+
+            await asyncio.sleep(1)
+
+            # Move a file to a different location
+            post_move_dir_path = os.path.join(tmp_dir_path, "moved_text_file_delete_me.txt")
+            shutil.move(src=new_dir_path, dst=post_move_dir_path)
+
+            await asyncio.sleep(5)
+
+            # We may be getting a transitory file updated event
+            if output_queue.qsize() == 3:
+                await self.process_dir_event_queue_response(
+                    output_queue=output_queue,
+                    dir_path=tmp_dir_path,
+                    event_type=DirUpdatedAtWatchLocationFSInputEvent,
+                    allowed_queue_size=2,
+                )
+
+                # This is an asymmetry between how files and folders handle delete
+                # left in while I try and think how to deal sanely with it
+                # await self.process_dir_deletion_response(output_queue, dir_path=new_dir_path)
+                # DirUpdatedAtWatchLocationFSInputEvent
+                await self.process_dir_event_queue_response(
+                    output_queue=output_queue,
+                    dir_path=new_dir_path,
+                    event_type=FileUpdatedWithinWatchedDirFSInputEvent,
+                    allowed_queue_size=1,
+                )
+                await self.process_dir_event_queue_response(
+                    output_queue=output_queue,
+                    dir_path=post_move_dir_path,
+                    event_type=FileMovedWithinWatchedDirFSInputEvent,
+                    allowed_queue_size=0,
+                )
+
+            elif output_queue.qsize() == 2:
+                await self.process_dir_event_queue_response(
+                    output_queue=output_queue,
+                    dir_path=tmp_dir_path,
+                    event_type=DirUpdatedAtWatchLocationFSInputEvent,
+                    allowed_queue_size=2,
+                )
+
+                # This is an asymmetry between how files and folders handle delete
+                # left in while I try and think how to deal sanely with it
+                # await self.process_dir_deletion_response(output_queue, dir_path=new_dir_path)
+                # DirUpdatedAtWatchLocationFSInputEvent
+                await self.process_dir_event_queue_response(
+                    output_queue=output_queue,
+                    dir_path=tmp_dir_path,
+                    event_type=DirUpdatedAtWatchLocationFSInputEvent,
+                    allowed_queue_size=1,
+                )
+                await self.process_dir_event_queue_response(
+                    output_queue=output_queue,
+                    dir_path=tmp_dir_path,
+                    event_type=FileMovedWithinWatchedDirFSInputEvent,
+                    allowed_queue_size=0,
+                )
+
+            else:
+                raise NotImplementedError(f"{output_queue.qsize() = } not expected.")
+
+            await self.cancel_task(run_task)
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not sys.platform.startswith("win"), reason="Windows only test")
+    async def testDirTypeFSInput_existing_dir_modify_file(self) -> None:
+        """
+        Create a file in a monitored dir, then modify it.
+
+        Checking for the right signals.
+        This may not be working - windows modification events are weird.
+        """
+
+        with tempfile.TemporaryDirectory() as tmp_dir_path:
+            _, _, _ = await self.get_DirTypeFSInput(tmp_dir_path)
+
+            file_attribute_hidden = 0x02
+
+            ctypes.windll.kernel32.SetFileAttributesW(tmp_dir_path, file_attribute_hidden)
+
+            await asyncio.sleep(5)
+
+            new_path = os.path.join(tmp_dir_path, "test_dir")
+            os.mkdir(new_path)
+
+            ctypes.windll.kernel32.SetFileAttributesW(new_path, file_attribute_hidden)
+
+    @pytest.mark.asyncio
+    async def testDirTypeFSInput_existing_dir_create_move_dir_loop_linux(self) -> None:
+        """
+        Create a directory in a monitored dir, then move it in a loop.
+
+        The loop behavior - especially a rapid loop - seems to confuse windows.
+        """
+        with tempfile.TemporaryDirectory() as tmp_dir_path:
+            new_subfolder_path = os.path.join(tmp_dir_path, "subfolder_1", "subfolder_2")
+            os.makedirs(new_subfolder_path)
+
+            run_task, output_queue, _ = await self.get_DirTypeFSInput(tmp_dir_path)
+
+            for i in range(10):
+                # - Using blocking methods - this should still work
+                new_dir_path = os.path.join(new_subfolder_path, "text_file_delete_me.txt")
+
+                os.mkdir(new_dir_path)
+                await asyncio.sleep(0.1)
+
+                if output_queue.qsize() == 1:
+                    await self.process_dir_event_queue_response(
+                        output_queue=output_queue,
+                        dir_path=new_dir_path,
+                        event_type=DirCreatedWithinWatchedDirFSInputEvent,
+                    )
+                else:
+                    await self.process_dir_event_queue_response(
+                        output_queue=output_queue,
+                        dir_path=new_dir_path,
+                        event_type=DirCreatedWithinWatchedDirFSInputEvent,
+                    )
+                    await self.process_dir_event_queue_response(
+                        output_queue=output_queue,
+                        dir_path=new_subfolder_path,
+                        event_type=DirUpdatedWithinWatchedDirFSInputEvent,
+                    )
+
+                # Move a dir to a different location
+                post_move_dir_path = os.path.join(
+                    new_subfolder_path, "moved_text_file_delete_me.txt"
+                )
+                os.rename(src=new_dir_path, dst=post_move_dir_path)
+                await asyncio.sleep(2.0)
+
+                # I think this is a Windows problem - probably.
+                if output_queue.qsize() == 1 and i == 0:
+                    await self.process_dir_event_queue_response(
+                        output_queue=output_queue,
+                        dir_path=new_subfolder_path,
+                        event_type=DirUpdatedWithinWatchedDirFSInputEvent,
+                    )
+                elif output_queue.qsize() == 1:
+                    await self.process_dir_event_queue_response(
+                        output_queue=output_queue,
+                        dir_path=new_subfolder_path,
+                        event_type=DirMovedWithinWatchedDirFSInputEvent,
+                    )
+                elif output_queue.qsize() == 2:
+                    await self.process_dir_event_queue_response(
+                        output_queue=output_queue,
+                        dir_path=new_subfolder_path,
+                        event_type=DirMovedWithinWatchedDirFSInputEvent,
+                    )
+
+                    await self.process_dir_event_queue_response(
+                        output_queue=output_queue,
+                        dir_path=new_subfolder_path,
+                        event_type=DirUpdatedWithinWatchedDirFSInputEvent,
+                    )
+
+                elif output_queue.qsize() == 3:
+                    await self.process_dir_event_queue_response(
+                        output_queue=output_queue,
+                        dir_path=new_subfolder_path,
+                        event_type=DirUpdatedWithinWatchedDirFSInputEvent,
+                        allowed_queue_size=2,
+                    )
+
+                    await self.process_dir_event_queue_response(
+                        output_queue=output_queue,
+                        dir_path=new_subfolder_path,
+                        event_type=DirMovedWithinWatchedDirFSInputEvent,
+                    )
+
+                    await self.process_dir_event_queue_response(
+                        output_queue=output_queue,
+                        dir_path=new_subfolder_path,
+                        event_type=DirUpdatedWithinWatchedDirFSInputEvent,
+                    )
+
+                else:
+                    raise NotImplementedError(f"{output_queue.qsize() = } was not expected.")
+
+                # Delete the moved file
+
+                shutil.rmtree(post_move_dir_path)
+                await asyncio.sleep(1.0)
+
+                if output_queue.qsize() == 2:
+                    await self.process_dir_event_queue_response(
+                        output_queue=output_queue,
+                        dir_path=tmp_dir_path,
+                        event_type=DirUpdatedWithinWatchedDirFSInputEvent,
+                    )
+                    await self.process_dir_event_queue_response(
+                        output_queue=output_queue,
+                        dir_path=post_move_dir_path,
+                        event_type=DirDeletedFromWatchedDirFSInputEvent,
+                    )
+
+                elif output_queue.qsize() == 3:
+                    # Sometimes the target file sees an update before delete
+                    await self.process_dir_event_queue_response(
+                        output_queue=output_queue,
+                        dir_path=post_move_dir_path,
+                        event_type=DirUpdatedWithinWatchedDirFSInputEvent,
+                    )
+                    await self.process_dir_event_queue_response(
+                        output_queue=output_queue,
+                        dir_path=post_move_dir_path,
+                        event_type=DirDeletedFromWatchedDirFSInputEvent,
+                    )
+                    await self.process_dir_event_queue_response(
+                        output_queue=output_queue,
+                        dir_path=new_subfolder_path,
+                        event_type=DirUpdatedWithinWatchedDirFSInputEvent,
+                    )
+
+                else:
+                    raise NotImplementedError(
+                        f"{output_queue.qsize() = } was not expected here."
+                    )
+
+            await self.cancel_task(run_task)

@@ -136,7 +136,10 @@ class BaseFileMonitorMixin:
             )
             return
 
-        if self._input_path_state.input_path is not None and self._input_path_state.input_path_type == "dir":
+        if (
+            self._input_path_state.input_path is not None
+            and self._input_path_state.input_path_type == "dir"
+        ):
             self._logger.warning(
                 "Unexpected call to _input_path_file_created_task - "
                 "_input_path is not None but _input_path_type is dir"
@@ -145,10 +148,14 @@ class BaseFileMonitorMixin:
         str_path: str = self._input_path_state.input_path
 
         if await target_async_path.is_dir():
-            self._logger.info('New asset at "%s" detected as dir', self._input_path_state.input_path)
+            self._logger.info(
+                'New asset at "%s" detected as dir', self._input_path_state.input_path
+            )
 
         elif await target_async_path.is_file():
-            self._logger.info('New asset at "%s" detected as file', self._input_path_state.input_path)
+            self._logger.info(
+                'New asset at "%s" detected as file', self._input_path_state.input_path
+            )
 
             await self.send(
                 FileCreatedAtWatchLocationFSInputEvent(path=str_path, base_event=None)
@@ -257,13 +264,15 @@ class BaseFileMonitorMixin:
 
         Several properties are cached.
         """
-        if self._input_path_state.input_path_exists and self._input_path_state.input_path_type == "file":
+        if (
+            self._input_path_state.input_path_exists
+            and self._input_path_state.input_path_type == "file"
+        ):
             return
 
         self._logger.info(
-            "The provided input path will be monitored until a file appears - %s - %s",
-            self._input_path_state.input_path,
-            self._input_path_state.input_path_type,
+            "The provided input path will be monitored until a file appears - %s",
+            str(self._input_path_state),
         )
 
         while True:
@@ -273,7 +282,9 @@ class BaseFileMonitorMixin:
                 )  # Give the rest of the loop a chance to do something
                 continue
 
-            target_async_path: aiopath.AsyncPath = aiopath.AsyncPath(self._input_path_state.input_path)
+            target_async_path: aiopath.AsyncPath = aiopath.AsyncPath(
+                self._input_path_state.input_path
+            )
             target_exists: bool = await target_async_path.exists()
             is_target_dir: bool = await target_async_path.is_dir()
             if not target_exists:
@@ -290,7 +301,8 @@ class BaseFileMonitorMixin:
 
             # Something has come into existence since the last loop
             self._logger.info(
-                "Something has appeared at the input_path - %s", self._input_path_state.input_path
+                "Something has appeared at the input_path - %s",
+                self._input_path_state.input_path,
             )
 
             # All the logic which needs to be run when a file is created at the target location

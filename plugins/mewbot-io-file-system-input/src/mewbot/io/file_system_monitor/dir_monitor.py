@@ -12,7 +12,6 @@ from __future__ import annotations
 
 from typing import Any, Optional, Set, Union
 
-import abc
 import asyncio
 import logging
 import os
@@ -41,7 +40,7 @@ from mewbot.io.file_system_monitor.fs_events import (
 )
 
 
-class BaseObserver(abc.ABC):
+class LinuxFileSystemObserver:
     """
     Base class for all observers defined on the system.
 
@@ -62,6 +61,31 @@ class BaseObserver(abc.ABC):
     _watchdog_observer: Observer = Observer()
 
     _internal_queue: asyncio.Queue[FileSystemEvent]
+
+    def __init__(
+        self, output_queue: Optional[asyncio.Queue[InputEvent]], input_path: str
+    ) -> None:
+        """
+        Holds the queues which will store the events prodced by the watcher.
+
+        :param output_queue:
+        :param input_path:
+        """
+        self._output_queue = output_queue
+        self._input_path = input_path
+
+        self._logger = logging.getLogger(__name__ + ":" + type(self).__name__)
+
+        self._internal_queue = asyncio.Queue()
+
+    def event_process_preflight(self) -> None:
+        """
+        Checks we are in a state where we can process events.
+
+        :return None: Will error if we can't proceed
+        """
+        # mypy hack
+        assert self._input_path is not None, "_input_path unexpectedly None"
 
     async def _process_queue(self) -> bool:
         """
@@ -207,32 +231,179 @@ class BaseObserver(abc.ABC):
         else:
             self._logger.warning("Unexpected case in _process_file_event - %s", event)
 
-    @abc.abstractmethod
     async def _process_file_creation_event(
         self, event: watchdog.events.FileCreatedEvent
     ) -> None:
-        ...
+        """
+        A file has been created within a watched dir.
 
-    @abc.abstractmethod
+        :param event:
+        :return:
+        """
+        await self.send(
+            FileCreatedWithinWatchedDirFSInputEvent(
+                path=event.src_path,
+                base_event=event,
+            )
+        )
+
     async def _process_file_modified_event(
         self, event: watchdog.events.FileModifiedEvent
     ) -> None:
-        ...
+        """
+        A file has been modified.
 
-    @abc.abstractmethod
+        :param event:
+        :return:
+        """
+        await self.send(
+            FileUpdatedWithinWatchedDirFSInputEvent(
+                path=event.src_path,
+                base_event=event,
+            )
+        )
+
     async def _process_file_move_event(
         self,
         event: Union[
             watchdog.events.FileSystemMovedEvent, watchdog.events.FileSystemMovedEvent
         ],
     ) -> None:
-        ...
+        """
+        A file movement has been detected in the monitored folder.
 
-    @abc.abstractmethod
+        :param event:
+        :return:
+        """
+        if self._input_path is None:
+            raise NotImplementedError("self._input_path unexpectedly None.")
+
+        monitored_dir_path = pathlib.Path(self._input_path)
+        dir_dst_path = pathlib.Path(event.dest_path)
+        if dir_dst_path.absolute().is_relative_to(monitored_dir_path):
+            await self.send(
+                FileMovedWithinWatchedDirFSInputEvent(
+                    path=event.dest_path,
+                    file_src=event.src_path,
+                    file_dst=event.dest_path,
+                    base_event=event,
+                )
+            )
+        else:
+            await self.send(
+                FileMovedOutsideWatchedDirFSInputEvent(
+                    path=event.dest_path,
+                    file_src=event.src_path,
+                    base_event=event,
+                )
+            )
+
     async def _process_file_delete_event(
         self, event: watchdog.events.FileDeletedEvent
     ) -> None:
-        ...
+        """
+        A file has been deleted from inside the monitored dirs.
+
+        :param event:
+        :return:
+        """
+        await self.send(
+            FileDeletedWithinWatchedDirFSInputEvent(
+                path=event.src_path,
+                base_event=event,
+            )
+        )
+
+    async def _process_dir_in_watched_dir_creation_event(
+        self, event: watchdog.events.DirCreatedEvent
+    ) -> None:
+        """
+        Process a dir creation event.
+
+        This will - always - correspond to an event inside a directory we are watching.
+        If the event involves the directory itself, that will break the watcher in a way which is
+        caught later.
+        :param event:
+        :return:
+        """
+        await self.send(
+            DirCreatedWithinWatchedDirFSInputEvent(
+                path=event.src_path,
+                base_event=event,
+            )
+        )
+
+    async def _process_dir_update_event(
+        self, event: watchdog.events.DirModifiedEvent
+    ) -> None:
+        """
+        Process a dir modified event.
+
+        Produces a DirUpdatedAtWatchLocationFSInputEvent - if the dir being watched itself is
+        changed.
+        Otherwise, produces a DirUpdatedWithinWatchedDirFSInputEvent - if the dir being modified
+        is inside the watched dir.
+        :param event:
+        :return:
+        """
+        if pathlib.Path(event.src_path).samefile(pathlib.Path(self._input_path).resolve()):
+            await self.send(
+                DirUpdatedAtWatchLocationFSInputEvent(
+                    path=event.src_path,
+                    base_event=event,
+                )
+            )
+        else:
+            await self.send(
+                DirUpdatedWithinWatchedDirFSInputEvent(
+                    path=event.src_path,
+                    base_event=event,
+                )
+            )
+
+    async def _process_dir_move_event(self, event: watchdog.events.DirMovedEvent) -> None:
+        """
+        Aa directory has been moved - process the resulting event.
+
+        :param event:
+        :return:
+        """
+        # Check to see of the directory has been moved within or out of the dir
+        monitored_dir_path = pathlib.Path(self._input_path)
+        dir_dst_path = pathlib.Path(event.dest_path)
+        if dir_dst_path.resolve().is_relative_to(monitored_dir_path):
+            await self.send(
+                DirMovedWithinWatchedDirFSInputEvent(
+                    path=event.src_path,
+                    dir_src_path=event.src_path,
+                    dir_dst_path=event.dest_path,
+                    base_event=event,
+                )
+            )
+
+        else:
+            await self.send(
+                DirMovedOutOfWatchedDirFSInputEvent(
+                    path=event.src_path,
+                    dir_src_path=event.src_path,
+                    dir_dst_path=event.dest_path,
+                    base_event=event,
+                )
+            )
+
+    async def _process_dir_delete_event(self, event: watchdog.events.DirDeletedEvent) -> None:
+        """
+        Aa dir delete event has occurred.
+
+        :param event:
+        :return:
+        """
+        await self.send(
+            DirDeletedFromWatchedDirFSInputEvent(
+                path=event.src_path,
+                base_event=event,
+            )
+        )
 
     async def _process_dir_event_from_within_dir(self, event: FileSystemEvent) -> None:
         """
@@ -240,75 +411,26 @@ class BaseObserver(abc.ABC):
 
         Event has been generated from within a directory being watched with watchdog.
         """
-        # mypy hack
-        assert self._input_path is not None, "_input_path unexpectedly None"
 
         # DIRS
         if isinstance(event, watchdog.events.DirCreatedEvent):
-            await self.send(
-                DirCreatedWithinWatchedDirFSInputEvent(
-                    path=event.src_path,
-                    base_event=event,
-                )
-            )
+            return await self._process_dir_in_watched_dir_creation_event(event)
 
-        elif isinstance(event, watchdog.events.DirModifiedEvent):
+        if isinstance(event, watchdog.events.DirModifiedEvent):
             # If the path is the same as the monitored path, then the folder we're watching itself
             # has been modified
-            if pathlib.Path(event.src_path).samefile(
-                pathlib.Path(self._input_path).resolve()
-            ):
-                await self.send(
-                    DirUpdatedAtWatchLocationFSInputEvent(
-                        path=event.src_path,
-                        base_event=event,
-                    )
-                )
-            else:
-                await self.send(
-                    DirUpdatedWithinWatchedDirFSInputEvent(
-                        path=event.src_path,
-                        base_event=event,
-                    )
-                )
+            return await self._process_dir_update_event(event)
 
-        elif isinstance(event, watchdog.events.DirMovedEvent):
-            # Check to see of the directory has been moved within or out of the dir
-            monitored_dir_path = pathlib.Path(self._input_path)
-            dir_dst_path = pathlib.Path(event.dest_path)
-            if dir_dst_path.resolve().is_relative_to(monitored_dir_path):
-                await self.send(
-                    DirMovedWithinWatchedDirFSInputEvent(
-                        path=event.src_path,
-                        dir_src_path=event.src_path,
-                        dir_dst_path=event.dest_path,
-                        base_event=event,
-                    )
-                )
+        if isinstance(event, watchdog.events.DirMovedEvent):
+            return await self._process_dir_move_event(event)
 
-            else:
-                await self.send(
-                    DirMovedOutOfWatchedDirFSInputEvent(
-                        path=event.src_path,
-                        dir_src_path=event.src_path,
-                        dir_dst_path=event.dest_path,
-                        base_event=event,
-                    )
-                )
+        if isinstance(event, watchdog.events.DirDeletedEvent):
+            return await self._process_dir_delete_event(event)
 
-        elif isinstance(event, watchdog.events.DirDeletedEvent):
-            await self.send(
-                DirDeletedFromWatchedDirFSInputEvent(
-                    path=event.src_path,
-                    base_event=event,
-                )
-            )
-
-        else:
-            raise NotImplementedError(f"{event} had unexpected form.")
+        raise NotImplementedError(f"{event} had unexpected form.")
 
 
-class WindowsFileSystemObserver(BaseObserver):
+class WindowsFileSystemObserver(LinuxFileSystemObserver):
     """
     Does the job of actually observing the file system.
 
@@ -336,12 +458,8 @@ class WindowsFileSystemObserver(BaseObserver):
         :param output_queue:
         :param input_path:
         """
-        self._output_queue = output_queue
-        self._input_path = input_path
+        super().__init__(output_queue, input_path)
 
-        self._logger = logging.getLogger(__name__ + ":" + type(self).__name__)
-
-        self._internal_queue = asyncio.Queue()
         self._dir_cache = set()
         self.build_dir_cache()
 
@@ -387,12 +505,7 @@ class WindowsFileSystemObserver(BaseObserver):
         self._python_registers_deleted_cache.discard(event.src_path)
         self._python_registers_created_cache.add(event.src_path)
 
-        await self.send(
-            FileCreatedWithinWatchedDirFSInputEvent(
-                path=event.src_path,
-                base_event=event,
-            )
-        )
+        await super()._process_file_creation_event(event)
 
     async def _process_file_modified_event(
         self, event: watchdog.events.FileModifiedEvent
@@ -439,12 +552,7 @@ class WindowsFileSystemObserver(BaseObserver):
                 )
             )
 
-            await self.send(
-                FileUpdatedWithinWatchedDirFSInputEvent(
-                    path=event.src_path,
-                    base_event=event,
-                )
-            )
+            await super()._process_file_modified_event(event)
 
         else:
             if event.src_path in self._python_registers_deleted_cache:
@@ -515,14 +623,7 @@ class WindowsFileSystemObserver(BaseObserver):
         self._python_registers_created_cache.add(event.dest_path)
         self._python_registers_created_cache.discard(event.src_path)
 
-        await self.send(
-            FileMovedWithinWatchedDirFSInputEvent(
-                path=event.src_path,
-                file_src=event.src_path,
-                file_dst=event.dest_path,
-                base_event=event,
-            )
-        )
+        await super()._process_file_move_event(event)
 
     async def _process_file_delete_event(
         self, event: watchdog.events.FileDeletedEvent
@@ -540,7 +641,7 @@ class WindowsFileSystemObserver(BaseObserver):
         # Only put a deletion event on the wire if
         # - we haven't done so already
         # - There has been no other events which could be sanely followed by a
-        #   delete event
+        #   delete event (such as a create event)
         # - The file does not, in fact, still exist
 
         if event.src_path in self._python_registers_deleted_cache:
@@ -552,7 +653,7 @@ class WindowsFileSystemObserver(BaseObserver):
 
         # For some reason the watcher is emitting file delete events when a dir is deleted
         if event.src_path in self._dir_cache:
-            assert self._input_path is not None, "needed for pylint"
+            self.event_process_preflight()
 
             # Inotify on linux also notifies you of a change to the folder in this case
             await self.send(
@@ -580,40 +681,22 @@ class WindowsFileSystemObserver(BaseObserver):
             )
         )
 
-        await self.send(
-            FileDeletedWithinWatchedDirFSInputEvent(
-                path=event.src_path,
-                base_event=event,
-            )
-        )
+        return await super()._process_file_delete_event(event)
 
     async def _process_dir_event_from_within_dir(self, event: FileSystemEvent) -> None:
         """
         Take an event and process it before putting it on the wire.
         """
-        # mypy hack
-        assert self._input_path is not None, "_input_path is unexpectedly None!"
+        self.event_process_preflight()
 
         # DIRS
         if isinstance(event, watchdog.events.DirCreatedEvent):
             # A new directory has been created - record it
             self._dir_cache.add(event.src_path)
-            await self.send(
-                DirCreatedWithinWatchedDirFSInputEvent(
-                    path=event.src_path,
-                    base_event=event,
-                )
-            )
-            return
+            return await self._process_dir_in_watched_dir_creation_event(event)
 
         if isinstance(event, watchdog.events.DirModifiedEvent):
-            await self.send(
-                DirUpdatedWithinWatchedDirFSInputEvent(
-                    path=event.src_path,
-                    base_event=event,
-                )
-            )
-            return
+            return await self._process_dir_update_event(event)
 
         if isinstance(event, watchdog.events.DirMovedEvent):
             # If a dir experiences a move event, the original dir effectively ceases to exist
@@ -621,149 +704,16 @@ class WindowsFileSystemObserver(BaseObserver):
             self._dir_cache.discard(event.src_path)
             self._dir_cache.add(event.dest_path)
 
-            monitored_dir_path = pathlib.Path(self._input_path)
-            dir_dst_path = pathlib.Path(event.dest_path)
-            if dir_dst_path.resolve().is_relative_to(monitored_dir_path):
-                await self.send(
-                    DirMovedWithinWatchedDirFSInputEvent(
-                        path=event.src_path,
-                        dir_src_path=event.src_path,
-                        dir_dst_path=event.dest_path,
-                        base_event=event,
-                    )
-                )
-                return
-
-            await self.send(
-                DirMovedOutOfWatchedDirFSInputEvent(
-                    path=event.src_path,
-                    dir_src_path=event.src_path,
-                    dir_dst_path=event.dest_path,
-                    base_event=event,
-                )
-            )
-            return
+            return await self._process_dir_move_event(event)
 
         if isinstance(event, watchdog.events.DirDeletedEvent):
             # Not that I think you'll ever actually see one of these events
             # Because Windows registers a dir delete event as a file delete for some reason
             self._dir_cache.discard(event.src_path)
 
-            await self.send(
-                DirDeletedFromWatchedDirFSInputEvent(
-                    path=event.src_path,
-                    base_event=event,
-                )
-            )
-            return
+            return await self._process_dir_delete_event(event)
 
-
-class LinuxFileSystemObserver(BaseObserver):
-    """
-    Does the job of actually observing the file system.
-
-    Isolated here because the observer subsystem for windows is particularly problematic, and it
-    should be swapped out wholesale where possible.
-    """
-
-    def __init__(
-        self, output_queue: Optional[asyncio.Queue[InputEvent]], input_path: str
-    ) -> None:
-        """
-        Holds the queues which will store the events prodced by the watcher.
-
-        :param output_queue:
-        :param input_path:
-        """
-        self._output_queue = output_queue
-        self._input_path = input_path
-
-        self._logger = logging.getLogger(__name__ + ":" + type(self).__name__)
-
-        self._internal_queue = asyncio.Queue()
-
-    async def _process_file_creation_event(
-        self, event: watchdog.events.FileCreatedEvent
-    ) -> None:
-        """
-        A file has been created.
-
-        :param event:
-        :return:
-        """
-        await self.send(
-            FileCreatedWithinWatchedDirFSInputEvent(
-                path=event.src_path,
-                base_event=event,
-            )
-        )
-
-    async def _process_file_modified_event(
-        self, event: watchdog.events.FileModifiedEvent
-    ) -> None:
-        """
-        A file has been modified.
-
-        :param event:
-        :return:
-        """
-        await self.send(
-            FileUpdatedWithinWatchedDirFSInputEvent(
-                path=event.src_path,
-                base_event=event,
-            )
-        )
-
-    async def _process_file_move_event(
-        self,
-        event: Union[
-            watchdog.events.FileSystemMovedEvent, watchdog.events.FileSystemMovedEvent
-        ],
-    ) -> None:
-        """
-        A file movement has been detected in the monitored folder.
-
-        :param event:
-        :return:
-        """
-        if self._input_path is None:
-            raise NotImplementedError("self._input_path unexpectedly None.")
-
-        monitored_dir_path = pathlib.Path(self._input_path)
-        dir_dst_path = pathlib.Path(event.dest_path)
-        if dir_dst_path.resolve().is_relative_to(monitored_dir_path):
-            await self.send(
-                FileMovedWithinWatchedDirFSInputEvent(
-                    path=event.dest_path,
-                    file_src=event.src_path,
-                    file_dst=event.dest_path,
-                    base_event=event,
-                )
-            )
-        else:
-            await self.send(
-                FileMovedOutsideWatchedDirFSInputEvent(
-                    path=event.dest_path,
-                    file_src=event.src_path,
-                    base_event=event,
-                )
-            )
-
-    async def _process_file_delete_event(
-        self, event: watchdog.events.FileDeletedEvent
-    ) -> None:
-        """
-        A file has been deleted from inside the monitored dirs.
-
-        :param event:
-        :return:
-        """
-        await self.send(
-            FileDeletedWithinWatchedDirFSInputEvent(
-                path=event.src_path,
-                base_event=event,
-            )
-        )
+        raise NotImplementedError(f"{event} had unexpected form.")
 
 
 class _EventHandler(FileSystemEventHandler):  # type: ignore

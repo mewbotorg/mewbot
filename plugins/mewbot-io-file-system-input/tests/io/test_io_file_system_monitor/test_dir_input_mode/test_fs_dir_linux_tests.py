@@ -13,21 +13,13 @@ Tests the dir input - monitors a directory for changes.
 
 import asyncio
 import os
-import shutil
 import sys
 import tempfile
-import uuid
 
 import pytest
 
 from mewbot.io.file_system_monitor.fs_events import (
-    DirCreatedAtWatchLocationFSInputEvent,
-    DirCreatedWithinWatchedDirFSInputEvent,
-    DirDeletedFromWatchedDirFSInputEvent,
-    DirDeletedFromWatchLocationFSInputEvent,
     DirUpdatedAtWatchLocationFSInputEvent,
-    DirUpdatedWithinWatchedDirFSInputEvent,
-DirMovedWithinWatchedDirFSInputEvent,
     FileCreatedWithinWatchedDirFSInputEvent,
     FileDeletedWithinWatchedDirFSInputEvent,
     FileUpdatedWithinWatchedDirFSInputEvent,
@@ -45,12 +37,14 @@ from ..fs_test_utils import FileSystemTestUtilsDirEvents, FileSystemTestUtilsFil
 # As such, this inspection has had to be disabled.
 
 
-class TestDirTypeFSInputLinuxLikeTests(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEvents):
+class TestDirTypeFSInputLinuxLikeTests(
+    FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEvents
+):
     """
     Tests for diagnosis of divergent behavior on linux like systems.
     """
 
-    # Todo: make sure there are windows equivalents for all these tests
+    # Need to make sure there are windows equivalents for all these tests
     @pytest.mark.asyncio
     @pytest.mark.skipif(sys.platform.startswith("win"), reason="Linux (like) only test")
     async def test_DirTypeFSInput_existing_dir_cre_upd_del_file_loop_linux(self) -> None:
@@ -131,7 +125,6 @@ class TestDirTypeFSInputLinuxLikeTests(FileSystemTestUtilsDirEvents, FileSystemT
                 )
 
             await self.cancel_task(run_task)
-
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(sys.platform.startswith("win"), reason="Linux (like) only test")
@@ -270,4 +263,3 @@ class TestDirTypeFSInputLinuxLikeTests(FileSystemTestUtilsDirEvents, FileSystemT
                 )
 
             await self.cancel_task(run_task)
-

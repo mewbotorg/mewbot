@@ -119,14 +119,22 @@ class FileTypeFSInput(Input, BaseFileMonitorMixin):
         Run the right type of monitor for the input path.
         """
         # Restart if the input path changes ... might be a good idea
-        if self._input_path_state.input_path_exists and self._input_path_state.input_path_type == "file":
+        if (
+            self._input_path_state.input_path_exists
+            and self._input_path_state.input_path_type == "file"
+        ):
             self._logger.info(
-                'Starting FileTypeFSInput - monitoring existing file "%s"', self._input_path_state.input_path
+                'Starting FileTypeFSInput - monitoring existing file "%s"',
+                self._input_path_state.input_path,
             )
 
-        elif self._input_path_state.input_path_exists and self._input_path_state.input_path_type == "dir":
+        elif (
+            self._input_path_state.input_path_exists
+            and self._input_path_state.input_path_type == "dir"
+        ):
             self._logger.warning(
-                "Starting FileTypeFSInput - monitoring file is a dir '%s'", self._input_path_state.input_path
+                "Starting FileTypeFSInput - monitoring file is a dir '%s'",
+                self._input_path_state.input_path,
             )
 
         else:
@@ -272,9 +280,13 @@ class DirTypeFSInput(Input):
         Monitor the directory.
         """
         # Restart if the input path changes ... might be a good idea
-        if self._input_path_state.input_path_exists and self._input_path_state.input_path_type == "dir":
+        if (
+            self._input_path_state.input_path_exists
+            and self._input_path_state.input_path_type == "dir"
+        ):
             self._logger.info(
-                'Starting DirTypeFSInput - monitoring existing dir "%s"', self._input_path_state.input_path
+                'Starting DirTypeFSInput - monitoring existing dir "%s"',
+                self._input_path_state.input_path,
             )
 
         else:
@@ -314,7 +326,10 @@ class DirTypeFSInput(Input):
         """
         Preforms a check on the file - updating if needed.
         """
-        if self._input_path_state.input_path_exists and self._input_path_state.input_path_type == "dir":
+        if (
+            self._input_path_state.input_path_exists
+            and self._input_path_state.input_path_type == "dir"
+        ):
             return
 
         self._logger.info(
@@ -330,7 +345,9 @@ class DirTypeFSInput(Input):
                 )  # Give the rest of the loop a chance to do something
                 continue
 
-            target_async_path: aiopath.AsyncPath = aiopath.AsyncPath(self._input_path_state.input_path)
+            target_async_path: aiopath.AsyncPath = aiopath.AsyncPath(
+                self._input_path_state.input_path
+            )
 
             target_exists: bool = await target_async_path.exists()
             if not target_exists:
@@ -348,7 +365,8 @@ class DirTypeFSInput(Input):
 
             # Something has come into existence since the last loop
             self._logger.info(
-                "Something has appeared at the input_path - %s", self._input_path_state.input_path
+                "Something has appeared at the input_path - %s",
+                self._input_path_state.input_path,
             )
 
             asyncio.get_running_loop().create_task(
@@ -372,7 +390,10 @@ class DirTypeFSInput(Input):
                 "Unexpected call to _input_path_file_created_task - _input_path is None!"
             )
             return
-        if self._input_path_state.input_path is not None and self._input_path_state.input_path_type == "file":
+        if (
+            self._input_path_state.input_path is not None
+            and self._input_path_state.input_path_type == "file"
+        ):
             self._logger.warning(
                 "Unexpected call to _input_path_file_created_task - "
                 "_input_path is not None but _input_path_type is file"
@@ -381,10 +402,14 @@ class DirTypeFSInput(Input):
         str_path: str = self._input_path_state.input_path
 
         if await target_async_path.is_file():  # Not sure this case should ever be reached
-            self._logger.info('New asset at "%s" detected as file', self._input_path_state.input_path)
+            self._logger.info(
+                'New asset at "%s" detected as file', self._input_path_state.input_path
+            )
 
         elif await target_async_path.is_dir():
-            self._logger.info('New asset at "%s" detected as dir', self._input_path_state.input_path)
+            self._logger.info(
+                'New asset at "%s" detected as dir', self._input_path_state.input_path
+            )
 
             await self.send(
                 DirCreatedAtWatchLocationFSInputEvent(path=str_path, base_event=None)

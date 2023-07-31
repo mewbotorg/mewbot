@@ -11,23 +11,15 @@ Tests the dir input - monitors a directory for changes.
 """
 
 
-import asyncio
 import os
-import shutil
-import sys
 import tempfile
-import uuid
 
 import pytest
 
 from mewbot.io.file_system_monitor.fs_events import (
-    DirCreatedAtWatchLocationFSInputEvent,
     DirCreatedWithinWatchedDirFSInputEvent,
-    DirDeletedFromWatchedDirFSInputEvent,
-    DirDeletedFromWatchLocationFSInputEvent,
     DirUpdatedAtWatchLocationFSInputEvent,
     DirUpdatedWithinWatchedDirFSInputEvent,
-DirMovedWithinWatchedDirFSInputEvent,
     FileCreatedWithinWatchedDirFSInputEvent,
     FileDeletedWithinWatchedDirFSInputEvent,
     FileUpdatedWithinWatchedDirFSInputEvent,
@@ -45,12 +37,14 @@ from ..fs_test_utils import FileSystemTestUtilsDirEvents, FileSystemTestUtilsFil
 # As such, this inspection has had to be disabled.
 
 
-class TestDirTypeFSInputGenericTests(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEvents):
+class TestDirTypeFSInputGenericTests(
+    FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEvents
+):
     """
     Tests which should respond the same on any operating system.
 
-    (Ideally, eventually, this will be _all_ of them - but we need some diagnostics as the underlying
-    apis do behave differently on different systems).
+    (Ideally, eventually, this will be _all_ of them - but we need some diagnostics as the
+    underlying apis do behave differently on different systems).
     """
 
     # DIRS IN DIRS
@@ -61,7 +55,6 @@ class TestDirTypeFSInputGenericTests(FileSystemTestUtilsDirEvents, FileSystemTes
         Check for the expected created signal from a dir which is created in a monitored dir.
         """
         with tempfile.TemporaryDirectory() as tmp_dir_path:
-
             run_task, output_queue, _ = await self.get_DirTypeFSInput(tmp_dir_path)
 
             # - Using blocking methods - this should still work
@@ -88,7 +81,7 @@ class TestDirTypeFSInputGenericTests(FileSystemTestUtilsDirEvents, FileSystemTes
         Followed by an attempt to update the file.
         """
         with tempfile.TemporaryDirectory() as tmp_dir_path:
-            run_task, output_queue, _ = await self.get_DirTypeFSInput(tmp_dir_path)
+            _, output_queue, _ = await self.get_DirTypeFSInput(tmp_dir_path)
 
             # - Using blocking methods - this should still work
             new_file_path = os.path.join(tmp_dir_path, "text_file_delete_me.txt")
@@ -102,7 +95,7 @@ class TestDirTypeFSInputGenericTests(FileSystemTestUtilsDirEvents, FileSystemTes
             )
 
     @pytest.mark.asyncio
-    async def test_DirTypeFSInput_existing_dir_cre_ud_file(self) -> None:
+    async def test_DirTypeFSInput_existing_dir_cre_ud_file_del_file(self) -> None:
         """
         Start in an existing dir - then create and update a file.
 
@@ -141,5 +134,21 @@ class TestDirTypeFSInputGenericTests(FileSystemTestUtilsDirEvents, FileSystemTes
                 event_type=FileUpdatedWithinWatchedDirFSInputEvent,
             )
 
-            await self.cancel_task(run_task)
+            # Now delete the file
+            os.unlink(new_file_path)
 
+            await self.process_dir_event_queue_response(
+                output_queue=output_queue,
+                dir_path=tmp_dir_path,
+                allowed_queue_size=1,
+                event_type=DirUpdatedWithinWatchedDirFSInputEvent,
+            )
+
+            await self.process_dir_event_queue_response(
+                output_queue=output_queue,
+                dir_path=new_file_path,
+                allowed_queue_size=1,
+                event_type=FileDeletedWithinWatchedDirFSInputEvent,
+            )
+
+            await self.cancel_task(run_task)
