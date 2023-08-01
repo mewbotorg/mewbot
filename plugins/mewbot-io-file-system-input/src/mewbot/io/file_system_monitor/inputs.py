@@ -12,7 +12,6 @@ from __future__ import annotations
 
 from typing import Any, AsyncGenerator, Optional, Set, Tuple, Type, Union
 
-import asyncio
 import logging
 import os.path
 import sys
@@ -25,6 +24,7 @@ from mewbot.io.file_system_monitor.dir_monitor import (
     LinuxFileSystemObserver,
     WindowsFileSystemObserver,
 )
+from mewbot.io.file_system_monitor.base_monitor import BaseMonitor
 from mewbot.io.file_system_monitor.file_monitor import BaseFileMonitorMixin, InputState
 from mewbot.io.file_system_monitor.fs_events import (
     DirCreatedAtWatchLocationFSInputEvent,
@@ -144,7 +144,7 @@ class FileTypeFSInput(Input, BaseFileMonitorMixin):
             )
 
         while True:
-            await self.monitor_input_path()
+            await self.monitor_input_path_file()
             await self.monitor_file_watcher()
 
     async def send(self, event: FSInputEvent) -> None:
@@ -160,7 +160,7 @@ class FileTypeFSInput(Input, BaseFileMonitorMixin):
         await self.queue.put(event)
 
 
-class DirTypeFSInput(Input):
+class DirTypeFSInput(Input, BaseMonitor):
     """
     File system input which watches for changes to directory like objects.
     """
@@ -297,7 +297,7 @@ class DirTypeFSInput(Input):
 
         while True:
             # We're waiting for the thing we're monitoring to exist
-            await self.monitor_input_path()
+            await self.monitor_input_path_dir()
 
             assert self.input_path is not None
 
@@ -321,60 +321,6 @@ class DirTypeFSInput(Input):
                 self._input_path_state.input_path_exists = (
                     await self.file_system_observer.monitor_dir_watcher()
                 )
-
-    async def monitor_input_path(self) -> None:
-        """
-        Preforms a check on the file - updating if needed.
-        """
-        if (
-            self._input_path_state.input_path_exists
-            and self._input_path_state.input_path_type == "dir"
-        ):
-            return
-
-        self._logger.info(
-            "The provided input path will be monitored until a dir appears - %s - %s",
-            self._input_path_state.input_path,
-            self._input_path_state.input_path_type,
-        )
-
-        while True:
-            if self._input_path_state.input_path is None:
-                await asyncio.sleep(
-                    self._polling_interval
-                )  # Give the rest of the loop a chance to do something
-                continue
-
-            target_async_path: aiopath.AsyncPath = aiopath.AsyncPath(
-                self._input_path_state.input_path
-            )
-
-            target_exists: bool = await target_async_path.exists()
-            if not target_exists:
-                await asyncio.sleep(
-                    self._polling_interval
-                )  # Give the rest of the loop a chance to do something
-                continue
-
-            is_target_file: bool = await target_async_path.is_file()
-            if target_exists and is_target_file:
-                await asyncio.sleep(
-                    self._polling_interval
-                )  # Give the rest of the loop a chance to do something
-                continue
-
-            # Something has come into existence since the last loop
-            self._logger.info(
-                "Something has appeared at the input_path - %s",
-                self._input_path_state.input_path,
-            )
-
-            asyncio.get_running_loop().create_task(
-                self._input_path_dir_created_task(target_async_path)
-            )
-
-            self._input_path_state.input_path_exists = True
-            return
 
     async def _input_path_dir_created_task(
         self, target_async_path: aiopath.AsyncPath

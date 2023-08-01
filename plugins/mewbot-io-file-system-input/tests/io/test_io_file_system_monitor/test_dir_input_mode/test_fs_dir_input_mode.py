@@ -238,7 +238,7 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
             # Try and break things
             test_fs_input._input_path = None
             run_task_2 = asyncio.get_running_loop().create_task(
-                test_fs_input.monitor_input_path()
+                test_fs_input.monitor_input_path_dir()
             )
 
             run_task_3 = asyncio.get_running_loop().create_task(
