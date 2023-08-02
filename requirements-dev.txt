@@ -11,7 +11,7 @@
 setuptools~=68.0
 
 # Copyright linting toolchain
-reuse~=1.1
+reuse~=2.1
 
 # Documentation toolchain
 pydeps~=1.12.1
