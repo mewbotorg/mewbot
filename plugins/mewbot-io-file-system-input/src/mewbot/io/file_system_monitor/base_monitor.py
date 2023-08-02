@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
-from typing import Any, Optional, Set, Union
+from typing import AsyncGenerator, Optional, Set, Tuple
 
 import asyncio
 import dataclasses
@@ -54,6 +54,8 @@ class BaseMonitor:
     _polling_interval: float
 
     _input_path_state: InputState = InputState()
+
+    watcher: Optional[AsyncGenerator[Set[Tuple[watchfiles.Change, str]], None]]
 
     async def monitor_input_path_generic(self, obj_type: str) -> bool:
         """
@@ -126,6 +128,28 @@ class BaseMonitor:
             self.watcher = watchfiles.awatch(self._input_path_state.input_path)
             self._input_path_state.input_path_exists = True
             return
+
+    async def input_path_file_created_task(
+        self, target_async_path: aiopath.AsyncPath
+    ) -> None:
+        """
+        Called when _monitor_file detects that there's now something at the input_path location.
+
+        Spun off into a separate method because want to get into starting the watch as fast as
+        possible.
+        """
+        raise NotImplementedError("Must be overridden.")
+
+    async def _input_path_dir_created_task(
+        self, target_async_path: aiopath.AsyncPath
+    ) -> None:
+        """
+        Called when _monitor_file detects that there's now something at the input_path location.
+
+        Spun off into a separate method because want to get into starting the watch as fast as
+        possible.
+        """
+        raise NotImplementedError("Must be overridden.")
 
     async def monitor_input_path_dir(self) -> None:
         """

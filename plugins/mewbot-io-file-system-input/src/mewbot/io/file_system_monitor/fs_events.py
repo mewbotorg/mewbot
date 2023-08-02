@@ -61,8 +61,6 @@ class FileUpdatedAtWatchLocationFSInputEvent(FileAtWatchLocInputEvent):
     """
 
 
-
-
 @dataclasses.dataclass
 class FileDeletedFromWatchLocationFSInputEvent(FileAtWatchLocInputEvent):
     """

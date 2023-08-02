@@ -19,6 +19,8 @@ import sys
 import tempfile
 import uuid
 
+from typing import Any
+
 import pytest
 
 from mewbot.io.file_system_monitor.fs_events import (
@@ -236,7 +238,7 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
             )
 
             # Try and break things
-            test_fs_input._input_path = None
+            test_fs_input._input_path_state.input_path = None
             run_task_2 = asyncio.get_running_loop().create_task(
                 test_fs_input.monitor_input_path_dir()
             )
@@ -743,26 +745,7 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
                 # - Using blocking methods - this should still work
                 new_dir_path = os.path.join(new_subfolder_path, "text_file_delete_me.txt")
 
-                os.mkdir(new_dir_path)
-                await asyncio.sleep(0.1)
-
-                if output_queue.qsize() == 1:
-                    await self.process_dir_event_queue_response(
-                        output_queue=output_queue,
-                        dir_path=new_dir_path,
-                        event_type=DirCreatedWithinWatchedDirFSInputEvent,
-                    )
-                else:
-                    await self.process_dir_event_queue_response(
-                        output_queue=output_queue,
-                        dir_path=new_dir_path,
-                        event_type=DirCreatedWithinWatchedDirFSInputEvent,
-                    )
-                    await self.process_dir_event_queue_response(
-                        output_queue=output_queue,
-                        dir_path=new_subfolder_path,
-                        event_type=DirUpdatedWithinWatchedDirFSInputEvent,
-                    )
+                await self.make_dir_at_path(new_dir_path, output_queue, new_subfolder_path)
 
                 # Move a dir to a different location
                 post_move_dir_path = os.path.join(
@@ -861,3 +844,33 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
                     )
 
             await self.cancel_task(run_task)
+
+    async def make_dir_at_path(self, new_dir_path: str, output_queue: Any, new_subfolder_path: Any) -> None:
+        """
+        Construct and validate the resulting events of a dir at the given path.
+
+        :param new_dir_path:
+        :return:
+        """
+        os.mkdir(new_dir_path)
+        await asyncio.sleep(0.1)
+
+        if output_queue.qsize() == 1:
+            await self.process_dir_event_queue_response(
+                output_queue=output_queue,
+                dir_path=new_dir_path,
+                event_type=DirCreatedWithinWatchedDirFSInputEvent,
+            )
+        else:
+            await self.process_dir_event_queue_response(
+                output_queue=output_queue,
+                dir_path=new_dir_path,
+                event_type=DirCreatedWithinWatchedDirFSInputEvent,
+            )
+            await self.process_dir_event_queue_response(
+                output_queue=output_queue,
+                dir_path=new_subfolder_path,
+                event_type=DirUpdatedWithinWatchedDirFSInputEvent,
+            )
+
+    # async def move_file_to_new_loc

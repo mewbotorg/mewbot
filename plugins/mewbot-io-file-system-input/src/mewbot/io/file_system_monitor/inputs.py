@@ -20,12 +20,12 @@ import aiopath  # type: ignore
 import watchfiles
 
 from mewbot.api.v1 import Input, InputEvent
+from mewbot.io.file_system_monitor.base_monitor import BaseMonitor, InputState
 from mewbot.io.file_system_monitor.dir_monitor import (
     LinuxFileSystemObserver,
     WindowsFileSystemObserver,
 )
-from mewbot.io.file_system_monitor.base_monitor import BaseMonitor
-from mewbot.io.file_system_monitor.file_monitor import BaseFileMonitorMixin, InputState
+from mewbot.io.file_system_monitor.file_monitor import BaseFileMonitorMixin
 from mewbot.io.file_system_monitor.fs_events import (
     DirCreatedAtWatchLocationFSInputEvent,
     DirCreatedWithinWatchedDirFSInputEvent,

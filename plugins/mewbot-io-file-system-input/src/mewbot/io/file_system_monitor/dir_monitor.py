@@ -346,6 +346,7 @@ class LinuxFileSystemObserver:
         :param event:
         :return:
         """
+        assert self._input_path is not None, "mypy hack"
         if pathlib.Path(event.src_path).samefile(pathlib.Path(self._input_path).resolve()):
             await self.send(
                 DirUpdatedAtWatchLocationFSInputEvent(
@@ -368,6 +369,8 @@ class LinuxFileSystemObserver:
         :param event:
         :return:
         """
+        assert self._input_path is not None, "mypy hack"
+
         # Check to see of the directory has been moved within or out of the dir
         monitored_dir_path = pathlib.Path(self._input_path)
         dir_dst_path = pathlib.Path(event.dest_path)
@@ -656,6 +659,7 @@ class WindowsFileSystemObserver(LinuxFileSystemObserver):
             self.event_process_preflight()
 
             # Inotify on linux also notifies you of a change to the folder in this case
+            assert self._input_path is not None, "mypy hack"
             await self.send(
                 DirUpdatedWithinWatchedDirFSInputEvent(
                     path=self._input_path,

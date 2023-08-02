@@ -18,15 +18,14 @@ import logging
 import aiopath  # type: ignore
 import watchfiles
 
-from mewbot.io.file_system_monitor.base_monitor import InputState, BaseMonitor
+from mewbot.core import InputQueue
+from mewbot.io.file_system_monitor.base_monitor import BaseMonitor, InputState
 from mewbot.io.file_system_monitor.fs_events import (
     FileCreatedAtWatchLocationFSInputEvent,
     FileDeletedFromWatchLocationFSInputEvent,
     FileUpdatedAtWatchLocationFSInputEvent,
     FSInputEvent,
 )
-
-
 
 
 class BaseFileMonitorMixin(BaseMonitor):
@@ -42,7 +41,7 @@ class BaseFileMonitorMixin(BaseMonitor):
 
     watcher: Optional[AsyncGenerator[Set[Tuple[watchfiles.Change, str]], None]]
 
-    queue: asyncio.Queue[FSInputEvent]
+    queue: InputQueue | None
 
     @property
     def input_path(self) -> Optional[str]:
