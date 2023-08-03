@@ -955,11 +955,14 @@ def _install_all_plugins(
         os.chdir(plugin_dir)
 
         # 5.5 - execute
-        subprocess.run(
-            [venv_python_path, "setup.py", "develop"],
-            check=True,
-            shell=SHELL_NEEDED,  # nosec B602
-        )
+        try:
+            subprocess.run(
+                [venv_python_path, "setup.py", "develop"],
+                check=True,
+                shell=SHELL_NEEDED,  # nosec B602
+            )
+        except subprocess.CalledProcessError:
+            print(f"Cannot install {plugin_name} - bad setup.py?")
 
     os.chdir(mewbot_repo_path)
 
