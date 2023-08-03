@@ -81,7 +81,7 @@ class TestDirTypeFSInputGenericTests(
         Followed by an attempt to update the file.
         """
         with tempfile.TemporaryDirectory() as tmp_dir_path:
-            _, output_queue, _ = await self.get_DirTypeFSInput(tmp_dir_path)
+            run_task, output_queue, _ = await self.get_DirTypeFSInput(tmp_dir_path)
 
             # - Using blocking methods - this should still work
             new_file_path = os.path.join(tmp_dir_path, "text_file_delete_me.txt")
@@ -93,6 +93,8 @@ class TestDirTypeFSInputGenericTests(
                 file_path=new_file_path,
                 event_type=FileCreatedWithinWatchedDirFSInputEvent,
             )
+
+            await self.cancel_task(run_task)
 
     @pytest.mark.asyncio
     async def test_DirTypeFSInput_existing_dir_cre_ud_file_del_file(self) -> None:

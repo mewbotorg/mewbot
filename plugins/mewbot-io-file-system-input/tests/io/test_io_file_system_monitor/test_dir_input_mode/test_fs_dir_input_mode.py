@@ -11,6 +11,8 @@ Tests the dir input - monitors a directory for changes.
 """
 
 
+from typing import Any
+
 import asyncio
 import ctypes
 import os
@@ -18,8 +20,6 @@ import shutil
 import sys
 import tempfile
 import uuid
-
-from typing import Any
 
 import pytest
 
@@ -320,7 +320,9 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
         with tempfile.TemporaryDirectory() as tmp_dir_path:
             new_dir_path = os.path.join(tmp_dir_path, "text_file_delete_me.txt")
 
-            _, output_queue, test_fs_input = await self.get_DirTypeFSInput(new_dir_path)
+            run_task, output_queue, test_fs_input = await self.get_DirTypeFSInput(
+                new_dir_path
+            )
 
             # There's no path, so there is currently no observer
             assert not hasattr(test_fs_input, "file_system_observer")
@@ -337,6 +339,8 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
                 )
             except asyncio.exceptions.TimeoutError:
                 pass
+
+            await self.cancel_task(run_task)
 
     @pytest.mark.asyncio
     async def testDirTypeFSInput_monitor_dir_unexpectdaly_nullify_queue(
@@ -845,7 +849,9 @@ class TestDirTypeFSInput(FileSystemTestUtilsDirEvents, FileSystemTestUtilsFileEv
 
             await self.cancel_task(run_task)
 
-    async def make_dir_at_path(self, new_dir_path: str, output_queue: Any, new_subfolder_path: Any) -> None:
+    async def make_dir_at_path(
+        self, new_dir_path: str, output_queue: Any, new_subfolder_path: Any
+    ) -> None:
         """
         Construct and validate the resulting events of a dir at the given path.
 

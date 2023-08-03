@@ -2,6 +2,10 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
+"""
+Stores the base class for all monitor operations.
+"""
+
 from typing import AsyncGenerator, Optional, Set, Tuple
 
 import asyncio
@@ -138,7 +142,6 @@ class BaseMonitor:
         Spun off into a separate method because want to get into starting the watch as fast as
         possible.
         """
-        raise NotImplementedError("Must be overridden.")
 
     async def _input_path_dir_created_task(
         self, target_async_path: aiopath.AsyncPath
@@ -149,7 +152,6 @@ class BaseMonitor:
         Spun off into a separate method because want to get into starting the watch as fast as
         possible.
         """
-        raise NotImplementedError("Must be overridden.")
 
     async def monitor_input_path_dir(self) -> None:
         """

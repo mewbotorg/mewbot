@@ -100,7 +100,7 @@ class BaseFileMonitorMixin(BaseMonitor):
         possible.
         """
         if self._input_path_state.input_path is None:
-            self._logger.warning(
+            self._logger.error(
                 "Unexpected call to _input_path_file_created_task - _input_path is None!"
             )
             return
