@@ -11,7 +11,7 @@ Execute it with the python interpreter you wish to use as the basis for the venv
 This script takes two arguments
  - a folder which __must__ exist on the file system
  - a name for the venv
-venv names are only permitted to use [a-zA-Z0-9_].
+venv names are only permitted to use [a-zA-Z0-9_-].
 
 This is for reasons of security.
 After the venv is created, a number of other commands need to be run in it.
@@ -22,23 +22,23 @@ Which is a potentially quite significant security hole.
 Therefore, the requirement on the file name.
 """
 
+from types import TracebackType
+from typing import Any, ClassVar, List, Optional, TypeVar
+
 import argparse
 import enum
 import itertools
-import os
 import ntpath
-import platform as sys_platform
+import os
 import pathlib
+import platform as sys_platform
 import posixpath
 import re
 import shutil
-import subprocess
 import string
+import subprocess
 import sys
 import unittest
-
-from typing import Optional, ClassVar, TypeVar, Any, List
-from types import TracebackType
 
 SEPERATOR = "=" * 50
 
@@ -745,7 +745,7 @@ def main(venv_args: argparse.Namespace) -> bool:
                 "--upgrade",
                 "pip",
             ],
-            shell=SHELL_NEEDED,
+            shell=SHELL_NEEDED,  # nosec B602
             check=True,
         )
 
@@ -807,6 +807,12 @@ def _validate_input(base_folder: str, venv_name: str) -> str:
         venv_path
     ), f"Cannot generate venv at {venv_path = } - there is something there."
 
+    # With the reserved names eliminated ... restrict to ascii
+    hopefully_safe_regex = r"^[0-9A-Za-z_\-]+$"
+    assert re.match(
+        hopefully_safe_regex, venv_name
+    ), f'venv name must match regex "{hopefully_safe_regex}"'
+
     return venv_path
 
 
@@ -853,7 +859,9 @@ def _build_venv(venv_path: str) -> None:
     """
     current_exec = sys.executable
     print(f"Building venv using {current_exec = } in {venv_path = }")
-    subprocess.run([current_exec, "-m", "venv", venv_path], check=True, shell=SHELL_NEEDED)
+    subprocess.run(
+        [current_exec, "-m", "venv", venv_path], check=True, shell=SHELL_NEEDED  # nosec B602
+    )
 
 
 def _validate_venv(venv_path: str) -> str:
@@ -877,7 +885,7 @@ def _validate_venv(venv_path: str) -> str:
                 activation_path,
             ],
             check=True,
-            shell=True,
+            shell=True,  # nosec B602
         )
     else:
         subprocess.run(
@@ -885,7 +893,7 @@ def _validate_venv(venv_path: str) -> str:
                 activation_path,
             ],
             check=True,
-            shell=SHELL_NEEDED,
+            shell=SHELL_NEEDED,  # nosec B602
         )
 
     return activation_path
@@ -900,15 +908,19 @@ def _install_all_deps(mewbot_repo_path: str, venv_python_path: str) -> None:
     :return:
     """
     os.chdir(mewbot_repo_path)
-    # This still permits the script to run = despite apparently failing
+    # This still permits the script to run - despite apparently failing
     subprocess.run([venv_python_path, "setup.py", "develop"], check=False)
     subprocess.run(
-        [venv_python_path, "-m", "mewbot.tools.install_deps"], check=True, shell=SHELL_NEEDED
+        [venv_python_path, "-m", "mewbot.tools.install_deps"],
+        check=True,
+        shell=SHELL_NEEDED,  # nosec B602
     )
 
     print(SEPERATOR)
     print("Pip list in current state")
-    subprocess.run([venv_python_path, "-m", "pip", "list"], check=True, shell=SHELL_NEEDED)
+    subprocess.run(
+        [venv_python_path, "-m", "pip", "list"], check=True, shell=SHELL_NEEDED  # nosec B602
+    )
     print(SEPERATOR)
 
 
@@ -944,14 +956,18 @@ def _install_all_plugins(
 
         # 5.5 - execute
         subprocess.run(
-            [venv_python_path, "setup.py", "develop"], check=True, shell=SHELL_NEEDED
+            [venv_python_path, "setup.py", "develop"],
+            check=True,
+            shell=SHELL_NEEDED,  # nosec B602
         )
 
     os.chdir(mewbot_repo_path)
 
     print(SEPERATOR)
     print("Pip list in current state")
-    subprocess.run([venv_python_path, "-m", "pip", "list"], check=True, shell=SHELL_NEEDED)
+    subprocess.run(
+        [venv_python_path, "-m", "pip", "list"], check=True, shell=SHELL_NEEDED  # nosec B602
+    )
     print(SEPERATOR)
 
 
@@ -965,54 +981,19 @@ def _wipe_pypi_installs(venv_python_path: str) -> None:
     :return:
     """
     # Not all of these should be installed, but the methodology might have changed.
-    subprocess.run(
-        [
-            venv_python_path,
-            "-m",
-            "pip",
-            "uninstall",
-            "-y",
-            "mewbot-api",
-        ],
-        check=True,
-        shell=SHELL_NEEDED,
-    )
-    subprocess.run(
-        [
-            venv_python_path,
-            "-m",
-            "pip",
-            "uninstall",
-            "-y",
-            "mewbot-core",
-        ],
-        check=True,
-        shell=SHELL_NEEDED,
-    )
-    subprocess.run(
-        [
-            venv_python_path,
-            "-m",
-            "pip",
-            "uninstall",
-            "-y",
-            "mewbot-io",
-        ],
-        check=True,
-        shell=SHELL_NEEDED,
-    )
-    subprocess.run(
-        [
-            venv_python_path,
-            "-m",
-            "pip",
-            "uninstall",
-            "-y",
-            "mewbot-test",
-        ],
-        check=True,
-        shell=SHELL_NEEDED,
-    )
+    for module_name in ["mewbot-api", "mewbot-core", "mewbot-io", "mewbot-test"]:
+        subprocess.run(
+            [
+                venv_python_path,
+                "-m",
+                "pip",
+                "uninstall",
+                "-y",
+                module_name,
+            ],
+            check=True,
+            shell=SHELL_NEEDED,  # nosec B602
+        )
 
 
 def _install_local_submodules(venv_python_path: str) -> None:
@@ -1023,18 +1004,12 @@ def _install_local_submodules(venv_python_path: str) -> None:
     :return:
     """
 
-    subprocess.run(
-        [venv_python_path, "setup.py", "core", "develop"], check=True, shell=SHELL_NEEDED
-    )
-    subprocess.run(
-        [venv_python_path, "setup.py", "api", "develop"], check=True, shell=SHELL_NEEDED
-    )
-    subprocess.run(
-        [venv_python_path, "setup.py", "io", "develop"], check=True, shell=SHELL_NEEDED
-    )
-    subprocess.run(
-        [venv_python_path, "setup.py", "test", "develop"], check=True, shell=SHELL_NEEDED
-    )
+    for module_name in ["core", "api", "io", "test"]:
+        subprocess.run(
+            [venv_python_path, "setup.py", module_name, "develop"],
+            check=True,
+            shell=SHELL_NEEDED,  # nosec B602
+        )
 
     print(SEPERATOR)
 
@@ -1162,7 +1137,7 @@ def _test_build_venv(venv_python_path: str) -> None:
             "-t",
         ],
         check=True,
-        shell=SHELL_NEEDED,
+        shell=SHELL_NEEDED,  # nosec B602
     )
 
 
