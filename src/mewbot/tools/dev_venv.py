@@ -783,7 +783,11 @@ def main(venv_args: argparse.Namespace) -> bool:
         _test_build_venv(venv_python_path)
 
     # 10 - Tell the user we're done
-    print(f'\n\nvenv prepared - activate via "{activation_path}"')
+    if sys_platform.system().lower() != "windows":
+        print(f'\n\nvenv prepared - activate via "source {activation_path}"')
+    else:
+        print(f'\n\nvenv prepared - activate via "{activation_path}"')
+
 
     # If we reach this point, everything should be okay
     return True
@@ -879,14 +883,9 @@ def _validate_venv(venv_path: str) -> str:
     assert os.path.isfile(activation_path), f"{activation_path = } not found in venv"
     print(f'venv created - to activate use activation_path = "{activation_path}"')
 
-    if sys_platform.system() != "Windows":
-        subprocess.run(
-            [
-                activation_path,
-            ],
-            check=True,
-            shell=True,  # nosec B602
-        )
+    if sys_platform.system().lower() != "windows":
+        # Cannot actually run this check on a linux like environment
+        return activation_path
     else:
         subprocess.run(
             [
