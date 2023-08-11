@@ -108,3 +108,16 @@ both to the terminal and store details of code coverage as webpages in `coverage
 
 More information on the linters and tests can be found in the
 [contributor documentation](./CONTRIBUTING.md).
+
+## CREDENTIALS WARNING
+
+Please note.
+
+If you use you credentials for a service with mewbot, you do so at your own risk.
+Some services ban accounts if they are used with bots which they determine to be harmful.
+This can happen at any time and without warning.
+
+Thus we CANNOT be held responsible if you use your account credentials - whether to generate a bot token or directly - 
+with a mewbot bot which subsequently causes your account to be banned.
+
+This is your responsbility. Not ours.
