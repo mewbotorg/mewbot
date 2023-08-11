@@ -788,7 +788,6 @@ def main(venv_args: argparse.Namespace) -> bool:
     else:
         print(f'\n\nvenv prepared - activate via "{activation_path}"')
 
-
     # If we reach this point, everything should be okay
     return True
 
@@ -886,14 +885,13 @@ def _validate_venv(venv_path: str) -> str:
     if sys_platform.system().lower() != "windows":
         # Cannot actually run this check on a linux like environment
         return activation_path
-    else:
-        subprocess.run(
-            [
-                activation_path,
-            ],
-            check=True,
-            shell=SHELL_NEEDED,  # nosec B602
-        )
+    subprocess.run(
+        [
+            activation_path,
+        ],
+        check=True,
+        shell=SHELL_NEEDED,  # nosec B602
+    )
 
     return activation_path
 
