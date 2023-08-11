@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
+kind: IOConfig
+implementation: mewbot.io.file_system.FileSystemIO
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa00
+properties:
+  input_path: C:\mewbot_dev\new_dir
+  input_path_type: dir
+---
+
+kind: Behaviour
+implementation: mewbot.api.v1.Behaviour
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa01
+properties:
+  name: 'Target Dir Change Alerts'
+triggers:
+  - kind: Trigger
+    implementation: examples.file_system_bots.dir_input_monitor_bot.DirSystemAllCommandTrigger
+    uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa02
+    properties: {}
+conditions: []
+actions:
+  - kind: Action
+    implementation: examples.file_system_bots.dir_input_monitor_bot.DirSystemInputPrintResponse
+    uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa03
+    properties: {}

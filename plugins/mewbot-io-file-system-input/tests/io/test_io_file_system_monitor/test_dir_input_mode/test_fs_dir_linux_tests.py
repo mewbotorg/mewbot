@@ -19,6 +19,8 @@ import tempfile
 import pytest
 
 from mewbot.io.file_system_monitor.fs_events import (
+    DirCreatedAtWatchLocationFSInputEvent,
+    DirMovedWithinWatchedDirFSInputEvent,
     DirUpdatedAtWatchLocationFSInputEvent,
     FileCreatedWithinWatchedDirFSInputEvent,
     FileDeletedWithinWatchedDirFSInputEvent,
@@ -261,5 +263,45 @@ class TestDirTypeFSInputLinuxLikeTests(
                     file_dst_path=post_move_file_path,
                     message=f"in loop {i}",
                 )
+
+            await self.cancel_task(run_task)
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(sys.platform.startswith("win"), reason="Linux (like) only test")
+    async def testDirTypeFSInput_existing_dir_create_move_dir_linux(self) -> None:
+        """
+        Create a dir in a monitored dir - then move it around - checking the output.
+        """
+
+        with tempfile.TemporaryDirectory() as tmp_dir_path:
+            run_task, output_queue, _ = await self.get_DirTypeFSInput(tmp_dir_path)
+
+            # - Using blocking methods - this should still work
+            new_dir_path = os.path.join(tmp_dir_path, "text_file_delete_me.txt")
+
+            os.mkdir(new_dir_path)
+            await self.process_dir_event_queue_response(
+                output_queue=output_queue,
+                dir_path=new_dir_path,
+                event_type=DirCreatedAtWatchLocationFSInputEvent,
+            )
+
+            await asyncio.sleep(0.1)
+
+            # Move a file to a different location
+            post_move_dir_path = os.path.join(tmp_dir_path, "moved_text_file_delete_me.txt")
+            os.rename(src=new_dir_path, dst=post_move_dir_path)
+
+            # This is an asymmetry between how files and folders handle delete
+            # left in while I try and think how to deal sanely with it
+            # await self.process_dir_deletion_response(output_queue, dir_path=new_dir_path)
+            await self.process_dir_event_queue_response(
+                output_queue=output_queue,
+                dir_path=tmp_dir_path,
+                event_type=DirMovedWithinWatchedDirFSInputEvent,
+            )
+            await self.process_file_move_queue_response(
+                output_queue, file_src_parth=new_dir_path, file_dst_path=post_move_dir_path
+            )
 
             await self.cancel_task(run_task)
