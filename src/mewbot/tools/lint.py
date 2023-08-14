@@ -167,7 +167,9 @@ class LintToolchain(BanditMixin):
 
         result = self.run_tool("PyLint", "pylint")
 
-        for line in result.stdout.decode("utf-8").split("\n"):
+        result_lines = result.stdout.decode("utf-8", errors="replace")
+
+        for line in result_lines.split("\n"):
             if ":" not in line:
                 continue
 
