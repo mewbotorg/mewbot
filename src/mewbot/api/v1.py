@@ -21,7 +21,17 @@ from __future__ import annotations
 
 import types
 from collections.abc import AsyncIterable, Iterable
-from typing import Any, Callable, TypeVar, Union, get_args, get_origin, get_type_hints
+from typing import (
+    Any,
+    Callable,
+    Generic,
+    Sequence,
+    TypeVar,
+    Union,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
 
 import abc
 import functools
@@ -80,6 +90,10 @@ class Component(metaclass=ComponentRegistry):
 
             if getattr(cls, prop).fset:
                 output["properties"][prop] = getattr(self, prop)
+                if isinstance(output["properties"][prop], DataSource):
+                    output["properties"][prop] = {
+                        "datasource": output["properties"][prop].name
+                    }
 
         return output
 
@@ -168,6 +182,7 @@ class Input:
 
         self.queue = queue
 
+    @abc.abstractmethod
     async def run(self) -> None:
         """
         Function called for this Input to interact with the service.
@@ -619,6 +634,117 @@ def flatten_types(event_types: type[TypingEvent]) -> tuple[type[TypingEvent]]:
     return events
 
 
+DataType = TypeVar("DataType")  # pylint: disable=invalid-name
+
+
+@ComponentRegistry.register_api_version(ComponentKind.DataSource, "v1")
+class DataSource(Component, Generic[DataType]):
+    """
+    DataSources are read-only sources of data.
+
+    They can be used by `Triggers`, `Conditions`, and `Actions` to provide configuration values
+    that are not stored as part of the configuration.
+    E.g. Common, static valued which are shared between these objects.
+
+    A data source can contain any number of items with a common primitive type.
+
+    The source can be accessed as if it is an array, dictionary, or single value;
+    each subclass must support one of these, but may support any combination thereof.
+
+    Note:
+     - if you have an array, every element must be of that generic type.
+     - if you have a dict all the values must be of that generic type.
+    """
+
+    @abc.abstractmethod
+    def get(self) -> DataType:
+        """
+        Returns an item in this Source.
+
+        The source can choose if this is the first item, a random item, or the next in the
+        iteration of this source (or any other semantics that make sense for the source).
+
+        This function may raise an IOException if there is a problem communicating with the backing
+        store for this source, or a DataSourceEmpty exception if there is no data to return.
+        """
+
+    def __len__(self) -> int:  # pylint: disable=invalid-length-returned
+        """
+        Returns the number of items in this DataSource.
+
+        This may return -1 to indicate that the length is unknown, otherwise it should return a
+        usable value that matches the length of .keys()
+        (for sources that work like dictionary) or the maximum slice value
+        (for sources that work like a sequence).
+        """
+        return -1
+
+    def __getitem__(self, key: Union[int, str]) -> DataType:
+        """
+        Allows access to a value in this DataStore via a key.
+
+        If key is of an inappropriate type, TypeError may be raised; this includes if this source
+        is a single value.
+        If the value is outside the index range, IndexError should be raised.
+        For mapping types, if key is missing (not in the container), KeyError should be raised.
+        """
+        raise NotImplementedError("Key access not supported for this DataStore")
+
+    def keys(self) -> Sequence[str]:
+        """
+        All the keys for a dictionary accessed source.
+
+        raise NotImplementedError otherwise.
+        """
+        raise NotImplementedError("keys not supported for this DataSource")
+
+    @abc.abstractmethod
+    def random(self) -> DataType:
+        """
+        Gets a random item from this source.
+        """
+
+
+@ComponentRegistry.register_api_version(ComponentKind.DataStore, "v1")
+class DataStore(DataSource[DataType]):
+    """
+    DataSources are read-only sources of data.
+
+    They can be used by `Triggers`, `Conditions`, and `Actions` to provide configuration values
+    that are not stored as part of the configuration.
+    E.g. Common, static valued which are shared between these objects.
+
+    A data source can contain any number of items with a common primitive type.
+
+    The source can be accessed as if it is an array, dictionary, or single value;
+    each subclass must support one of these, but may support any combination thereof.
+
+    Note:
+     - if you have an array, every element must be of that generic type.
+     - if you have a dict all the values must be of that generic type.
+    """
+
+    @abc.abstractmethod
+    def set(
+        self, value: DataType, source: str, key: Union[str, int] = "", action: str = "replace"
+    ) -> bool:
+        """
+        Generic set method for a value in the datastore.
+
+        Note - depending on the design of this datastore, setting a variable may or may not affect
+        all other variables produced by this store.
+        It's a good idea to think about the data flow.
+        :param value: The value will be added to the store with the given action
+        :param source: Where did the modification to the datastore come from?
+        :param key: Not every Datastore will have the concept of a key.
+                    E.g. single value stores.
+        :param action: There's enough choices that a string seems the correct solution.
+                       What actions are supported - and what they do - is up to the individual
+                       datasource.
+        :return:
+        """
+
+
 __all__ = [
     "IOConfig",
     "Input",
@@ -631,5 +757,7 @@ __all__ = [
     "OutputEvent",
     "InputQueue",
     "OutputQueue",
+    "DataSource",
+    "DataStore",
     "pre_filter_non_matching_events",
 ]

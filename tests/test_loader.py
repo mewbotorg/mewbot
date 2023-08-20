@@ -13,6 +13,9 @@ from __future__ import annotations
 from typing import Type
 
 import copy
+import io
+import textwrap
+from io import StringIO
 
 import pytest
 import yaml
@@ -212,3 +215,127 @@ class TestLoaderBehaviourHttpPost(BaseTestClassWithConfig[Behaviour]):
         behaviour = Behaviour(name="Test")  # type: ignore
         with pytest.raises(AttributeError, match=error):
             behaviour.uuid = "0"
+
+    @staticmethod
+    def test_load_incomplete_document() -> None:
+        """
+        Tests loading a document which is incomplete - lacking a uuid.
+        """
+
+        test_yaml_doc = textwrap.dedent(
+            """
+kind: IOConfig
+implementation: mewbot.io.discord.DiscordIO
+properties:
+  token: "[token-goes-here]"
+
+---
+        """
+        )
+
+        try:
+            configure_bot(name="This should fail", stream=io.StringIO(test_yaml_doc))
+        except ValueError:
+            pass
+
+    @staticmethod
+    def test_load_datasource_from_yaml() -> None:
+        """
+        Tests loading a document which contains a single DataSource.
+        """
+
+        test_yaml_doc = textwrap.dedent(
+            """
+kind: DataSource
+name: vals_for_d6
+implementation: mewbot.data.json_data.JsonStringDataSourceListValues
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa00
+datatype: int
+properties:
+  json_string: '[1, 2, 3, 4, 5, 6]'
+
+        """
+        )
+
+        configure_bot(name="This should pass", stream=io.StringIO(test_yaml_doc))
+
+    @staticmethod
+    def test_load_component_bad_implementation() -> None:
+        """
+        Tests loading a document which is incomplete - lacking a uuid.
+        """
+
+        test_yaml_doc = textwrap.dedent(
+            """
+kind: IOConfig
+implementation: io.StringIO
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa00
+properties:
+  token: "[token-goes-here]"
+
+---
+        """
+        )
+
+        for document in yaml.load_all(StringIO(test_yaml_doc), Loader=yaml.CSafeLoader):
+            if document is None:
+                continue
+
+            try:
+                load_component(config=document, data_sources=None)
+            except TypeError:
+                pass
+
+    @staticmethod
+    def test_load_bot_with_condition() -> None:
+        """
+        Tests loading a document which is incomplete - lacking a uuid.
+        """
+
+        test_bot_yaml = """
+
+kind: DataSource
+name: vals_for_d6
+implementation: mewbot.data.json_data.JsonStringDataSourceListValues
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa00
+datatype: int
+properties:
+  json_string: '[1, 2, 3, 4, 5, 6]'
+
+---
+
+kind: IOConfig
+implementation: mewbot.io.discord.DiscordIO
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa00
+properties:
+  token: "[token-goes-here]"
+
+---
+
+kind: Behaviour
+implementation: mewbot.api.v1.Behaviour
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa01
+properties:
+  name: 'Echo Inputs'
+triggers:
+  - kind: Trigger
+    implementation: examples.discord_bots.trivial_discord_bot.DiscordTextCommandTrigger
+    uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa02
+    properties:
+      command: "!dice"
+conditions:
+  - kind: Condition
+    uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa03
+    implementation: examples.data_sources.ExampleCondition
+    properties: {}
+actions:
+  - kind: Action
+    implementation: examples.data_sources.RollDiceAction
+    uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa04
+    properties:
+      datasource: vals_for_d6
+
+
+"""
+
+        configure_bot(name="Bot with a condition", stream=io.StringIO(test_bot_yaml))

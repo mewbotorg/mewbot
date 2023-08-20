@@ -16,14 +16,13 @@ from __future__ import annotations
 
 import abc
 import dataclasses
+import logging
 import os
 import pathlib
-import logging
 import re
 import shutil
 
 from .toolchain import Annotation, ToolChain
-
 
 TOP_LEVEL_FILES_LINK_NAME: str = "top_level_md_files"
 

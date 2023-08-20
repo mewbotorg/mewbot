@@ -19,7 +19,7 @@ from string import Template
 from mewbot.api.v1 import Action, InputEvent, OutputEvent, Trigger
 
 
-class AllEventTrigger(Trigger):
+class AllEventsTrigger(Trigger):
     """
     Fires whenever there is an PostInputEvent.
 
@@ -62,6 +62,10 @@ class PrintAction(Action):
         """
         print("Processed event", event)
         yield None
+
+
+class InputEventWithMessage(InputEvent):
+    message: str
 
 
 class EventWithReplyMixIn(abc.ABC, InputEvent):

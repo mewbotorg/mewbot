@@ -22,7 +22,7 @@ This module contains:
 from __future__ import annotations
 
 from collections.abc import AsyncIterable, Iterable
-from typing import Any, Protocol, TypedDict, Union, runtime_checkable
+from typing import Any, Protocol, Sequence, TypedDict, TypeVar, Union, runtime_checkable
 
 import asyncio
 import dataclasses
@@ -294,12 +294,118 @@ class BehaviourInterface(Protocol):
         yield OutputEvent()  # pragma: no cover (not reachable)
 
 
+DataType = Any
+S_co = TypeVar("S_co", bound=DataType, covariant=True)
+
+
+@runtime_checkable
+class DataSourceInterface(Protocol[S_co]):
+    """
+    DataSources are read-only sources of data.
+
+    They can be used by `Triggers`, `Conditions`, and `Actions` to provide configuration values
+    that are not stored as part of the configuration.
+    E.g. Common, static valued which are shared between these objects.
+
+    A data source can contain any number of items with a common primitive type.
+
+    The source can be accessed as if it is an array, dictionary, or single value;
+    each subclass must support one of these, but may support any combination thereof.
+
+    Note:
+     - if you have an array, every element must be of that generic type.
+     - if you have a dict all the values must be of that generic type.
+    """
+
+    def get(self) -> S_co:
+        """
+        Returns an item in this Source.
+
+        The source can choose if this is the first item, a random item, or the next in the
+        iteration of this source (or any other semantics that make sense for the source).
+
+        This function may raise an IOException if there is a problem communicating with the backing
+        store for this source, or a DataSourceEmpty exception if there is no data to return.
+        """
+
+    def __len__(self) -> int:
+        """
+        Returns the number of items in this DataSource.
+
+        This may return -1 to indicate that the length is unknown, otherwise it should return a
+        usable value that matches the length of .keys()
+        (for sources that work like dictionary) or the maximum slice value
+        (for sources that work like a sequence).
+        """
+
+    def __getitem__(self, key: Union[int, str]) -> S_co:
+        """
+        Allows access to a value in this DataStore via a key.
+
+        If key is of an inappropriate type, TypeError may be raised; this includes if this source
+        is a single value.
+        If the value is outside the index range, IndexError should be raised.
+        For mapping types, if key is missing (not in the container), KeyError should be raised.
+        """
+
+    def keys(self) -> Sequence[str]:
+        """
+        All the keys for a dictionary accessed source.
+
+        raise NotImplementedError otherwise.
+        """
+
+    def random(self) -> S_co:
+        """
+        Gets a random item from this source.
+        """
+
+
+@runtime_checkable
+class DataStoreInterface(DataSourceInterface[S_co], Protocol[S_co]):
+    """
+    A DataStore is a DataSource which allows data to be modified.
+
+    A `DataStore` extends a `DataSource` by allowing the bot to add, update, replace, or delete
+    data at runtime. This allows the bot to have 'memory'.
+
+    All records in a `DataStore` have associated metadata, including a moderation status, an
+    updated timestamp, and information on where the value was created from.
+
+    Functions which are inherited from `DataSource` will not return the metadata in order to
+    maintain compatibility. They must not return records in the REJECTED moderation state, and the
+    store may choose to also exclude pending items from these functions.
+    """
+
+    # see https://github.com/python/mypy/issues/7049
+    # I'm not sure if there is a good way to do this generically without risking breaking the type
+    # guarantees
+    # Can institute type checking in the api
+    def set(
+        self, value: Any, source: str, key: Union[str, int] = "", action: str = "replace"
+    ) -> bool:
+        """
+        Generic set method for a value in the datastore.
+
+        :param value: The value will be added to the store with the given action
+        :param source: Where did the modification to the datastore come from?
+        :param key: Not every Datastore will have the concept of a key.
+                    E.g. single value stores.
+        :param action: There's enough choices that a string seems the correct solution.
+                       What actions are supported - and what they do - is up to the individual
+                       datasource.
+        :return:
+        """
+
+
 Component = Union[
     IOConfigInterface,
     TriggerInterface,
     ConditionInterface,
     ActionInterface,
     BehaviourInterface,
+    DataSourceInterface,
+    DataStoreInterface,
 ]
 
 
@@ -320,6 +426,7 @@ class ComponentKind(str, enum.Enum):
     IOConfig = "IOConfig"
     Template = "Template"
     DataSource = "DataSource"
+    DataStore = "DataStore"
 
     @classmethod
     def values(cls) -> list[str]:
@@ -337,6 +444,8 @@ class ComponentKind(str, enum.Enum):
             cls.Condition: ConditionInterface,
             cls.Action: ActionInterface,
             cls.IOConfig: IOConfigInterface,
+            cls.DataSource: DataSourceInterface,
+            cls.DataStore: DataStoreInterface,
         }
 
         if value in _map:
@@ -352,6 +461,12 @@ class ConfigBlock(TypedDict):
     implementation: str
     uuid: str
     properties: dict[str, Any]
+
+
+class DataConfigBlock(ConfigBlock):
+    """YAML Block for data based components."""
+
+    datatype: str
 
 
 class BehaviourConfigBlock(ConfigBlock):
@@ -372,6 +487,8 @@ __all__ = [
     "TriggerInterface",
     "ConditionInterface",
     "ActionInterface",
+    "DataSourceInterface",
+    "DataStoreInterface",
     "InputEvent",
     "OutputEvent",
     "InputQueue",

@@ -101,8 +101,8 @@ class TestComponent:
         However, DataSource interfaces have not, yet, been defined.
         As such, a lookup on them should fail.
         """
-        with pytest.raises(ValueError):  # @UndefinedVariable
-            _ = ComponentKind.interface(ComponentKind(ComponentKind.DataSource))
+        test_ck_class = ComponentKind.interface(ComponentKind(ComponentKind.DataSource))
+        assert test_ck_class is not None
 
     @staticmethod
     def test_componentkind_interface_map_template() -> None:
