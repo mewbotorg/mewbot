@@ -184,7 +184,7 @@ class JsonStringDataSourceIterableValues(DataSource[DataType]):
         except IndexError as exp:
             raise DataStoreEmptyException(
                 f"{self.stored_val = } did not contain a value to return"
-            )
+            ) from exp
 
         if rtn_val:
             return rtn_val

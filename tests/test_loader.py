@@ -326,11 +326,11 @@ triggers:
 conditions:
   - kind: Condition
     uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa03
-    implementation: examples.discord_bots.data_sources.ExampleCondition
+    implementation: examples.data_sources.ExampleCondition
     properties: {}
 actions:
   - kind: Action
-    implementation: examples.discord_bots.data_sources.RollDiceAction
+    implementation: examples.data_sources.RollDiceAction
     uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa04
     properties:
       datasource: vals_for_d6

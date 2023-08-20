@@ -12,9 +12,9 @@ from typing import Any, AsyncIterable, Dict, Set, Type
 
 import logging
 
-from mewbot.api.v1 import Action, Condition, DataSource
+from mewbot.api.v1 import Action, Condition, DataSource, pre_filter_non_matching_events
 from mewbot.core import InputEvent, OutputEvent, OutputQueue
-from mewbot.io.discord import DiscordMessageCreationEvent, DiscordOutputEvent
+from mewbot.io.common import EventWithReplyMixIn, InputEventWithMessage
 
 
 class RollDiceAction(Action):
@@ -27,29 +27,37 @@ class RollDiceAction(Action):
     _message: str = ""
     _datasource: DataSource[Any]
 
-    def __init__(self, datasource: DataSource[Any]) -> None:
+    def __init__(self) -> None:
         """
         Accept a single data source - a list of values the dice roll could produce.
 
         :param datasource:
         """
-        self._datasource = datasource
         super().__init__()
         self._logger = logging.getLogger(__name__ + type(self).__name__)
+        print(self._datasource)
+
+    @property
+    def die(self) -> DataSource[int]:
+        return self._datasource
+
+    @die.setter
+    def die(self, die: DataSource[int]) -> None:
+        self._datasource = die
 
     @staticmethod
     def consumes_inputs() -> Set[Type[InputEvent]]:
         """
         Input Event types this Action will respond to.
         """
-        return {DiscordMessageCreationEvent}
+        return {EventWithReplyMixIn}
 
     @staticmethod
     def produces_outputs() -> Set[Type[OutputEvent]]:
         """
         Output Event types this method can produce.
         """
-        return {DiscordOutputEvent}
+        return {OutputEvent}
 
     @property
     def message(self) -> str:
@@ -72,18 +80,12 @@ class RollDiceAction(Action):
         """
         Construct a DiscordOutputEvent with the result of performing the calculation.
         """
-        if not isinstance(event, DiscordMessageCreationEvent):
-            self._logger.warning("Received wrong event type %s", type(event))
+        if not isinstance(event, EventWithReplyMixIn):
             return
 
-        test_event = DiscordOutputEvent(
-            text="A randomly selected value from a DataSource containing 1-6 was "
-            f"{self._datasource.random()}",
-            message=event.message,
-            use_message_channel=True,
+        yield event.prepare_reply(
+            f"A random value from a DataSource containing 1-6 was {self._datasource.random()}"
         )
-
-        yield test_event
 
 
 class ExampleCondition(Condition):
@@ -99,13 +101,9 @@ class ExampleCondition(Condition):
         This is used to save computational overhead by skipping events of the wrong type.
         Subclasses of the events specified here will also be processed.
         """
-        return {
-            InputEvent,
-        }
+        return {InputEvent}
 
-    def allows(self, event: InputEvent) -> bool:
+    @pre_filter_non_matching_events
+    def allows(self, event: InputEventWithMessage) -> bool:
         """Whether the event is retained after passing through this filter."""
-        if hasattr(event, "message"):
-            if str(event.message.content).startswith("!"):
-                return True
-        return False
+        return str(event.message).startswith("!")

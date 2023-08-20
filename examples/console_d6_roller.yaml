@@ -14,10 +14,9 @@ properties:
 ---
 
 kind: IOConfig
-implementation: mewbot.io.discord.DiscordIO
+implementation: examples.stdio.StandardConsoleInputOutput
 uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa00
-properties:
-  token: "[token-goes-here]"
+properties: {}
 
 ---
 
@@ -28,14 +27,8 @@ properties:
   name: 'Echo Inputs'
 triggers:
   - kind: Trigger
-    implementation: examples.discord_bots.trivial_discord_bot.DiscordTextCommandTrigger
+    implementation: mewbot.io.common.AllEventsTrigger
     uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa02
-    properties:
-      command: "!dice"
-conditions:
-  - kind: Condition
-    uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa03
-    implementation: examples.data_sources.ExampleCondition
     properties: {}
 actions:
   - kind: Action

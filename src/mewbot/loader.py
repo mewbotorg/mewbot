@@ -163,9 +163,11 @@ def load_component(
 
     # Scan the properties' section of the config - loading requests DataSources
     for prop, value in config["properties"].items():
-        if isinstance(value, dict) and value.get("datasource"):
-            target_datasource = value.get("datasource")
-            config["properties"][prop] = data_sources[target_datasource]
+        if isinstance(value, dict) and "datasource" in value:
+            target_datasource = str(value.get("datasource"))
+            config["properties"][prop] = data_sources.get(
+                target_datasource, target_datasource
+            )
 
     # Create the class instance, passing in the properties.
     component = target_class(uid=config["uuid"], **config["properties"])
