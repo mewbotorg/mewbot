@@ -16,7 +16,7 @@ import pytest
 from mewbot.api.v1 import InputEvent
 from mewbot.core import OutputEvent
 from mewbot.io.common import (
-    AllEventTrigger,
+    AllEventsTrigger,
     EventWithReplyMixIn,
     PrintAction,
     ReplyAction,
@@ -33,7 +33,7 @@ class TestCommonIO:
         Tests for the trigger that matches all input events.
         """
 
-        trigger = AllEventTrigger()
+        trigger = AllEventsTrigger()
 
         assert trigger.consumes_inputs() == {InputEvent}
         assert trigger.matches(InputEvent())
