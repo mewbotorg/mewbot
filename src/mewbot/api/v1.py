@@ -90,6 +90,10 @@ class Component(metaclass=ComponentRegistry):
 
             if getattr(cls, prop).fset:
                 output["properties"][prop] = getattr(self, prop)
+                if isinstance(output["properties"][prop], DataSource):
+                    output["properties"][prop] = {
+                        "datasource": output["properties"][prop].name
+                    }
 
         return output
 
@@ -178,6 +182,7 @@ class Input:
 
         self.queue = queue
 
+    @abc.abstractmethod
     async def run(self) -> None:
         """
         Function called for this Input to interact with the service.
