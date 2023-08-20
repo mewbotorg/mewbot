@@ -198,6 +198,14 @@ def get_positions_from_loc_line(loc_line: str) -> tuple[str, int, int]:
     # Windows uses ':' in its file paths - thus some care needs to be taken to split the tokens
     # down properly
     loc_tokens = loc_line.split(":")
+
+    if len(loc_tokens) == 4:
+        problem_path = str(loc_tokens[-3])
+        problem_line = int(loc_tokens[-2])
+        problem_char_pos = int(loc_tokens[-1])
+
+        return problem_path, problem_line, problem_char_pos
+
     # Four is the minimum, if : does not appear in the path
     assert len(loc_tokens) > 4, f"{loc_tokens = } not as expected"
 
@@ -217,6 +225,10 @@ def severity_to_level(severity: str) -> str:
     """
     if severity.lower() == "low":
         return "notice"
+    if severity.lower() in ["medium", "med"]:
+        return "warning"
+    if severity.lower() == "high":
+        return "error"
 
     raise NotImplementedError(f"severity {severity} not recognized!")
 
