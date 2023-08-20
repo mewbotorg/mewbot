@@ -115,7 +115,7 @@ def load_behaviour(
         )
         behaviour.add(trigger)
 
-    for condition_definition in config["conditions"]:
+    for condition_definition in config.get("conditions", []):
         condition = load_component(condition_definition, data_sources=data_sources)
         assert isinstance(condition, ConditionInterface), assert_message(
             condition, ConditionInterface
@@ -162,9 +162,10 @@ def load_component(
         )
 
     # Scan the properties' section of the config - loading requests DataSources
-    if "datasource" in config["properties"].keys():
-        target_datasource = config["properties"]["datasource"]
-        config["properties"]["datasource"] = data_sources[target_datasource]
+    for prop, value in config["properties"].items():
+        if isinstance(value, dict) and value.get("datasource"):
+            target_datasource = value.get("datasource")
+            config["properties"][prop] = data_sources[target_datasource]
 
     # Create the class instance, passing in the properties.
     component = target_class(uid=config["uuid"], **config["properties"])
