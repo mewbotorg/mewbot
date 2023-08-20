@@ -87,7 +87,7 @@ tools\examples: line 9: exec: : not found
 
 (I don't have a functioning linux box for this rn, so will fill this in later).
 
-## FAQ
+## DiscordIO Dev and Troubleshooting Notes
 
 ### Why am I getting blank events when messages are sent in channels the bot is monitoring?
 
@@ -97,6 +97,6 @@ Enable the scope for the token via the developer portal and things should start 
 
 ### Pycord is not seeing events I expect it to
 
-If you have enabled the appropiate scope for your bot via the developer token, and you are still not getting input events, you may need to update the intents in the __init__ of DiscordInput.
+If you have enabled the appropriate scope for your bot via the developer token, and you are still not getting input events, you may need to update the intents in the __init__ of DiscordInput.
 Currently they are set to `all` - but something might have altered here.
 

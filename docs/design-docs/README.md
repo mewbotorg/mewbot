@@ -322,9 +322,17 @@ external calls (such as to APIs), or certain complex data types.
 
 ### Trigger
 
+To be written.
+
+TODO: ajCameron suggestion - Offer trigger negation - so flips when triggers would trigger.
+
 ### Conditions
 
+To be written
+
 ### Actions
+
+To be written
 
 ### Context Flow
 

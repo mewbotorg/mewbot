@@ -13,10 +13,9 @@ All contributions, in any form, must also confirm with the [code of conduct](COD
 You can see all contributors, past and present, in the [contributors list](CONTRIBUTING.md).
 This list is managed using the [AllContributors bot](https://allcontributors.org/docs/en/bot/overview).
 
-> :information_source: This document is a living document, and will adapt based on the project's needs.
+> This document is a living document, and will adapt based on the project's needs.
 > If some part of this document creates a hindrance, raise an issue explaining the problem.
 
-<!-- This section is pending the modularisation work in issue #13
 ## Scope: What Lives in this Repository?
 
 MewBot's core provides simple interfaces for developing bot components and a system for loading and running them.
@@ -29,7 +28,6 @@ as it increases both the security footprint and compatibility issues within the 
 When building new components, whether they are input/output modules or utilities for use in behaviours,
 consider if they could be a stand-alone repository and package.
 The MewBot team is happy to help set up these repositories in the GitHub group.
--->
 
 ## Projects and Issues: What Needs Doing?
 
@@ -60,14 +58,17 @@ ownership; this is noted as the copyright being held by
 > Mewbot Developers <mewbot@quicksilver.london>
 
 BSD-2-Clause licenses are used for code, Creative Commons v4 for prose (documentation
-and examples). For completeness with the [SPDX](https://spdx.dev/) spec, files which
-have no meaningfully ownable content (generated lock files, gitignore files, etc.),
+and examples). 
+For completeness with the [SPDX](https://spdx.dev/) spec,
+files which have no meaningfully ownable content (generated lock files, gitignore files, etc.),
+are marked with the Creative Commons Universal Public Domain license,
 as per [the reuse.software recommendation](https://reuse.software/faq/#uncopyrightable).
 
 ## Code Style
 
 Coding tackles the thorny problem of trying to express logical, computational concepts in a
-human-readable and understandable manner. Our code style favours the human side.
+human-readable and understandable manner. 
+Our code style favours the human side.
 We seek to find the balance between sections of code that are too large or dense to
 comprehend and the problem of too many small pieces of code to understand at once.
 
@@ -77,8 +78,9 @@ Formatting is derived from Python's [PEP8](https://peps.python.org/pep-0008/) as
 The linting toolchain uses
 [Black](https://pypi.org/project/black/),
 [Flake8](https://flake8.pycqa.org/en/latest/),
-[mypy](http://www.mypy-lang.org/), and
-[pylint](https://pylint.pycqa.org/en/latest/)
+[mypy](http://www.mypy-lang.org/),
+[pylint](https://pylint.pycqa.org/en/latest/), and
+[pydocstyle](http://www.pydocstyle.org/en/stable/)
 to promote best practices for expressing the logical constructs.
 
 Expressing intent is the other key ingredient.

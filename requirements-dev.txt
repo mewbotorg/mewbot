@@ -15,6 +15,9 @@ reuse~=2.1
 
 # Documentation toolchain
 pydeps~=1.12.1
+myst-parser~=1.0.0
+sphinx~=6.1.0
+m2r2~=0.3.3.post2
 
 # Python Linting toolchain
 black>=23.1.0
