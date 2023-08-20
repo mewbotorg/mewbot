@@ -294,7 +294,8 @@ class BehaviourInterface(Protocol):
         yield OutputEvent()  # pragma: no cover (not reachable)
 
 
-S_co = TypeVar("S_co", bound=int, covariant=True)
+DataType = Any
+S_co = TypeVar("S_co", bound=DataType, covariant=True)
 
 
 @runtime_checkable
@@ -361,7 +362,7 @@ class DataSourceInterface(Protocol[S_co]):
 
 
 @runtime_checkable
-class DataStoreInterface(Protocol[S_co]):
+class DataStoreInterface(DataSourceInterface[S_co], Protocol[S_co]):
     """
     A DataStore is a DataSource which allows data to be modified.
 
@@ -375,23 +376,6 @@ class DataStoreInterface(Protocol[S_co]):
     maintain compatibility. They must not return records in the REJECTED moderation state, and the
     store may choose to also exclude pending items from these functions.
     """
-
-    def get(self) -> S_co:
-        """
-        Returns an item in this Source.
-
-        The source can choose if this is the first item, a random item, or the next in the
-        iteration of this source (or any other semantics that make sense for the source).
-
-        It may be that you end up not implementing this, in cases where it doesn't make sense,
-        and implementing more sensible ones.
-
-        BEWARE - It is not defined in the spec if this method returns
-         - a ref to a variable held in the store which may mutate without warning
-         - a copy of a value which will not mutate, and thus not update
-         When designing and using DataStores you MUST consider these issues.
-         It's a good idea to make this behavior explicit in your doc strings.
-        """
 
     # see https://github.com/python/mypy/issues/7049
     # I'm not sure if there is a good way to do this generically without risking breaking the type
@@ -411,38 +395,6 @@ class DataStoreInterface(Protocol[S_co]):
                        What actions are supported - and what they do - is up to the individual
                        datasource.
         :return:
-        """
-
-    def __len__(self) -> int:
-        """
-        Returns the number of items in this DataSource.
-
-        This may return -1 to indicate that the length is unknown, otherwise it should return a
-        usable value that matches the length of .keys()
-        (for sources that work like dictionary) or the maximum slice value
-        (for sources that work like a sequence).
-        """
-
-    def __getitem__(self, key: Union[int, str]) -> S_co:
-        """
-        Allows access to a value in this DataStore via a key.
-
-        If key is of an inappropriate type, TypeError may be raised; this includes if this source
-        is a single value.
-        If the value is outside the index range, IndexError should be raised.
-        For mapping types, if key is missing (not in the container), KeyError should be raised.
-        """
-
-    def keys(self) -> Sequence[str]:
-        """
-        All the keys for a dictionary accessed source.
-
-        raise NotImplementedError otherwise.
-        """
-
-    def random(self) -> S_co:
-        """
-        Gets a random item from this source.
         """
 
 

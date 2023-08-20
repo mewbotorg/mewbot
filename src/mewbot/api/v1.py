@@ -701,7 +701,7 @@ class DataSource(Component, Generic[DataType]):
 
 
 @ComponentRegistry.register_api_version(ComponentKind.DataStore, "v1")
-class DataStore(Component, Generic[DataType]):
+class DataStore(DataSource[DataType]):
     """
     DataSources are read-only sources of data.
 
@@ -720,22 +720,6 @@ class DataStore(Component, Generic[DataType]):
     """
 
     @abc.abstractmethod
-    def get(self) -> DataType:
-        """
-        Returns an item in this Source.
-
-        The source can choose if this is the first item, a random item, or the next in the
-        iteration of this source (or any other semantics that make sense for the source).
-
-        This function may raise an IOException if there is a problem communicating with the backing
-        store for this source, or a DataSourceEmpty exception if there is no data to return.
-        """
-
-    # see https://github.com/python/mypy/issues/7049
-    # I'm not sure if there is a good way to do this generically without risking breaking the type
-    # guarantees
-    # Can institute type checking in the api
-    @abc.abstractmethod
     def set(
         self, value: DataType, source: str, key: Union[str, int] = "", action: str = "replace"
     ) -> bool:
@@ -753,45 +737,6 @@ class DataStore(Component, Generic[DataType]):
                        What actions are supported - and what they do - is up to the individual
                        datasource.
         :return:
-        """
-
-    @abc.abstractmethod
-    def __len__(self) -> int:  # pylint: disable=invalid-length-returned
-        """
-        Returns the number of items in this DataSource.
-
-        This may return -1 to indicate that the length is unknown, otherwise it should return a
-        usable value that matches the length of .keys()
-        (for sources that work like dictionary) or the maximum slice value
-        (for sources that work like a sequence).
-        """
-        return -1
-
-    @abc.abstractmethod
-    def __getitem__(self, key: Union[int, str]) -> DataType:
-        """
-        Allows access to a value in this DataStore via a key.
-
-        If key is of an inappropriate type, TypeError may be raised; this includes if this source
-        is a single value.
-        If the value is outside the index range, IndexError should be raised.
-        For mapping types, if key is missing (not in the container), KeyError should be raised.
-        """
-        raise NotImplementedError("Key access not supported for this DataStore")
-
-    @abc.abstractmethod
-    def keys(self) -> Sequence[str]:
-        """
-        All the keys for a dictionary accessed source.
-
-        raise NotImplementedError otherwise.
-        """
-        raise NotImplementedError("keys not supported for this DataSource")
-
-    @abc.abstractmethod
-    def random(self) -> DataType:
-        """
-        Gets a random item from this source.
         """
 
 
