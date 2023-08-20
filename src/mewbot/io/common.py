@@ -64,6 +64,10 @@ class PrintAction(Action):
         yield None
 
 
+class InputEventWithMessage(InputEvent):
+    message: str
+
+
 class EventWithReplyMixIn(abc.ABC, InputEvent):
     """
     Mix-in/protocol to mark an event has having the ability to be replied to.
