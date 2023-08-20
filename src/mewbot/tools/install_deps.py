@@ -25,7 +25,7 @@ def main() -> bool:
     for file in dot.glob("requirements-*.txt"):
         requirements.extend(("-r", str(file)))
 
-    for file in gather_paths("requirements.txt"):
+    for file in gather_paths("requirements.txt", "requirements-dev.txt"):
         requirements.extend(("-r", str(file)))
 
     subprocess.check_call([sys.executable, "-m", "pip", "install", *requirements])
