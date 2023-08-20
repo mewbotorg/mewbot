@@ -59,7 +59,7 @@ def main() -> None:
     version = "0.0.1"
     config: Dict[str, Union[str, List[str]]] = {
         "version": version,
-        "author": "Mewbot Developers (https://github.com/mewler)",
+        "author": "Mewbot Developers (https://github.com/mewbotorg)",
         "author_email": "mewbot@quicksilver.london",
         "description": "Lightweight, YAML-driven, text based, generic irc Bot framework",
         "license_files": ["LICENSE.md"],

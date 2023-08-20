@@ -4,29 +4,20 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
-"""
-Installs the mewbot-discord_dice_roller example package on your system.
-
-Note - when building a development environment, use of this file can be a little annoying.
-In particular, it generates an egg-info folder in the same root as this file.
-Which confuses some linters (in particular, mypy).
-It's recommended that, if your preparing a mewbot dev environment, use the script
-src/mewbot/tools/dev_venv.py
-"""
-
 import os
 from pathlib import Path
 
 import setuptools  # type: ignore
 
-# Finding the right README.md
-plugin_dir = Path(__file__).parent
-root_repo_dir = plugin_dir.parent.parent
+# Finding the right README.md and inheriting the mewbot licence
+current_file = Path(__file__)
+root_repo_dir = current_file.parents[2]
 assert root_repo_dir.exists()
-with (plugin_dir / "README.md").open("r", encoding="utf-8") as rmf:
+
+with open(current_file.parent.joinpath("README.md"), "r", encoding="utf-8") as rmf:
     long_description = rmf.read()
 
-with (plugin_dir / "requirements.txt").open("r", encoding="utf-8") as rf:
+with open(current_file.parent.joinpath("requirements.txt"), "r", encoding="utf-8") as rf:
     requirements = list(x for x in rf.read().splitlines(False) if x and not x.startswith("#"))
 
 # Reading the LICENSE file and parsing the results
@@ -56,29 +47,25 @@ else:
         "to that resource."
     )
 
-
 # There are a number of bits of special sauce in this call
 # - You can fill it out manually - for your project
 # - You can copy this and make the appropriate changes
-# - Or you can run "mewbot make_new_plugin" - and follow the onscreen instructions.
+# - Or you can run "mewbot make_namespace_plugin" - and follow the onscreen instructions.
 #   Which should take care of most of the fiddly bits for you.
 setuptools.setup(
-    name="mewbot-discord_dice_roller",  # Note the different "-" and "_" between this
-    # and the entry_points/py_modules
-    # However, here, note it's "mewbot-" - not "mewbot_"
-    # If it's not "mewbot-" then the pattern the plugin manager uses to load plugins will fail
+    name="mewbot-io-discord",
     version="0.0.1",
     author="Alex Cameron",
     install_requires=requirements,
     author_email="mewbot@quicksilver.london",
-    description="Example discord dice roller for mewbot",
+    description="Mewbot Developers (https://github.com/mewbotorg)",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/mewbotorg/mewbot",
+    url="https://github.com/mewler/mewbot",
     project_urls={
-        "Bug Tracker": "https://github.com/mewbotorg/mewbot/issues",
+        "Bug Tracker": "https://github.com/mewler/mewbot/issues",
     },
-    license=license_text,
+    license=true_license_text,
     classifiers=[
         "Programming Language :: Python :: 3",
         f"License :: OSI Approved :: {true_license_ident}",
@@ -86,15 +73,13 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     package_dir={"": "src"},
-    packages=setuptools.find_packages(where="src"),
+    packages=setuptools.find_namespace_packages(where="src", include=["mewbot.*"]),
     # see https://packaging.python.org/en/latest/specifications/entry-points/
     # Note -
-    entry_points={"mewbot_v1": ["discord_dice_roller = mewbot_discord_dice_roller"]},
+    entry_points={"mewbot_v1": ["discord_io = mewbot.io.discord"]},
     # Note this setup
     # The key for the entry point should always be "mewbot"
     # The value should be a string of the form "{prefix less name} = {py_modules name}"
     # The "py_modules name" should match one of the py_modules declared below
     python_requires=">=3.9",  # Might be relaxed later
-    py_modules=["mewbot_discord_dice_roller"],
 )
-
