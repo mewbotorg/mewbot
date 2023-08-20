@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: BSD-2-Clause
+
 """
 Test attempting to use the type guard for Triggers and Conditions in various invalid configurations.
 """
