@@ -52,6 +52,14 @@ class ConsoleInputLine(EventWithReplyMixIn):
         """
         self.message = message
 
+    def __str__(self) -> str:
+        """
+        Str rep of this event.
+
+        :return:
+        """
+        return f"ConsoleInputLine: \"{self.message}\""
+
     def get_sender_name(self) -> str:
         """
         Returns the human friend name/nickname of the user who sent the event.
@@ -134,7 +142,7 @@ class StandardInput(Input):
     @staticmethod
     async def connect_stdin_stdout() -> asyncio.StreamReader:
         """
-        Async compatible - non blocking - console line reader.
+        Async compatible - non-blocking - console line reader.
 
         :return:
         """
@@ -151,10 +159,31 @@ class StandardInput(Input):
 
         :return:
         """
+        if os.name.lower() != "nt":
+            await self._linux_run()
+        else:
+            await self._windows_run()
+
+    async def _linux_run(self) -> None:
+        """
+        Linux version of the async reader.
+
+        :return:
+        """
         reader = await self.connect_stdin_stdout()
         while line := await reader.readline():
             if self.queue:
                 await self.queue.put(ConsoleInputLine(line.decode()))
+
+    async def _windows_run(self) -> None:
+        """
+        Windows version of the async reader.
+
+        :return:
+        """
+        while line := await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline):
+            if self.queue:
+                await self.queue.put(ConsoleInputLine(line))
 
 
 class StandardOutput(Output):
