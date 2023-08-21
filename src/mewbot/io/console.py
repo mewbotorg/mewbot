@@ -1,3 +1,10 @@
+"""
+Allows you to generate InputEvents and receive OutputEvents via typing in the shell.
+
+Mostly used for demo purposes.
+"""
+
+
 from typing import Iterable
 
 import asyncio
@@ -9,17 +16,40 @@ from mewbot.io.common import EventWithReplyMixIn
 
 
 class StandardConsoleInputOutput(IOConfig):
+    """
+    Prints to shell and reads things type in it back.
+    """
+
     def get_inputs(self) -> Iterable[Input]:
+        """
+        Input will read from stdio.
+
+        :return:
+        """
         return [StandardInput()]
 
     def get_outputs(self) -> Iterable[Output]:
+        """
+        Output will print to the console.
+
+        :return:
+        """
         return [StandardOutput()]
 
 
 class ConsoleInputLine(EventWithReplyMixIn):
+    """
+    Input event generated when the user types a line in the console.
+    """
+
     message: str
 
     def __init__(self, message: str) -> None:
+        """
+        Startup with the line drawn from the console.
+
+        :param message:
+        """
         self.message = message
 
     def get_sender_name(self) -> str:
@@ -63,23 +93,51 @@ class ConsoleInputLine(EventWithReplyMixIn):
         return ConsoleOutputLine(message)
 
 
-class ConsoleOutputLine(OutputEvent):
+class ConsoleOutputLine(OutputEvent):  # pylint:disable=too-few-public-methods
+    """
+    Line to be printer to the console.
+    """
+
     message: str
 
     def __init__(self, message: str) -> None:
+        """
+        Takes the console output line as a string.
+
+        :param message:
+        """
         self.message = message
 
     def __str__(self) -> str:
+        """
+        Str representation of the original message.
+
+        :return:
+        """
         return self.message
 
 
 class StandardInput(Input):
+    """
+    Reads lines from the console ever time the user enters one.
+    """
+
     @staticmethod
     def produces_inputs() -> set[type[InputEvent]]:
+        """
+        Produces ConsoleInputLine InputEvents.
+
+        :return:
+        """
         return {ConsoleInputLine}
 
     @staticmethod
     async def connect_stdin_stdout() -> asyncio.StreamReader:
+        """
+        Async compatible - non blocking - console line reader.
+
+        :return:
+        """
         loop = asyncio.get_event_loop()
         reader = asyncio.StreamReader()
         protocol = asyncio.StreamReaderProtocol(reader)
@@ -88,6 +146,11 @@ class StandardInput(Input):
         return reader
 
     async def run(self) -> None:
+        """
+        Process input typed at the console and convert it to InputEvents on the wire.
+
+        :return:
+        """
         reader = await self.connect_stdin_stdout()
         while line := await reader.readline():
             if self.queue:
@@ -95,10 +158,25 @@ class StandardInput(Input):
 
 
 class StandardOutput(Output):
+    """
+    Write out to the console.
+    """
+
     @staticmethod
     def consumes_outputs() -> set[type[OutputEvent]]:
+        """
+        Takes lines to write out to the active console.
+
+        :return:
+        """
         return {ConsoleOutputLine}
 
     async def output(self, event: OutputEvent) -> bool:
+        """
+        Just uses the print command to write out to the console.
+
+        :param event:
+        :return:
+        """
         print(event)
         return True
