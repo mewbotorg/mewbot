@@ -7,9 +7,10 @@
 """
 Tests for the Console IO configuration.
 """
-from typing import Type
+from typing import TextIO, Type
 
 import asyncio
+import io
 import os
 
 import pytest
@@ -117,6 +118,11 @@ class TestRSSIO(BaseTestClassWithConfig[StandardConsoleInputOutput]):
         assert isinstance(str(test_output_event), str), "rep should be a string"
         assert "This is a test" in str(test_output_event)
 
+    @staticmethod
+    async def _add_some_input(local_stdin: TextIO) -> None:
+        await asyncio.sleep(0.5)
+        local_stdin.write("Not sure this will work...\n")
+
     @pytest.mark.asyncio
     async def test_input_runs(self) -> None:
         """
@@ -128,6 +134,12 @@ class TestRSSIO(BaseTestClassWithConfig[StandardConsoleInputOutput]):
         cand_input = list(self.component.get_inputs())[0]
 
         assert isinstance(cand_input, StandardInput)
+
+        # Replace the file handler in the class
+        local_stdin = io.StringIO()
+        cand_input.class_stdin = local_stdin
+
+        await asyncio.wait_for(self._add_some_input(local_stdin), timeout=2)
 
         # pytest doesn't like trying to read from stdio during tests
         try:

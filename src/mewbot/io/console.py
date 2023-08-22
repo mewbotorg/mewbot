@@ -5,7 +5,7 @@ Mostly used for demo purposes.
 """
 
 
-from typing import Iterable
+from typing import Iterable, TextIO
 
 import asyncio
 import getpass
@@ -132,6 +132,15 @@ class StandardInput(Input):
     Reads lines from the console ever time the user enters one.
     """
 
+    class_stdin: TextIO
+
+    def __init__(self) -> None:
+        """
+        Startup the Input - settting the stdin.
+        """
+        super().__init__()
+        self.class_stdin = sys.stdin
+
     @staticmethod
     def produces_inputs() -> set[type[InputEvent]]:
         """
@@ -141,8 +150,7 @@ class StandardInput(Input):
         """
         return {ConsoleInputLine}
 
-    @staticmethod
-    async def connect_stdin_stdout() -> asyncio.StreamReader:
+    async def connect_stdin_stdout(self) -> asyncio.StreamReader:
         """
         Async compatible - non-blocking - console line reader.
 
@@ -150,7 +158,9 @@ class StandardInput(Input):
         """
         loop = asyncio.get_event_loop()
         reader = asyncio.StreamReader()
-        await loop.connect_read_pipe(lambda: asyncio.StreamReaderProtocol(reader), sys.stdin)
+        await loop.connect_read_pipe(
+            lambda: asyncio.StreamReaderProtocol(reader), self.class_stdin
+        )
 
         return reader
 
