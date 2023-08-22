@@ -58,7 +58,7 @@ class ConsoleInputLine(EventWithReplyMixIn):
 
         :return:
         """
-        return f"ConsoleInputLine: \"{self.message}\""
+        return f'ConsoleInputLine: "{self.message}"'
 
     def get_sender_name(self) -> str:
         """
@@ -148,8 +148,7 @@ class StandardInput(Input):
         """
         loop = asyncio.get_event_loop()
         reader = asyncio.StreamReader()
-        protocol = asyncio.StreamReaderProtocol(reader)
-        await loop.connect_read_pipe(lambda: protocol, sys.stdin)
+        await loop.connect_read_pipe(lambda: asyncio.StreamReaderProtocol(reader), sys.stdin)
 
         return reader
 
@@ -181,7 +180,9 @@ class StandardInput(Input):
 
         :return:
         """
-        while line := await asyncio.get_event_loop().run_in_executor(None, sys.stdin.readline):
+        while line := await asyncio.get_event_loop().run_in_executor(
+            None, sys.stdin.readline
+        ):
             if self.queue:
                 await self.queue.put(ConsoleInputLine(line))
 
