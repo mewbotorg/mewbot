@@ -18,11 +18,11 @@ properties:
   name: 'RSS Printer'
 triggers:
   - kind: Trigger
-    implementation: mewbot.io.common.AllEventTrigger
+    implementation: mewbot.io.common.AllEventsTrigger
     uuid: aaaaaaaa-aaaa-4aaa-0000-aaaaaaaaaa03
     properties: { }
   - kind: Trigger
-    implementation: mewbot.io.common.AllEventTrigger
+    implementation: mewbot.io.common.AllEventsTrigger
     uuid: aaaaaaaa-aaaa-4aaa-0000-aaaaaaaaaa04
     properties: { }
 conditions: []

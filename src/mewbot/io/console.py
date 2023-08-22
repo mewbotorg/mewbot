@@ -4,7 +4,6 @@ Allows you to generate InputEvents and receive OutputEvents via typing in the sh
 Mostly used for demo purposes.
 """
 
-
 from typing import Iterable, TextIO
 
 import asyncio
