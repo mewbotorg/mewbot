@@ -12,11 +12,12 @@ from typing import TextIO, Type
 import asyncio
 import io
 import os
+import tempfile
 
 import pytest
 
 from mewbot.api.v1 import IOConfig
-from mewbot.core import InputEvent
+from mewbot.core import InputEvent, InputQueue
 from mewbot.io.console import (
     ConsoleInputLine,
     ConsoleOutputLine,
@@ -124,7 +125,7 @@ class TestRSSIO(BaseTestClassWithConfig[StandardConsoleInputOutput]):
         local_stdin.write("Not sure this will work...\n")
 
     @pytest.mark.asyncio
-    async def test_input_runs(self) -> None:
+    async def test_input_runs_with_io_stringio(self) -> None:
         """
         Tests that an input actually runs.
 
@@ -139,6 +140,8 @@ class TestRSSIO(BaseTestClassWithConfig[StandardConsoleInputOutput]):
         local_stdin = io.StringIO()
         cand_input.class_stdin = local_stdin
 
+        cand_input.queue = InputQueue()
+
         await asyncio.wait_for(self._add_some_input(local_stdin), timeout=2)
 
         # pytest doesn't like trying to read from stdio during tests
@@ -148,6 +151,142 @@ class TestRSSIO(BaseTestClassWithConfig[StandardConsoleInputOutput]):
             pass
 
         # Directly run the linux version - on Windows this should fail
+        await asyncio.wait_for(self._add_some_input(local_stdin), timeout=2)
+
+        if os.name.lower() == "nt":
+            try:
+                await asyncio.wait_for(cand_input._linux_run(), timeout=2)
+            except (AttributeError, asyncio.exceptions.TimeoutError):
+                pass
+        else:
+            try:
+                await asyncio.wait_for(cand_input._windows_run(), timeout=2)
+            except OSError:
+                pass
+
+    @pytest.mark.asyncio
+    async def test_input_runs_with_io_true_file_handle(self) -> None:
+        """
+        Tests that an input actually runs.
+
+        :return:
+        """
+
+        with tempfile.TemporaryDirectory() as tmp_dir_path:
+            cand_input = list(self.component.get_inputs())[0]
+            assert isinstance(cand_input, StandardInput)
+
+            target_input_file = os.path.join(tmp_dir_path, "target_file.txt")
+
+            with open(target_input_file, "w", encoding="utf-8") as test_file:
+                test_file.write("This is a test")
+
+            with open(target_input_file, "r+", encoding="utf-8") as local_stdin:
+                # Replace the file handler in the class
+                cand_input.class_stdin = local_stdin
+
+                cand_input.queue = InputQueue()
+
+                await asyncio.wait_for(self._add_some_input(local_stdin), timeout=2)
+
+                # pytest doesn't like trying to read from stdio during tests
+                try:
+                    await asyncio.wait_for(cand_input.run(), timeout=2)
+                except OSError:
+                    pass
+
+                # Write back out
+                with open(target_input_file, "w", encoding="utf-8") as test_file:
+                    test_file.write("This is a test")
+
+                # Directly run the linux version - on Windows this should fail
+                await asyncio.wait_for(self._add_some_input(local_stdin), timeout=2)
+
+                if os.name.lower() == "nt":
+                    try:
+                        await asyncio.wait_for(cand_input._linux_run(), timeout=2)
+                    except (AttributeError, asyncio.exceptions.TimeoutError):
+                        pass
+                else:
+                    try:
+                        await asyncio.wait_for(cand_input._windows_run(), timeout=2)
+                    except OSError:
+                        pass
+
+    @pytest.mark.asyncio
+    async def test_input_runs_force_nt(self) -> None:
+        """
+        Tests that an input actually runs.
+
+        :return:
+        """
+
+        cand_input = list(self.component.get_inputs())[0]
+
+        assert isinstance(cand_input, StandardInput)
+
+        # Replace the file handler in the class
+        local_stdin = io.StringIO()
+        cand_input.class_stdin = local_stdin
+
+        cand_input.os_name = "nt"
+
+        cand_input.queue = InputQueue()
+
+        await asyncio.wait_for(self._add_some_input(local_stdin), timeout=2)
+
+        # pytest doesn't like trying to read from stdio during tests
+        try:
+            await asyncio.wait_for(cand_input.run(), timeout=2)
+        except OSError:
+            pass
+
+        # Directly run the linux version - on Windows this should fail
+        await asyncio.wait_for(self._add_some_input(local_stdin), timeout=2)
+
+        if os.name.lower() == "nt":
+            try:
+                await asyncio.wait_for(cand_input._linux_run(), timeout=2)
+            except (AttributeError, asyncio.exceptions.TimeoutError):
+                pass
+        else:
+            try:
+                await asyncio.wait_for(cand_input._windows_run(), timeout=2)
+            except OSError:
+                pass
+
+    @pytest.mark.asyncio
+    async def test_input_runs_force_unix(self) -> None:
+        """
+        Tests that an input actually runs.
+
+        :return:
+        """
+
+        cand_input = list(self.component.get_inputs())[0]
+
+        assert isinstance(cand_input, StandardInput)
+
+        # Load a queue as well
+        cand_input.queue = InputQueue()
+
+        # Replace the file handler in the class
+        local_stdin = io.StringIO()
+        cand_input.class_stdin = local_stdin
+
+        cand_input.os_name = "unix"
+
+        await asyncio.wait_for(self._add_some_input(local_stdin), timeout=2)
+
+        # pytest doesn't like trying to read from stdio during tests
+        try:
+            await asyncio.wait_for(cand_input.run(), timeout=2)
+        except (OSError, asyncio.exceptions.TimeoutError):
+            pass
+
+        # Directly run the linux version - on Windows this should fail
+        await asyncio.wait_for(self._add_some_input(local_stdin), timeout=2)
+
         if os.name.lower() == "nt":
             try:
                 await asyncio.wait_for(cand_input._linux_run(), timeout=2)

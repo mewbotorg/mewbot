@@ -133,12 +133,15 @@ class StandardInput(Input):
 
     class_stdin: TextIO
 
+    os_name: str
+
     def __init__(self) -> None:
         """
         Startup the Input - settting the stdin.
         """
         super().__init__()
         self.class_stdin = sys.stdin
+        self.os_name = os.name.lower()
 
     @staticmethod
     def produces_inputs() -> set[type[InputEvent]]:
@@ -169,7 +172,7 @@ class StandardInput(Input):
 
         :return:
         """
-        if os.name.lower() != "nt":
+        if self.os_name != "nt":
             await self._linux_run()
         else:
             await self._windows_run()
@@ -182,8 +185,7 @@ class StandardInput(Input):
         """
         reader = await self.connect_stdin_stdout()
         while line := await reader.readline():
-            if self.queue:
-                await self.queue.put(ConsoleInputLine(line.decode()))
+            await self.put_on_queue(line.decode())
 
     async def _windows_run(self) -> None:
         """
@@ -194,8 +196,17 @@ class StandardInput(Input):
         while line := await asyncio.get_event_loop().run_in_executor(
             None, sys.stdin.readline
         ):
-            if self.queue:
-                await self.queue.put(ConsoleInputLine(line))
+            await self.put_on_queue(line)
+
+    async def put_on_queue(self, input_line: str) -> None:
+        """
+        Put an output event on the queue.
+
+        :param str:
+        :return:
+        """
+        if self.queue:
+            await self.queue.put(ConsoleInputLine(input_line))
 
 
 class StandardOutput(Output):
