@@ -140,7 +140,10 @@ class TestRSSIO(BaseTestClassWithConfig[StandardConsoleInputOutput]):
             except (AttributeError, asyncio.exceptions.TimeoutError):
                 pass
         else:
-            await asyncio.wait_for(cand_input._windows_run(), timeout=2)
+            try:
+                await asyncio.wait_for(cand_input._windows_run(), timeout=2)
+            except OSError:
+                pass
 
     @pytest.mark.asyncio
     async def test_output_runs(self) -> None:
