@@ -8,6 +8,7 @@ Mostly used for demo purposes.
 from typing import Iterable
 
 import asyncio
+import getpass
 import os
 import sys
 
@@ -64,7 +65,8 @@ class ConsoleInputLine(EventWithReplyMixIn):
         """
         Returns the human friend name/nickname of the user who sent the event.
         """
-        return os.getlogin()
+        # Seems to be more universal than os.getlogin()
+        return getpass.getuser()
 
     def get_sender_mention(self) -> str:
         """
@@ -73,7 +75,7 @@ class ConsoleInputLine(EventWithReplyMixIn):
         If the reply methods will automatically ping the user, this may just be
         the human-readable username.
         """
-        return os.getlogin()
+        return getpass.getuser()
 
     def prepare_reply(self, message: str) -> OutputEvent:
         """
