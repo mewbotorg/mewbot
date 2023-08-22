@@ -192,7 +192,7 @@ class TestRSSIO(BaseTestClassWithConfig[StandardConsoleInputOutput]):
                 # pytest doesn't like trying to read from stdio during tests
                 try:
                     await asyncio.wait_for(cand_input.run(), timeout=2)
-                except OSError:
+                except (OSError, ValueError):
                     pass
 
                 # Write back out
@@ -205,7 +205,7 @@ class TestRSSIO(BaseTestClassWithConfig[StandardConsoleInputOutput]):
                 if os.name.lower() == "nt":
                     try:
                         await asyncio.wait_for(cand_input._linux_run(), timeout=2)
-                    except (AttributeError, asyncio.exceptions.TimeoutError):
+                    except (AttributeError, asyncio.exceptions.TimeoutError, ValueError):
                         pass
                 else:
                     try:
