@@ -65,9 +65,11 @@ class TestRSSIO(BaseTestClassWithConfig[StandardConsoleInputOutput]):
         assert isinstance(self.component.get_outputs(), list)
         assert len(list(self.component.get_outputs())) == 1
 
-        cand_input = list(self.component.get_outputs())[0]
+        cand_output = list(self.component.get_outputs())[0]
 
-        assert isinstance(cand_input, StandardOutput)
+        assert isinstance(cand_output, StandardOutput)
+
+        assert isinstance(cand_output.consumes_outputs(), set)
 
     def test_inputs(self) -> None:
         """
