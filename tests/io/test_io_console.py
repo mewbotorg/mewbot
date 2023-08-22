@@ -137,7 +137,7 @@ class TestRSSIO(BaseTestClassWithConfig[StandardConsoleInputOutput]):
         if os.name.lower() == "nt":
             try:
                 await asyncio.wait_for(cand_input._linux_run(), timeout=2)
-            except asyncio.exceptions.TimeoutError:
+            except (AttributeError, asyncio.exceptions.TimeoutError):
                 pass
         else:
             await asyncio.wait_for(cand_input._windows_run(), timeout=2)
