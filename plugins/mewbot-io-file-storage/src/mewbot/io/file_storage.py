@@ -307,11 +307,21 @@ class AsyncFileLock:
         Acquire an exclusive a lock on the current file descriptor.
         """
 
+        try:
+            fcntl.flock(self._file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return
+        except BlockingIOError:
+            pass
+
         call = functools.partial(fcntl.flock, self._file.fileno(), fcntl.LOCK_EX)
         loop = asyncio.get_running_loop()
         future = loop.run_in_executor(None, call)
 
-        await asyncio.wait_for(future, self._timeout)
+        try:
+            await asyncio.wait_for(future, self._timeout)
+        except TimeoutError as exp:
+            future.cancel("timeout")
+            raise exp
 
     async def release(self) -> None:
         """
