@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: ["lint", "test"]
+        name: ["test", ]
         os: ["ubuntu", "macos", "windows"]
         version: ["3.10", "3.11"]
         exclude:
@@ -50,13 +50,65 @@ jobs:
             requirements.txt
             requirements-dev.txt
 
+      - name: Install mewbot-dev-tools
+        run: python -m pip install mewbot-dev-tools
+        shell: sh
+
+      - name: Install dependencies into default python
+        shell: bash
+        run: python -m mewbot_dev_tools.install_deps
+
+      - name: Run Tests (without install)
+        shell: bash
+        run: PYTHONPATH="$(python -m mewbot_dev_tools.path)";readonly PYTHONPATH;export PYTHONPATH;mewbot-test
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: ${{ matrix.name }}-results-${{ matrix.os }}-${{ matrix.version }}
+          path: reports
+
+  lint:
+    name: ${{ matrix.name }} Python code (${{ matrix.os }}/py${{ matrix.version }})
+    runs-on: ${{ matrix.os }}-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        name: ["lint", ]
+        os: ["ubuntu", "macos", "windows"]
+        version: ["3.10", "3.11"]
+        exclude:
+          - name: Lint
+            os: macos
+          - name: Lint
+            os: windows
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.version }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install mewbot-dev-tools
+        run: python -m pip install mewbot-dev-tools
+        shell: sh
+
       - name: Install dependencies
         shell: bash
-        run: ./tools/install-deps
+        run: python -m mewbot_dev_tools.install_deps
 
-      - name: Run Tests
+      - name: Run Lint
         shell: bash
-        run: ./tools/${{ matrix.name }}
+        run: mewbot-lint
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
@@ -104,13 +156,17 @@ jobs:
         with:
           path: reports
 
+      - name: Install mewbot-dev-tools
+        run: python -m pip install mewbot-dev-tools
+        shell: sh
+
       - name: Install dependencies
         shell: bash
-        run: ./tools/install-deps
+        run: python -m mewbot_dev_tools.install_deps
 
       - name: Output Annotations
         shell: bash
-        run: ./tools/annotate
+        run: python -m mewbot_dev_tools.annotate
 
   sonarcloud:
     name: SonarCloud

@@ -4,3 +4,5 @@
 
 # Used for reading configuration in mewbot.loader
 PyYAML~=6.0
+
+mewbot-dev-tools

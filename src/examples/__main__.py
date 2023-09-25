@@ -10,10 +10,51 @@ Supports running the example yaml files included with mewbot, and third party pl
 
 from __future__ import annotations
 
+from typing import Iterable, Optional
+
+import itertools
+import pathlib
+import os
 import sys
 
 import mewbot.loader
-from mewbot.tools.path import gather_paths
+
+
+def scan_paths(
+    root: pathlib.Path, *filters: str, recursive: bool = True
+) -> Iterable[pathlib.Path]:
+    """Scan for folders with a given name in the provided path."""
+
+    if not recursive:
+        yield from [root / name for name in filters if (root / name).exists()]
+        return
+
+    for path, children, files in os.walk(root):
+        for name in filters:
+            if name in children or name in files:
+                yield pathlib.Path(path) / name
+
+
+def gather_paths(*filters: str, search_root: Optional[str] = None) -> Iterable[str]:
+    """
+    Locates all folders with the given names in this project's code locations.
+
+    :param filters: A list of dirs to search within
+    :param search_root: If provided, start the search here.
+                        If not, use os.curdir
+    """
+    if search_root is not None:
+        root = pathlib.Path(search_root)
+    else:
+        root = pathlib.Path(os.curdir)
+
+    locations = itertools.chain(
+        scan_paths(root, *filters, recursive=False),
+        scan_paths(root / "plugins", *filters),
+    )
+
+    return (str(x.absolute()) for x in locations)
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
