@@ -15,7 +15,7 @@ Two run configurations are supported
 
 from __future__ import annotations
 
-from typing import Iterable, Optional
+from typing import Iterable
 
 import itertools
 import os
@@ -45,7 +45,7 @@ def scan_for_yaml(target_path: str | pathlib.Path) -> bool:
     """
     Scan to see if we have a yaml file in the dir.
     """
-    for root, dirs, files in os.walk(target_path):
+    for _, _, files in os.walk(target_path):
         for file_name in files:
             if os.path.splitext(file_name)[1].lower() == ".yaml":
                 return True
@@ -82,37 +82,20 @@ def run_examples_with_display() -> None:
     """
     Build a display for the available examples.
     """
-    examples_paths = [pn for pn in gather_example_paths("examples")]
-
-    yaml_map: dict[int, str] = dict()
-    count = 1
+    examples_paths = list(gather_example_paths("examples"))
 
     print("Welcome to mewbot! Please select an example to run.")
-
-    for example_path in examples_paths:
-        for root, dirs, files in os.walk(example_path):
-            level = root.replace(example_path, "").count(os.sep)
-            indent = "    " + " " * 4 * (level)
-            print("{}{}/".format(indent, os.path.basename(root)))
-            subindent = " " * 4 * (level + 1)
-
-            for f in files:
-                if os.path.splitext(f)[1].lower() != ".yaml":
-                    continue
-
-                yaml_map[count] = os.path.join(root, f)
-
-                print(f"{count} - {subindent}{f}")
-
-                count += 1
+    yaml_map = _build_yaml_display(examples_paths)
 
     example_int = 0
-    for i in range(10):
-        example_int = input("Please enter a number to run an example...")
+    for _ in range(10):
+        try:
+            example_int = int(input("Please enter a number to run an example..."))
+        except ValueError:
+            print("Sorry - parse input to example no. Please try again.")
+            continue
 
-        example_int = int(example_int)
-
-        if example_int not in yaml_map.keys():
+        if example_int not in yaml_map:
             print("Sorry - could not find the specific example. Please try again.")
             continue
         break
@@ -123,6 +106,34 @@ def run_examples_with_display() -> None:
 
     print(f"Running {os.path.split(yaml_map[example_int])[1]}")
     run_example_from_given_path(yaml_map[example_int])
+
+
+def _build_yaml_display(examples_paths: list[str]) -> dict[int, str]:
+    """
+    Itterate over the examples path and construct a display of all available yaml files.
+    """
+
+    yaml_map: dict[int, str] = {}
+    count = 1
+
+    for example_path in examples_paths:
+        for root, _, files in os.walk(example_path):
+            level = root.replace(example_path, "").count(os.sep)
+            indent = "    " + " " * 4 * (level)
+            print(f"{indent}{os.path.basename(root)}/")
+            subindent = " " * 4 * (level + 1)
+
+            for file_name in files:
+                if os.path.splitext(file_name)[1].lower() != ".yaml":
+                    continue
+
+                yaml_map[count] = os.path.join(root, file_name)
+
+                print(f"{count} - {subindent}{file_name}")
+
+                count += 1
+
+    return yaml_map
 
 
 if __name__ == "__main__":
