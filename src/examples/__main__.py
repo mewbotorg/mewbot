@@ -18,12 +18,12 @@ from __future__ import annotations
 from typing import Iterable, Optional
 
 import itertools
-import sys
 import os
 import pathlib
+import sys
 
 import mewbot.loader
-from mewbot.tools.path import scan_paths, gather_paths
+from mewbot.tools.path import gather_paths, scan_paths
 
 
 def gather_example_paths(*filters: str) -> Iterable[str]:
