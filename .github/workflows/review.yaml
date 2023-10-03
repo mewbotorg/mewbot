@@ -50,6 +50,10 @@ jobs:
             requirements.txt
             requirements-dev.txt
 
+      - name: Install mewbot-dev-tools
+        run: python -m pip install mewbot-dev-tools
+        shell: sh
+
       - name: Install dependencies
         shell: bash
         run: ./tools/install-deps
