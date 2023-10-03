@@ -6,4 +6,5 @@
 
 . "${0%/*}/path"
 
-exec "$PYTHON" -m mewbot.tools.annotate "$@"
+exec "$PYTHON" -m mewbot_dev_tools.annotate "$@"
+
