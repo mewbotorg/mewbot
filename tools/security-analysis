@@ -6,4 +6,4 @@
 
 . "${0%/*}/path"
 
-exec "$PYTHON" -m mewbot_dev_tools.security_analysis "$@"
+exec "$PYTHON" -m mewbot.tools.security_analysis "$@"
