@@ -36,3 +36,6 @@ types-PyYAML~=6.0
 
 # Terminal colouring and formatting
 clint>=0.5.1
+
+# Master linting toolchain
+mewbot-dev-tools
