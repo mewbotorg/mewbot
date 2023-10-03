@@ -6,4 +6,5 @@
 
 . "${0%/*}/path"
 
+exec "$PYTHON" -m pip install mewbot-dev-tools
 exec "$PYTHON" -m mewbot_dev_tools.install_deps "$@"
