@@ -4,4 +4,6 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
-exec "$PYTHON" -m mewbot_dev_tools.annotate "$@"
+. "${0%/*}/path"
+
+exec "$PYTHON" -m mewbot.tools.annotate "$@"
