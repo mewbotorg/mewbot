@@ -11,9 +11,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Type
 
 import asyncio
 import logging
-import pprint
 import signal
-import math
 
 from mewbot.core import (
     BehaviourInterface,
