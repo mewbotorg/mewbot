@@ -4,12 +4,6 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause
 
-"""
-Contains the core class of mewbot - the Bot itself.
-
-The objective of most other parts of this project is to produce a Bot, which can then interact with
-the outside world.
-"""
 
 from __future__ import annotations
 
@@ -19,6 +13,7 @@ import asyncio
 import logging
 import pprint
 import signal
+import math
 
 from mewbot.core import (
     BehaviourInterface,
