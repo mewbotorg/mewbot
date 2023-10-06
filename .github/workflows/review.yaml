@@ -123,6 +123,7 @@ jobs:
 
     needs:
       - test
+      - lint
 
     steps:
       - name: Mark all test runs as successful
@@ -134,6 +135,7 @@ jobs:
 
     needs:
       - test
+      - lint
 
     if: always()
 
@@ -176,6 +178,7 @@ jobs:
 
     needs:
       - test
+      - lint
 
     steps:
       - uses: actions/checkout@v4
