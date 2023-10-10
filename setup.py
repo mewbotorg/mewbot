@@ -56,7 +56,7 @@ def main() -> None:
     Wrap setuptools with dynamically generated packages and information.
     """
 
-    version = "0.0.1"
+    version = "0.0.2"
     config: Dict[str, Union[str, List[str]]] = {
         "version": version,
         "author": "Mewbot Developers (https://github.com/mewbotorg)",
