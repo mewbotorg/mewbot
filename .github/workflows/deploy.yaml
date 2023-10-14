@@ -34,10 +34,11 @@ jobs:
 
       - name: Build distribution packages
         run: |-
-          rm -Rf build; python setup.py ''     sdist bdist_wheel
-          rm -Rf build; python setup.py 'core' sdist bdist_wheel
-          rm -Rf build; python setup.py 'api'  sdist bdist_wheel
-          rm -Rf build; python setup.py 'io'   sdist bdist_wheel
+          rm -Rf build; python setup.py ''       sdist bdist_wheel
+          rm -Rf build; python setup.py 'core'   sdist bdist_wheel
+          rm -Rf build; python setup.py 'api'    sdist bdist_wheel
+          rm -Rf build; python setup.py 'io'     sdist bdist_wheel
+          rm -Rf build; python setup.py 'test'   sdist bdist_wheel
 
       - name: "Archive installation artifacts"
         uses: actions/upload-artifact@v3
