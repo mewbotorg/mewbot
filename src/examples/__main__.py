@@ -13,8 +13,8 @@ from __future__ import annotations
 from typing import Iterable, Optional
 
 import itertools
-import pathlib
 import os
+import pathlib
 import sys
 
 import mewbot.loader
