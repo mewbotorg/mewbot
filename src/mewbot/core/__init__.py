@@ -17,6 +17,11 @@ This module contains:
  - Base classes for InputEvent and OutputEvent, and type hints for the event queues.
  - Component helper, including an enum of component types and a mapping to the interfaces
  - TypedDict mapping to the YAML schema for components.
+
+
+
+
+
 """
 
 from __future__ import annotations
@@ -27,6 +32,7 @@ from typing import Any, Protocol, TypedDict, Union, runtime_checkable
 import asyncio
 import dataclasses
 import enum
+import inspect
 
 
 @dataclasses.dataclass
@@ -38,7 +44,48 @@ class InputEvent:
     by :class:`~mewbot.core.Behaviour`
 
     This base event has no data or properties. Events must be immutable.
+    It does, however, have three diagnostic methods
+     - event_help - provides a help string
+     - event_display_name - provides a human-readable display name
+     - event_description - description of the event - may interface with logging
+    Unlike the other interfaces here, these have "event_" prepended.
+    This is because some InputEvents will have better call on the word "description" than us.
+    (E.g. rss - which has `description` as one of its fields).
     """
+
+    def event_help(self) -> str:
+        """
+        Returns a human-readable help string for this InputEvent.
+
+        Practically, should be rarely used - included for completeness.
+        """
+        return inspect.getsource(type(self))
+
+    def event_display_name(self) -> str:
+        """
+        Return a human-readable display name for this InputEvent.
+
+        Used for formatting logging statements.
+        """
+        return type(self).__name__
+
+    def event_description(self) -> str:
+        """
+        Return a human-readable description of this InputEvent.
+
+        Eventually, may include details such as
+         - which IOConfig generated it
+         - when
+        """
+        if (cand_str := type(self).__doc__) is not None:
+            return cand_str
+        return f"{self.event_display_name()} has no doc string set."
+
+    def event_status(self) -> str:
+        """
+        Return a human-readable status for this InputEvent.
+        """
+        return f"InputEvent - {self.event_display_name()} has not had a particular status set."
 
 
 @dataclasses.dataclass
@@ -50,7 +97,43 @@ class OutputEvent:
     may emit output events via the :class:`~mewbot.core.EventQueue`
 
     This base event has no data or properties. Events must be immutable.
+    It does, however, have three diagnostic methods
+     - event_help - provides a help string
+     - event_display_name - provides a human-readable display name
+     - event_description - description of the event - may interface with logging
+    Unlike the other interfaces here, these have "event_" prepended.
+    This is because some OutputEvents will have better call on the word "description" than us.
+    (E.g. rss - which has `description` as one of its fields).
     """
+
+    def event_help(self) -> str:
+        """
+        Returns a human-readable help string for this OutputEvent.
+
+        Practically, should be rarely used - included for completeness.
+        """
+        return inspect.getsource(type(self))
+
+    def event_display_name(self) -> str:
+        """
+        Return a human-readable display name for this OutputEvent.
+        """
+        return type(self).__name__
+
+    def event_description(self) -> str:
+        """
+        Return a human-readable description of this OutputEvent.
+        """
+        if (cand_str := type(self).__doc__) is not None:
+            return cand_str
+        return f"{self.event_display_name()} has no doc string set."
+
+    def event_status(self) -> str:
+        """
+        Return a human-readable status for this OutputEvent.
+        """
+        return f"OutputEvent - {self.event_display_name()} has not had a particular status set."
+
 
 
 InputQueue = asyncio.Queue[InputEvent]
@@ -79,6 +162,26 @@ class IOConfigInterface(Protocol):
     once, or generated on request as part of the bot's lifecycle. Either way,
     they are passed to the bot via the `get_inputs` and `get_outputs` methods.
     """
+
+    def help(self) -> str:
+        """
+        Returns a human-readable help string for this IOConfig.
+        """
+
+    def display_name(self) -> str:
+        """
+        Return a human-readable display name for this IOConfig.
+        """
+
+    def description(self) -> str:
+        """
+        Return a human-readable description for this IOConfig.
+        """
+
+    def status(self) -> str:
+        """
+        Return a status string for this IOConfig.
+        """
 
     def get_inputs(self) -> Iterable[InputInterface]:
         """
@@ -109,6 +212,26 @@ class InputInterface(Protocol):
     Inputs connect to a system, ingest events in some way, and put them
     into the bot's input event queue for processing.
     """
+
+    def help(self) -> str:
+        """
+        Returns a human-readable help string for this Input.
+        """
+
+    def display_name(self) -> str:
+        """
+        Return a human-readable display name for this Input.
+        """
+
+    def description(self) -> str:
+        """
+        Return a human-readable description for this Input.
+        """
+
+    def status(self) -> str:
+        """
+        Return a status string for this Input.
+        """
 
     @staticmethod
     def produces_inputs() -> set[type[InputEvent]]:
@@ -141,6 +264,26 @@ class OutputInterface(Protocol):
     they can consume it.
     """
 
+    def help(self) -> str:
+        """
+        Returns a human-readable help string for this Output.
+        """
+
+    def display_name(self) -> str:
+        """
+        Return a human-readable display name for this Output.
+        """
+
+    def description(self) -> str:
+        """
+        Return a human-readable description for this Output.
+        """
+
+    def status(self) -> str:
+        """
+        Return a status string for this Output.
+        """
+
     @staticmethod
     def consumes_outputs() -> set[type[OutputEvent]]:
         """Defines the types of Event that this Output class can send."""
@@ -164,6 +307,26 @@ class TriggerInterface(Protocol):
     Triggers should refrain from adding too many sub-clauses and conditions.
     Filtering behaviours is the role of the Condition Component.
     """
+
+    def help(self) -> str:
+        """
+        Returns a human-readable help string for this Trigger.
+        """
+
+    def display_name(self) -> str:
+        """
+        Return a human-readable display name for this Trigger.
+        """
+
+    def description(self) -> str:
+        """
+        Return a human-readable description for this Trigger.
+        """
+
+    def status(self) -> str:
+        """
+        Return a status string for this Trigger.
+        """
 
     @staticmethod
     def consumes_inputs() -> set[type[InputEvent]]:
@@ -193,6 +356,26 @@ class ConditionInterface(Protocol):
     see all events.
     """
 
+    def help(self) -> str:
+        """
+        Returns a human-readable help string for this Condition.
+        """
+
+    def display_name(self) -> str:
+        """
+        Return a human-readable display name for this Condition.
+        """
+
+    def description(self) -> str:
+        """
+        Return a human-readable description for this Condition.
+        """
+
+    def status(self) -> str:
+        """
+        Return a status string for this Condition.
+        """
+
     @staticmethod
     def consumes_inputs() -> set[type[InputEvent]]:
         """
@@ -216,6 +399,26 @@ class ActionInterface(Protocol):
      - Emit OutputEvents to the queue
      - Add data to the state, which will be available to the other actions in the behaviour
     """
+
+    def help(self) -> str:
+        """
+        Return a human-readable help string for this Action.
+        """
+
+    def display_name(self) -> str:
+        """
+        Returns a human-readable display name for this Action.
+        """
+
+    def description(self) -> str:
+        """
+        Return a human-readable description for this Action.
+        """
+
+    def status(self) -> str:
+        """
+        Return a status string for this Action.
+        """
 
     @staticmethod
     def consumes_inputs() -> set[type[InputEvent]]:
@@ -261,6 +464,26 @@ class BehaviourInterface(Protocol):
     accept the Event. Assuming it does, the Actions for the Behaviour are executed in
     order, which can read from or write to DataStores, and emit OutputEvents.
     """
+
+    def help(self) -> str:
+        """
+        Return a human-readable help string for this Behavior.
+        """
+
+    def display_name(self) -> str:
+        """
+        Returns a human-readable display name for this Behavior.
+        """
+
+    def description(self) -> str:
+        """
+        Return a human-readable description for this Behavior.
+        """
+
+    def status(self) -> str:
+        """
+        Return a status string for this Behavior.
+        """
 
     def add(self, component: TriggerInterface | ConditionInterface | ActionInterface) -> None:
         """

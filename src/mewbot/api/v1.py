@@ -25,6 +25,7 @@ from typing import Any, Callable, TypeVar, Union, get_args, get_origin, get_type
 
 import abc
 import functools
+import inspect
 
 from mewbot.api.registry import ComponentRegistry
 from mewbot.core import (
@@ -51,6 +52,32 @@ class Component(metaclass=ComponentRegistry):
     """
 
     _id: str
+
+    def help(self) -> str:
+        """
+        Returns a human-readable help string for this Component.
+        """
+        return inspect.getsource(type(self))
+
+    def display_name(self) -> str:
+        """
+        Return a human-readable display name for this Component.
+        """
+        return type(self).__name__
+
+    def description(self) -> str:
+        """
+        Return a human-readable description of this Component.
+        """
+        if (cand_str := type(self).__doc__) is not None:
+            return cand_str
+        return f"{self.display_name()} has no doc string set."
+
+    def status(self) -> str:
+        """
+        Returns a human-readable status string for this Component.
+        """
+        return f"Status for class {self.display_name()} is not defined."
 
     def serialise(self) -> ConfigBlock:
         """
@@ -158,6 +185,32 @@ class Input:
     def __init__(self) -> None:
         self.queue = None
 
+    def help(self) -> str:
+        """
+        Returns a human-readable help string for this Input.
+        """
+        return inspect.getsource(type(self))
+
+    def display_name(self) -> str:
+        """
+        Return a human-readable display name for this Input.
+        """
+        return type(self).__name__
+
+    def description(self) -> str:
+        """
+        Return a human-readable description of this Input.
+        """
+        if (cand_str := type(self).__doc__) is not None:
+            return cand_str
+        return f"{self.display_name()} has no doc string set."
+
+    def status(self) -> str:
+        """
+        Returns a human-readable status string for this Input.
+        """
+        return f"Status for class {self.display_name()} is not defined."
+
     @staticmethod
     @abc.abstractmethod
     def produces_inputs() -> set[type[InputEvent]]:
@@ -190,6 +243,32 @@ class Output:
     the output queue, and passes it to all Outputs that declare that
     they can consume it.
     """
+
+    def help(self) -> str:
+        """
+        Returns a human-readable help string for this Output.
+        """
+        return inspect.getsource(type(self))
+
+    def display_name(self) -> str:
+        """
+        Return a human-readable display name for this Output.
+        """
+        return type(self).__name__
+
+    def description(self) -> str:
+        """
+        Return a human-readable description of this Output.
+        """
+        if (cand_str := type(self).__doc__) is not None:
+            return cand_str
+        return f"{self.display_name()} has no doc string set."
+
+    def status(self) -> str:
+        """
+        Returns a human-readable status string for this Output.
+        """
+        return f"Status for class {self.display_name()} is not defined."
 
     @staticmethod
     @abc.abstractmethod
