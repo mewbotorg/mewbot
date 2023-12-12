@@ -28,6 +28,8 @@ import asyncio
 import dataclasses
 import enum
 
+from mewbot.api.display import TextDisplay
+
 
 @dataclasses.dataclass
 class InputEvent:
@@ -40,6 +42,14 @@ class InputEvent:
     This base event has no data or properties. Events must be immutable.
     """
 
+    display: TextDisplay = dataclasses.field(init=False)
+
+    def __post_init__(self) -> None:
+        """
+        Allows a TextDisplay to be initialised without changing the default init behavior.
+        """
+        self.display = TextDisplay(self)
+
 
 @dataclasses.dataclass
 class OutputEvent:
@@ -51,6 +61,14 @@ class OutputEvent:
 
     This base event has no data or properties. Events must be immutable.
     """
+
+    display: TextDisplay = dataclasses.field(init=False)
+
+    def __post_init__(self) -> None:
+        """
+        Allows a TextDisplay to be initialised without changing the default init behavior.
+        """
+        self.display = TextDisplay(self)
 
 
 InputQueue = asyncio.Queue[InputEvent]
@@ -79,6 +97,12 @@ class IOConfigInterface(Protocol):
     once, or generated on request as part of the bot's lifecycle. Either way,
     they are passed to the bot via the `get_inputs` and `get_outputs` methods.
     """
+
+    @property
+    def display(self) -> TextDisplay:
+        """
+        Display logic reporting on the status of this IOConfig.
+        """
 
     def get_inputs(self) -> Iterable[InputInterface]:
         """
@@ -109,6 +133,12 @@ class InputInterface(Protocol):
     Inputs connect to a system, ingest events in some way, and put them
     into the bot's input event queue for processing.
     """
+
+    @property
+    def display(self) -> TextDisplay:
+        """
+        Display logic reporting on the status of this IOConfig.
+        """
 
     @staticmethod
     def produces_inputs() -> set[type[InputEvent]]:
@@ -141,6 +171,12 @@ class OutputInterface(Protocol):
     they can consume it.
     """
 
+    @property
+    def display(self) -> TextDisplay:
+        """
+        Display logic reporting on the status of this IOConfig.
+        """
+
     @staticmethod
     def consumes_outputs() -> set[type[OutputEvent]]:
         """Defines the types of Event that this Output class can send."""
@@ -164,6 +200,12 @@ class TriggerInterface(Protocol):
     Triggers should refrain from adding too many sub-clauses and conditions.
     Filtering behaviours is the role of the Condition Component.
     """
+
+    @property
+    def display(self) -> TextDisplay:
+        """
+        Display logic reporting on the status of this IOConfig.
+        """
 
     @staticmethod
     def consumes_inputs() -> set[type[InputEvent]]:
@@ -193,6 +235,12 @@ class ConditionInterface(Protocol):
     see all events.
     """
 
+    @property
+    def display(self) -> TextDisplay:
+        """
+        Display logic reporting on the status of this IOConfig.
+        """
+
     @staticmethod
     def consumes_inputs() -> set[type[InputEvent]]:
         """
@@ -216,6 +264,12 @@ class ActionInterface(Protocol):
      - Emit OutputEvents to the queue
      - Add data to the state, which will be available to the other actions in the behaviour
     """
+
+    @property
+    def display(self) -> TextDisplay:
+        """
+        Display logic reporting on the status of this IOConfig.
+        """
 
     @staticmethod
     def consumes_inputs() -> set[type[InputEvent]]:
@@ -261,6 +315,12 @@ class BehaviourInterface(Protocol):
     accept the Event. Assuming it does, the Actions for the Behaviour are executed in
     order, which can read from or write to DataStores, and emit OutputEvents.
     """
+
+    @property
+    def display(self) -> TextDisplay:
+        """
+        Display logic reporting on the status of this IOConfig.
+        """
 
     def add(self, component: TriggerInterface | ConditionInterface | ActionInterface) -> None:
         """

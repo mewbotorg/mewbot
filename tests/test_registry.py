@@ -16,6 +16,7 @@ import abc
 
 import pytest
 
+from mewbot.api.display import TextDisplay
 from mewbot.api.registry import ComponentRegistry
 from mewbot.api.v1 import Condition, InputEvent
 from mewbot.core import ComponentKind
@@ -66,6 +67,13 @@ class TestRegistry:
             """
             Private class for testing.
             """
+
+            @property
+            @abc.abstractmethod
+            def display(self) -> TextDisplay:
+                """
+                May provide a display for this object - might not.
+                """
 
             @staticmethod
             @abc.abstractmethod

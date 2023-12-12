@@ -26,6 +26,7 @@ from typing import Any, Callable, TypeVar, Union, get_args, get_origin, get_type
 import abc
 import functools
 
+from mewbot.api.display import TextDisplay
 from mewbot.api.registry import ComponentRegistry
 from mewbot.core import (
     ActionInterface,
@@ -51,6 +52,14 @@ class Component(metaclass=ComponentRegistry):
     """
 
     _id: str
+    _display: TextDisplay
+
+    @property
+    def display(self) -> TextDisplay:
+        """
+        Return the current Display for this component.
+        """
+        return self._display
 
     def serialise(self) -> ConfigBlock:
         """
@@ -154,9 +163,18 @@ class Input:
     """
 
     queue: InputQueue | None
+    _display: TextDisplay
 
     def __init__(self) -> None:
         self.queue = None
+        self._display = TextDisplay(self)
+
+    @property
+    def display(self) -> TextDisplay:
+        """
+        Provides a text based display for this input.
+        """
+        return self._display
 
     @staticmethod
     @abc.abstractmethod
@@ -190,6 +208,21 @@ class Output:
     the output queue, and passes it to all Outputs that declare that
     they can consume it.
     """
+
+    _display: TextDisplay
+
+    def __init__(self) -> None:
+        """
+        Mostly needed to declare the display.
+        """
+        self._display = TextDisplay(self)
+
+    @property
+    def display(self) -> TextDisplay:
+        """
+        Get the display responsible for generating information for this Output.
+        """
+        return self._display
 
     @staticmethod
     @abc.abstractmethod
