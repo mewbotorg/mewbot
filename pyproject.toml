@@ -52,3 +52,6 @@ sections = ['FUTURE', 'TYPING', 'STDLIB', 'THIRDPARTY', 'FIRSTPARTY', 'LOCALFOLD
 known_typing = ["typing", "types", "collections.abc"]
 # 9 is black compatible, bu does not look great
 multi_line_output = 3
+
+[bandit]
+skips = ["B101", ]
