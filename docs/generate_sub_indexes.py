@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: BSD-2-Clause
 
 """
 Generates sub indexes of files such as the .md files in the top level of this repo.

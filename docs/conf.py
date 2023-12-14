@@ -1,4 +1,6 @@
-
+# SPDX-FileCopyrightText: 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: BSD-2-Clause
 
 """
 Configuration file for the mewbot Sphinx documentation builder.

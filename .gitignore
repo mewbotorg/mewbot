@@ -32,3 +32,4 @@ examples/TrivialDiscordBot/secrets.json
 /reports/
 /.pytest_cache/
 /junit.xml
+/.ruff_cache

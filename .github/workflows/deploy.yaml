@@ -18,10 +18,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python ${{ env.DEFAULT_PYTHON }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.DEFAULT_PYTHON }}
           cache: pip
@@ -34,10 +34,11 @@ jobs:
 
       - name: Build distribution packages
         run: |-
-          rm -Rf build; python setup.py ''     sdist bdist_wheel
-          rm -Rf build; python setup.py 'core' sdist bdist_wheel
-          rm -Rf build; python setup.py 'api'  sdist bdist_wheel
-          rm -Rf build; python setup.py 'io'   sdist bdist_wheel
+          rm -Rf build; python setup.py ''       sdist bdist_wheel
+          rm -Rf build; python setup.py 'core'   sdist bdist_wheel
+          rm -Rf build; python setup.py 'api'    sdist bdist_wheel
+          rm -Rf build; python setup.py 'io'     sdist bdist_wheel
+          rm -Rf build; python setup.py 'test'   sdist bdist_wheel
 
       - name: "Archive installation artifacts"
         uses: actions/upload-artifact@v3

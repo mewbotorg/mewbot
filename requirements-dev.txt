@@ -8,31 +8,16 @@
 -r requirements-test.txt
 
 # Installation toolchain
-setuptools~=68.0
-
-# Copyright linting toolchain
-reuse~=2.1
-
-# Documentation toolchain
-pydeps~=1.12.1
-myst-parser~=1.0.0
-sphinx~=6.1.0
-m2r2~=0.3.3.post2
+setuptools~=69.0.0
 
 # Python Linting toolchain
-black>=23.1.0
-flake8>=6.0.0
-pylint>=2.16.0
 pytest-github-actions-annotate-failures>=0.1.7
-pydocstyle>=6.3.0
-isort>=5.12.0
-
-# Security Analysis toolchain
-bandit~=1.7.5
 
 # Type checking toolchain
-mypy>=0.991
 types-PyYAML~=6.0
 
 # Terminal colouring and formatting
 clint>=0.5.1
+
+# Master linting toolchain
+mewbot-dev-tools

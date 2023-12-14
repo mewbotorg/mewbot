@@ -1,5 +1,7 @@
+.. SPDX-FileCopyrightText: 2023 Mewbot Developers <mewbot@quicksilver.london>
+..
+.. SPDX-License-Identifier: BSD-2-Clause
 
-        
 .. toctree::
    :maxdepth: 4
    :caption: Top Level MD files:
