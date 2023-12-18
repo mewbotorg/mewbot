@@ -41,7 +41,7 @@ jobs:
           rm -Rf build; python setup.py 'test'   sdist bdist_wheel
 
       - name: "Archive installation artifacts"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: builds
           path: dist/*
