@@ -8,7 +8,7 @@
 -r requirements-test.txt
 
 # Installation toolchain
-setuptools~=69.0.3
+setuptools~=69.1.0
 
 # Python Linting toolchain
 pytest-github-actions-annotate-failures>=0.1.7
