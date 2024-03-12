@@ -13,7 +13,7 @@ the outside world.
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Optional, Set, Type
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Type
 
 import asyncio
 import logging
@@ -255,16 +255,19 @@ class BotRunner:
         :param stop:
         :return:
         """
-        try:
-            loop.add_signal_handler(signal.SIGINT, stop)
-        except NotImplementedError:
-            # We're probably running on windows, where this is not an option
-            pass
-        try:
-            loop.add_signal_handler(signal.SIGTERM, stop)
-        except NotImplementedError:
-            # We're probably running on windows, where this is not an option
-            pass
+        # This is type failing - but only on ubuntu
+        # It seems to be a false positive
+        if not TYPE_CHECKING:
+            try:
+                loop.add_signal_handler(signal.SIGINT, stop)
+            except NotImplementedError:
+                # We're probably running on windows, where this is not an option
+                pass
+            try:
+                loop.add_signal_handler(signal.SIGTERM, stop)
+            except NotImplementedError:
+                # We're probably running on windows, where this is not an option
+                pass
 
     def setup_tasks(self, loop: asyncio.AbstractEventLoop) -> List[asyncio.Task[None]]:
         """

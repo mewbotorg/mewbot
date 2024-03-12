@@ -3,4 +3,4 @@
 # SPDX-License-Identifier: CC0-1.0
 
 # Used for automated package discovery
-importlib-metadata~=7.0.0
+importlib-metadata~=7.0.2
