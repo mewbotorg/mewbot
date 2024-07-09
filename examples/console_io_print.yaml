@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2021 - 2023 Mewbot Developers <mewbot@quicksilver.london>
+#
+# SPDX-License-Identifier: CC-BY-4.0
+
+kind: IOConfig
+implementation: mewbot.io.console.StandardConsoleInputOutput
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa00
+properties: {}
+
+---
+
+kind: Behaviour
+implementation: mewbot.api.v1.Behaviour
+uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa01
+properties:
+  name: 'Print "world" on receiving "!hello"'
+triggers:
+  - kind: Trigger
+    implementation: mewbot.io.common.AllEventTrigger
+    uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa02
+    properties: {}
+conditions: []
+actions:
+  - kind: Action
+    implementation: mewbot.io.common.PrintAction
+    uuid: aaaaaaaa-aaaa-4aaa-0001-aaaaaaaaaa03
+    properties: {}
