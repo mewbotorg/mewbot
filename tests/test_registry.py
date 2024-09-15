@@ -67,6 +67,24 @@ class TestRegistry:
             Private class for testing.
             """
 
+            @abc.abstractmethod
+            def help(self) -> str:
+                """
+                Human-readable help string for this Condition.
+                """
+
+            @abc.abstractmethod
+            def display_name(self) -> str:
+                """
+                Human-readable help string for this Condition.
+                """
+
+            @abc.abstractmethod
+            def description(self) -> str:
+                """
+                Human-readable help string for this Condition.
+                """
+
             @staticmethod
             @abc.abstractmethod
             def consumes_inputs() -> set[Type[InputEvent]]:
